@@ -1,2 +1,2 @@
-# kriptografia
-Aggregation library to access popular cryptocurrency platforms
+# yaad
+yaad means memory in hindi
