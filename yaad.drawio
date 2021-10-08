@@ -1,1 +1,97 @@
-<mxfile host="app.diagrams.net" modified="2021-10-08T12:39:49.227Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36" version="15.4.3" etag="46mup-RpVrFg1PY8zo5h" type="github"><diagram id="3Gu60bG9tOjDC1oJ2HrQ">UzV2zq1wL0osyPDNT0nNUTV2VTV2LsrPL4GwciucU3NyVI0MMlNUjV1UjYwMgFjVyA2HrCFY1qAgsSg1rwSLBiADYTaQg2Y1AA==</diagram></mxfile>
+<mxfile host="app.diagrams.net" modified="2021-10-08T13:33:06.313Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36" etag="3BEftoLiek1NVR1rSaSG" version="15.4.3" type="github">
+  <diagram id="3Gu60bG9tOjDC1oJ2HrQ" name="Page-1">
+    <mxGraphModel dx="1422" dy="1975" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="DS1eiStIfhi46_03IJWJ-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="DS1eiStIfhi46_03IJWJ-1" target="DS1eiStIfhi46_03IJWJ-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-1" value="Inspectors&lt;br&gt;&lt;br&gt;&lt;i&gt;getMetrics() -&amp;gt; []Metric{}&amp;nbsp;&lt;/i&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="230" width="210" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="DS1eiStIfhi46_03IJWJ-2" target="DS1eiStIfhi46_03IJWJ-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-2" value="Implements" style="shape=rhombus;perimeter=rhombusPerimeter;whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="520" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-5" value="docker-stats&lt;br&gt;&lt;br&gt;- Container ID&lt;br&gt;- Name&lt;br&gt;- CPU%&lt;br&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="630" width="100" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-6" value="ps&amp;nbsp; -aux" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="640" width="100" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-8" value="df -h" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="630" width="100" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-9" value="/proc/loadavg" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="635" width="100" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-10" value="/proc/meminfo" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="635" width="100" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-11" value="/proc/net/dev" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="890" y="640" width="100" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-12" value="uptime" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="640" width="100" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-13" value="/proc/net/dev" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="635" width="100" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-14" value="Drivers&lt;br&gt;&lt;br&gt;&lt;i&gt;readFile() -&amp;gt; string&lt;br&gt;runCommand() -&amp;gt; string&lt;/i&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="1090" width="210" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="DS1eiStIfhi46_03IJWJ-15" target="DS1eiStIfhi46_03IJWJ-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-15" value="Implements" style="shape=rhombus;perimeter=rhombusPerimeter;whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="320" y="1350" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-17" value="localhost - windows" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="1440" width="100" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-18" value="remote - unix" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="1440" width="100" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-19" value="localhost - unix" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1440" width="100" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-20" value="Charts&lt;br&gt;&lt;br&gt;&lt;i&gt;render()&lt;/i&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="1660" width="210" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-21" value="linechart" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1870" width="100" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-22" value="barchart" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="1880" width="100" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-23" value="piechart" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="355" y="1880" width="100" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-24" value="heatmap" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="1880" width="100" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-25" value="Inspectors&lt;br&gt;&lt;br&gt;&lt;i&gt;getMetrics() -&amp;gt; []Metric{}&amp;nbsp;&lt;/i&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="-230" width="210" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-26" value="Drivers&lt;br&gt;&lt;br&gt;&lt;i&gt;readFile() -&amp;gt; string&lt;br&gt;runCommand() -&amp;gt; string&lt;/i&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="-230" width="210" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-27" value="Charts&lt;br&gt;&lt;br&gt;&lt;i&gt;render()&lt;/i&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="-210" width="210" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-30" value="use" style="shape=singleArrow;whiteSpace=wrap;html=1;arrowWidth=0.36666666666666664;arrowSize=0.17;" vertex="1" parent="1">
+          <mxGeometry x="290" y="-135" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-31" value="render" style="shape=singleArrow;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="-135" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-33" value="Driver {&lt;br&gt;supported []Inspector&lt;br&gt;}&lt;br&gt;&lt;br&gt;driver = Driver{}&lt;br&gt;driver.supported =&amp;nbsp; []&lt;br&gt;&lt;br&gt;Inspectors {&lt;br&gt;supported []Chart&lt;br&gt;}" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="860" y="60" width="320" height="320" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
