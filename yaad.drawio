@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-10-08T13:33:06.313Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36" etag="3BEftoLiek1NVR1rSaSG" version="15.4.3" type="github">
+<mxfile host="app.diagrams.net" modified="2021-10-08T13:45:49.064Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36" etag="cQlD6hB3BGLcAFMrkCAP" version="15.4.3" type="github">
   <diagram id="3Gu60bG9tOjDC1oJ2HrQ" name="Page-1">
     <mxGraphModel dx="1422" dy="1975" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -38,7 +38,7 @@
           <mxGeometry x="740" y="640" width="100" height="190" as="geometry" />
         </mxCell>
         <mxCell id="DS1eiStIfhi46_03IJWJ-13" value="/proc/net/dev" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
-          <mxGeometry x="1090" y="635" width="100" height="190" as="geometry" />
+          <mxGeometry x="1040" y="640" width="100" height="190" as="geometry" />
         </mxCell>
         <mxCell id="DS1eiStIfhi46_03IJWJ-14" value="Drivers&lt;br&gt;&lt;br&gt;&lt;i&gt;readFile() -&amp;gt; string&lt;br&gt;runCommand() -&amp;gt; string&lt;/i&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
           <mxGeometry x="300" y="1090" width="210" height="210" as="geometry" />
@@ -88,8 +88,11 @@
         <mxCell id="DS1eiStIfhi46_03IJWJ-31" value="render" style="shape=singleArrow;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="680" y="-135" width="100" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="DS1eiStIfhi46_03IJWJ-33" value="Driver {&lt;br&gt;supported []Inspector&lt;br&gt;}&lt;br&gt;&lt;br&gt;driver = Driver{}&lt;br&gt;driver.supported =&amp;nbsp; []&lt;br&gt;&lt;br&gt;Inspectors {&lt;br&gt;supported []Chart&lt;br&gt;}" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+        <mxCell id="DS1eiStIfhi46_03IJWJ-33" value="Driver {&lt;br&gt;supported []Inspector&lt;br&gt;}&lt;br&gt;&lt;br&gt;driver = Driver{}&lt;br&gt;driver.supported =&amp;nbsp; []&lt;br&gt;&lt;br&gt;Inspectors {&lt;br&gt;supported []Chart&lt;br&gt;}" style="whiteSpace=wrap;html=1;aspect=fixed;gradientColor=#ffa500;fillColor=#ffcd28;strokeColor=#d79b00;" vertex="1" parent="1">
           <mxGeometry x="860" y="60" width="320" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="DS1eiStIfhi46_03IJWJ-34" value="tasklist" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="830" width="100" height="180" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
