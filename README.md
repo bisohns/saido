@@ -1,2 +1,2 @@
-# yaad
-yaad means memory in hindi
+# atẹle
+atẹle means monitor in Yoruba
