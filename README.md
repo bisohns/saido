@@ -1,2 +1,2 @@
-# atẹle
-atẹle means monitor in Yoruba
+# saido
+saido means monitor in Hausa
