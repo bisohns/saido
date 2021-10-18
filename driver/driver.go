@@ -1,5 +1,11 @@
 package driver
 
+import "github.com/bisoncorps/saido/inspector"
+
+type fields struct {
+	supported []inspector.Inspector
+}
+
 // Driver : specification of functions to be defined by every Driver
 type Driver interface {
 	readFile(path string) (string, error)

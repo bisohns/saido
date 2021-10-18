@@ -10,7 +10,9 @@ import (
 )
 
 // Local : Driver for handling local executions
-type Local struct{}
+type Local struct {
+	fields
+}
 
 func (d *Local) readFile(path string) (string, error) {
 	log.Debugf("Reading content from %s", path)
