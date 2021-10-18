@@ -2,8 +2,10 @@ package driver
 
 import (
 	"fmt"
+
 	"github.com/melbahja/goph"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
 )
 
 // SSH : Driver for handling ssh executions
@@ -19,6 +21,8 @@ type SSH struct {
 	PubKeyFile string
 	// Pass key for public key file
 	PubKeyPass string
+	// Check known hosts (only disable for tests
+	CheckKnownHosts bool
 }
 
 func (d *SSH) String() string {
@@ -27,6 +31,9 @@ func (d *SSH) String() string {
 
 // set the goph Client
 func (d *SSH) Client() (*goph.Client, error) {
+	var err error
+	var client *goph.Client
+	var callback ssh.HostKeyCallback
 	port := 22
 	if d.Port != 0 {
 		port = d.Port
@@ -35,11 +42,15 @@ func (d *SSH) Client() (*goph.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	callback, err := goph.DefaultKnownHosts()
-	if err != nil {
-		return nil, err
+	if d.CheckKnownHosts {
+		callback, err = goph.DefaultKnownHosts()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		callback = ssh.InsecureIgnoreHostKey()
 	}
-	client, err := goph.NewConn(&goph.Config{
+	client, err = goph.NewConn(&goph.Config{
 		User:     d.User,
 		Addr:     d.Host,
 		Port:     uint(port),
@@ -47,9 +58,6 @@ func (d *SSH) Client() (*goph.Client, error) {
 		Timeout:  goph.DefaultTimeout,
 		Callback: callback,
 	})
-	if err != nil {
-		return nil, err
-	}
 	return client, err
 }
 
