@@ -3,7 +3,8 @@ package driver
 import "github.com/bisoncorps/saido/inspector"
 
 type fields struct {
-	supported []inspector.Inspector
+	// Supported inspectors for specific driver
+	Supported []inspector.Inspector
 }
 
 // Driver : specification of functions to be defined by every Driver
