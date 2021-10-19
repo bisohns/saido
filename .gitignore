@@ -9,3 +9,5 @@ vendor/
 *.swp
 *.swo
 *.swp
+
+docker-compose.yaml

@@ -1,18 +1,21 @@
 package driver
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestSSHRunCommand(t *testing.T) {
 	d := SSH{
-		User:            "root",
-		Host:            "172.17.0.2",
+		User:            "dev",
+		Host:            "127.0.0.1",
 		Port:            2222,
-		PubKeyFile:      "/home/deven/.ssh/id_rsa",
+		PubKeyFile:      "/home/runner/.ssh/id_rsa",
 		PubKeyPass:      "",
 		CheckKnownHosts: false,
 	}
-	_, err := d.runCommand(`ps -A`)
-	if err != nil {
+	output, err := d.runCommand(`ps -A`)
+	if err != nil || !strings.Contains(output, "PID") {
 		t.Error(err)
 	}
 }
