@@ -10,11 +10,14 @@ func TestSSHRunCommand(t *testing.T) {
 		User:            "dev",
 		Host:            "127.0.0.1",
 		Port:            2222,
-		PubKeyFile:      "/home/runner/.ssh/id_rsa",
+		PubKeyFile:      "/home/deven/.ssh/id_rsa",
 		PubKeyPass:      "",
 		CheckKnownHosts: false,
+		fields: fields{
+			PollInterval: 5,
+		},
 	}
-	output, err := d.runCommand(`ps -A`)
+	output, err := d.RunCommand(`ps -A`)
 	if err != nil || !strings.Contains(output, "PID") {
 		t.Error(err)
 	}

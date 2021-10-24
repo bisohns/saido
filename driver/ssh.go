@@ -61,13 +61,13 @@ func (d *SSH) Client() (*goph.Client, error) {
 	return client, err
 }
 
-func (d *SSH) readFile(path string) (string, error) {
+func (d *SSH) ReadFile(path string) (string, error) {
 	log.Debugf("Reading remote content %s", path)
 	command := fmt.Sprintf(`cat %s`, path)
-	return d.runCommand(command)
+	return d.RunCommand(command)
 }
 
-func (d *SSH) runCommand(command string) (string, error) {
+func (d *SSH) RunCommand(command string) (string, error) {
 	// FIXME: Do we retain client across all command runs?
 	log.Debugf("Running remote command %s", command)
 	client, err := d.Client()
@@ -82,6 +82,6 @@ func (d *SSH) runCommand(command string) (string, error) {
 	return string(out), nil
 }
 
-func (d *SSH) getDetails() string {
+func (d *SSH) GetDetails() string {
 	return fmt.Sprintf(`SSH - %s`, d.String())
 }

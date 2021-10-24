@@ -7,7 +7,7 @@ import (
 
 func TestWindowsRunCommand(t *testing.T) {
 	d := Local{}
-	output, err := d.runCommand(`tasklist`)
+	output, err := d.RunCommand(`tasklist`)
 	if err != nil || !strings.Contains(output, "PID") {
 		t.Error(err)
 	}
@@ -15,7 +15,7 @@ func TestWindowsRunCommand(t *testing.T) {
 
 func TestWindowsLocalGetDetails(t *testing.T) {
 	d := Local{}
-	output := d.getDetails()
+	output := d.GetDetails()
 	if output != "Local - windows" {
 		t.Error(output)
 	}

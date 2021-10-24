@@ -14,7 +14,7 @@ type Local struct {
 	fields
 }
 
-func (d *Local) readFile(path string) (string, error) {
+func (d *Local) ReadFile(path string) (string, error) {
 	log.Debugf("Reading content from %s", path)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -23,7 +23,7 @@ func (d *Local) readFile(path string) (string, error) {
 	return string(content), nil
 }
 
-func (d *Local) runCommand(command string) (string, error) {
+func (d *Local) RunCommand(command string) (string, error) {
 	cmdArgs := strings.Fields(command)
 	log.Debugf("Running command `%s` ", command)
 	out, err := exec.Command(cmdArgs[0], cmdArgs[1:]...).Output()
@@ -33,6 +33,6 @@ func (d *Local) runCommand(command string) (string, error) {
 	return string(out), nil
 }
 
-func (d *Local) getDetails() string {
+func (d *Local) GetDetails() string {
 	return fmt.Sprintf(`Local - %s`, runtime.GOOS)
 }
