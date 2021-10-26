@@ -6,14 +6,15 @@ import (
 	"strings"
 )
 
+// DFMetrics : Metrics used by DF
 type DFMetrics struct {
-	size        float64
-	used        float64
-	available   float64
-	percentFull int
+	Size        float64
+	Used        float64
+	Available   float64
+	PercentFull int
 }
 
-// DF : Parsing the `df` output for memory monitoring
+// DF : Parsing the `df` output for disk monitoring
 type DF struct {
 	fields
 	// The values read from the command output string are defaultly in KB
@@ -63,10 +64,10 @@ func (i *DF) Parse(output string) {
 
 func (i DF) createMetric(columns []string, percent int) DFMetrics {
 	return DFMetrics{
-		size:        NewByteSize(columns[1], i.RawByteSize).format(i.DisplayByteSize),
-		used:        NewByteSize(columns[2], i.RawByteSize).format(i.DisplayByteSize),
-		available:   NewByteSize(columns[3], i.RawByteSize).format(i.DisplayByteSize),
-		percentFull: percent,
+		Size:        NewByteSize(columns[1], i.RawByteSize).format(i.DisplayByteSize),
+		Used:        NewByteSize(columns[2], i.RawByteSize).format(i.DisplayByteSize),
+		Available:   NewByteSize(columns[3], i.RawByteSize).format(i.DisplayByteSize),
+		PercentFull: percent,
 	}
 }
 
