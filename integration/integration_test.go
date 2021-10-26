@@ -32,3 +32,17 @@ func TestMemInfoonSSH(t *testing.T) {
 	}
 	fmt.Printf(`%#v`, i.Values)
 }
+
+func TestResponseTimeonWeb(t *testing.T) {
+	d := driver.NewWebForTest()
+	i := inspector.NewResponseTime()
+	output, err := d.RunCommand(i.String())
+	if err != nil {
+		t.Error(err)
+	}
+	i.Parse(output)
+	if i.Values.Seconds == 0 {
+		t.Error("showing response time as 0")
+	}
+	fmt.Printf(`%#v`, i.Values)
+}
