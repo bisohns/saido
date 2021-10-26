@@ -15,7 +15,7 @@ const (
 )
 
 var inspectorMap = map[string]Inspector{
-	`df`: NewDF(),
+	`disk`: NewDF(),
 }
 
 type fields struct {

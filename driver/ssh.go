@@ -8,6 +8,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+var port = 22
+
 // SSH : Driver for handling ssh executions
 type SSH struct {
 	fields
@@ -17,10 +19,10 @@ type SSH struct {
 	Host string
 	// port default is 22
 	Port int
-	// Path to public key file
-	PubKeyFile string
-	// Pass key for public key file
-	PubKeyPass string
+	// Path to private key file
+	KeyFile string
+	// Pass key for key file
+	KeyPass string
 	// Check known hosts (only disable for tests
 	CheckKnownHosts bool
 }
@@ -34,11 +36,10 @@ func (d *SSH) Client() (*goph.Client, error) {
 	var err error
 	var client *goph.Client
 	var callback ssh.HostKeyCallback
-	port := 22
 	if d.Port != 0 {
 		port = d.Port
 	}
-	auth, err := goph.Key(d.PubKeyFile, d.PubKeyPass)
+	auth, err := goph.Key(d.KeyFile, d.KeyPass)
 	if err != nil {
 		return nil, err
 	}
@@ -84,4 +85,18 @@ func (d *SSH) RunCommand(command string) (string, error) {
 
 func (d *SSH) GetDetails() string {
 	return fmt.Sprintf(`SSH - %s`, d.String())
+}
+
+func NewSSHForTest() *SSH {
+	return &SSH{
+		User:            "dev",
+		Host:            "127.0.0.1",
+		Port:            2222,
+		KeyFile:         "/home/deven/.ssh/id_rsa",
+		KeyPass:         "",
+		CheckKnownHosts: false,
+		fields: fields{
+			PollInterval: 5,
+		},
+	}
 }
