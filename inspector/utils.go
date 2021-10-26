@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"math"
 	"strconv"
@@ -34,7 +35,9 @@ func NewByteSize(byteCount string, unit string) *ByteSize {
 
 func index(arr []string, str string) float64 {
 	for index, a := range arr {
-		if a == str {
+		// Match GB to GB and GiB
+		if a == str || fmt.Sprintf(
+			`%si%s`, string(a[:len(a)-1]), string(a[len(a)-1])) == str {
 			return float64(index)
 		}
 	}

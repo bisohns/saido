@@ -39,3 +39,18 @@ func TestMemInfoonLocal(t *testing.T) {
 	}
 	fmt.Printf(`%#v`, i.Values)
 }
+
+func TestDockerStatsonLocal(t *testing.T) {
+	d := driver.Local{}
+	// can either use NewDF() or get the interface and perform type assertion
+	i := (inspector.GetInspector(`dockerstats`)).(*inspector.DockerStats)
+	output, err := d.RunCommand(i.String())
+	if err != nil {
+		t.Error(err)
+	}
+	i.Parse(output)
+	if len(i.Values) == 0 {
+		t.Error("showing no running container")
+	}
+	fmt.Printf(`%#v`, i.Values)
+}
