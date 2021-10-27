@@ -4,12 +4,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// CustomMetrics : Metrics used by DF
+// CustomMetrics : Metrics used by Custom
 type CustomMetrics struct {
 	Output string
 }
 
-// Custom : Parsing the `df` output for disk monitoring
+// Custom : Parsing the custom command output for disk monitoring
 type Custom struct {
 	fields
 	Values CustomMetrics

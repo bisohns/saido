@@ -75,3 +75,16 @@ func TestCustomonSSH(t *testing.T) {
 		t.Errorf("%s", i.Values.Output)
 	}
 }
+
+func TestLoadAvgonSSH(t *testing.T) {
+	d := driver.NewSSHForTest()
+	i := inspector.NewLoadAvg()
+	output, err := d.ReadFile(i.String())
+	if err != nil {
+		t.Error(err)
+	}
+	i.Parse(output)
+	if i.Values.Load1M == 0 {
+		t.Errorf("%f", i.Values.Load1M)
+	}
+}
