@@ -2,6 +2,7 @@ package driver
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/melbahja/goph"
 	log "github.com/sirupsen/logrus"
@@ -25,6 +26,8 @@ type SSH struct {
 	KeyPass string
 	// Check known hosts (only disable for tests
 	CheckKnownHosts bool
+	// set environmental vars for server e.g []string{"DEBUG=1", "FAKE=echo"}
+	Vars []string
 }
 
 func (d *SSH) String() string {
@@ -76,6 +79,11 @@ func (d *SSH) RunCommand(command string) (string, error) {
 		return ``, err
 	}
 	defer client.Close()
+	if len(d.Vars) != 0 {
+		// add env variable to command
+		envline := strings.Join(d.Vars, ";")
+		command = strings.Join([]string{envline, command}, ";")
+	}
 	out, err := client.Run(command)
 	if err != nil {
 		return ``, err

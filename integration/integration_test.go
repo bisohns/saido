@@ -2,6 +2,7 @@ package integration
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bisoncorps/saido/driver"
@@ -45,4 +46,32 @@ func TestResponseTimeonWeb(t *testing.T) {
 		t.Error("showing response time as 0")
 	}
 	fmt.Printf(`%#v`, i.Values)
+}
+
+func TestProcessonSSH(t *testing.T) {
+	d := driver.NewSSHForTest()
+	i := inspector.NewProcess()
+	output, err := d.RunCommand(i.String())
+	if err != nil {
+		t.Error(err)
+	}
+	i.Parse(output)
+	if len(i.Values) <= 2 {
+		t.Error(err)
+	}
+}
+
+func TestCustomonSSH(t *testing.T) {
+	d := driver.NewSSHForTest()
+	// set vars
+	d.Vars = []string{"MONKEY=true"}
+	i := inspector.NewCustom(`echo $MONKEY`)
+	output, err := d.RunCommand(i.String())
+	if err != nil {
+		t.Error(err)
+	}
+	i.Parse(output)
+	if strings.TrimSpace(i.Values.Output) != "true" {
+		t.Errorf("%s", i.Values.Output)
+	}
 }

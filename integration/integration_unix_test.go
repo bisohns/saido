@@ -54,3 +54,22 @@ func TestDockerStatsonLocal(t *testing.T) {
 	}
 	fmt.Printf(`%#v`, i.Values)
 }
+
+func TestProcessonLocal(t *testing.T) {
+	d := driver.Local{}
+	i := inspector.NewProcess()
+	output, err := d.RunCommand(i.String())
+	if err != nil {
+		t.Error(err)
+	}
+	i.Parse(output)
+	if len(i.Values) <= 2 {
+		t.Error(err)
+	}
+	// Track just root PID of 1
+	i.TrackPID = 1
+	i.Parse(output)
+	if len(i.Values) != 1 {
+		t.Error("unexpected size of single PID tracking")
+	}
+}
