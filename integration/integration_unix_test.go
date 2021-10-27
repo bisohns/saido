@@ -75,17 +75,31 @@ func TestProcessonLocal(t *testing.T) {
 	}
 }
 
+//FIXME: faulty shell globbing using custom commands
+//func TestCustomonLocal(t *testing.T) {
+//  d := driver.Local{
+//    Vars: []string{"MONKEY=true"},
+//  }
+//  i := inspector.NewCustom(`echo $MONKEY`)
+//  output, err := d.RunCommand(i.String())
+//  if err != nil {
+//    t.Error(err)
+//  }
+//  i.Parse(output)
+//  if strings.TrimSpace(i.Values.Output) != "true" {
+//    t.Errorf("%s", i.Values.Output)
+//  }
+//}
+
 func TestCustomonLocal(t *testing.T) {
-	d := driver.Local{
-		Vars: []string{"MONKEY=true"},
-	}
-	i := inspector.NewCustom(`echo $MONKEY`)
+	d := driver.Local{}
+	i := inspector.NewCustom(`echo /test/test`)
 	output, err := d.RunCommand(i.String())
 	if err != nil {
 		t.Error(err)
 	}
 	i.Parse(output)
-	if strings.TrimSpace(i.Values.Output) != "$MONKEY" {
+	if strings.TrimSpace(i.Values.Output) != "/test/test" {
 		t.Errorf("%s", i.Values.Output)
 	}
 }
