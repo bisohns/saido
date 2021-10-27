@@ -4,6 +4,7 @@ package integration
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bisoncorps/saido/driver"
@@ -71,5 +72,20 @@ func TestProcessonLocal(t *testing.T) {
 	i.Parse(output)
 	if len(i.Values) != 1 {
 		t.Error("unexpected size of single PID tracking")
+	}
+}
+
+func TestCustomonLocal(t *testing.T) {
+	d := driver.Local{
+		Vars: []string{"MONKEY=true"},
+	}
+	i := inspector.NewCustom(`echo $MONKEY`)
+	output, err := d.RunCommand(i.String())
+	if err != nil {
+		t.Error(err)
+	}
+	i.Parse(output)
+	if strings.TrimSpace(i.Values.Output) != "$MONKEY" {
+		t.Errorf("%s", i.Values.Output)
 	}
 }
