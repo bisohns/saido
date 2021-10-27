@@ -14,7 +14,7 @@ type LoadAvgMetrics struct {
 	Load15M float64
 }
 
-// LoadAvg : Parsing the /proc/loadavg output for disk monitoring
+// LoadAvg : Parsing the /proc/loadavg output for load average monitoring
 type LoadAvg struct {
 	fields
 	Values LoadAvgMetrics

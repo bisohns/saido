@@ -105,7 +105,7 @@ func TestCustomonLocal(t *testing.T) {
 }
 
 func TestLoadAvgonLocal(t *testing.T) {
-	d := driver.NewSSHForTest()
+	d := driver.Local{}
 	i := inspector.NewLoadAvg()
 	output, err := d.ReadFile(i.String())
 	if err != nil {
@@ -114,6 +114,20 @@ func TestLoadAvgonLocal(t *testing.T) {
 	i.Parse(output)
 	if i.Values.Load1M == 0 {
 		t.Errorf("%f", i.Values.Load1M)
+	}
+	fmt.Printf("%#v", i.Values)
+}
+
+func TestUptimeonLocal(t *testing.T) {
+	d := driver.Local{}
+	i := inspector.NewUptime()
+	output, err := d.ReadFile(i.String())
+	if err != nil {
+		t.Error(err)
+	}
+	i.Parse(output)
+	if i.Values.Up == 0 {
+		t.Errorf("%f", i.Values.Up)
 	}
 	fmt.Printf("%#v", i.Values)
 }

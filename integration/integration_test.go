@@ -88,3 +88,16 @@ func TestLoadAvgonSSH(t *testing.T) {
 		t.Errorf("%f", i.Values.Load1M)
 	}
 }
+
+func TestUptimeonSSH(t *testing.T) {
+	d := driver.NewSSHForTest()
+	i := inspector.NewUptime()
+	output, err := d.ReadFile(i.String())
+	if err != nil {
+		t.Error(err)
+	}
+	i.Parse(output)
+	if i.Values.Up == 0 {
+		t.Errorf("%f", i.Values.Up)
+	}
+}
