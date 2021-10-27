@@ -14,10 +14,15 @@ const (
 	File
 )
 
+// exclude windows specific inspectors
 var inspectorMap = map[string]Inspector{
-	`disk`:        NewDF(),
-	`meminfo`:     NewMemInfo(),
-	`dockerstats`: NewDockerStats(),
+	`disk`:         NewDF(),
+	`meminfo`:      NewMemInfo(),
+	`dockerstats`:  NewDockerStats(),
+	`uptime`:       NewUptime(),
+	`loadavg`:      NewLoadAvg(),
+	`responsetime`: NewResponseTime(),
+	`custom`:       NewCustom(``),
 }
 
 type fields struct {
