@@ -1,9 +1,9 @@
 package driver
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -28,8 +28,8 @@ type Web struct {
 	URL string
 	// Method POST/GET
 	Method Request
-	// Body in case of a POST
-	Body io.Reader
+	// Payload in case of a POST
+	Payload string
 }
 
 func (d *Web) String() string {
@@ -47,11 +47,10 @@ func (d *Web) RunCommand(command string) (string, error) {
 		var err error
 		start := time.Now()
 		if d.Method == POST {
-			res, err = http.Post(d.URL, "application/json", d.Body)
-			defer res.Body.Close()
+			body := []byte(d.Payload)
+			res, err = http.Post(d.URL, "application/json", bytes.NewBuffer(body))
 		} else {
 			res, err = http.Get(d.URL)
-			defer res.Body.Close()
 		}
 		if err != nil || res.StatusCode < 200 || res.StatusCode > 299 {
 			message := fmt.Sprintf("Error %s running request: %s", err, string(res.StatusCode))
