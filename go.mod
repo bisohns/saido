@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/melbahja/goph v1.2.1
+	github.com/mum4k/termdash v0.16.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
