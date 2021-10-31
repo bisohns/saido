@@ -1,1 +1,41 @@
-<mxfile host="app.diagrams.net" modified="2021-10-31T20:18:25.882Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36" version="15.5.5" etag="NMz5AqPJWjmORhwmeuFt" type="github"><diagram id="K9JKsOqInsGYbhqt51aP">UzV2zq1wL0osyPDNT0nNUTV2VTV2LsrPL4GwciucU3NyVI0MMlNUjV1UjYwMgFjVyA2HrCFY1qAgsSg1rwSLBiADYTaQg2Y1AA==</diagram></mxfile>
+<mxfile host="app.diagrams.net" modified="2021-10-31T20:29:38.753Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36" etag="TkRFHZqPYCsowx8tN-bv" version="15.5.5" type="github">
+  <diagram id="K9JKsOqInsGYbhqt51aP" name="Page-1">
+    <mxGraphModel dx="2249" dy="744" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="-7rz2lcqFbY8qTz_FPmM-1" value="Graphs" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="-310" y="60" width="690" height="690" as="geometry" />
+        </mxCell>
+        <mxCell id="-7rz2lcqFbY8qTz_FPmM-2" value="Dashboard Name (default: Saido)" style="text;html=1;resizable=0;autosize=1;align=center;verticalAlign=middle;points=[];fillColor=none;strokeColor=none;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-70" y="90" width="190" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="-7rz2lcqFbY8qTz_FPmM-4" value="" style="endArrow=none;dashed=1;html=1;rounded=0;exitX=0.001;exitY=0.087;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.997;entryY=0.086;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="-7rz2lcqFbY8qTz_FPmM-1" target="-7rz2lcqFbY8qTz_FPmM-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="70" y="460" as="sourcePoint" />
+            <mxPoint x="390" y="130" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-7rz2lcqFbY8qTz_FPmM-5" value="Host 1 (button)&lt;br&gt;Host 2 (button)&lt;br&gt;&lt;br&gt;&lt;br&gt;...&lt;br&gt;Host n (button)" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-310" y="120" width="210" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="-7rz2lcqFbY8qTz_FPmM-6" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-100" y="150" as="sourcePoint" />
+            <mxPoint x="390" y="150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-7rz2lcqFbY8qTz_FPmM-7" value="DF" style="text;html=1;resizable=0;autosize=1;align=center;verticalAlign=middle;points=[];fillColor=none;strokeColor=none;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-90" y="130" width="30" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="-7rz2lcqFbY8qTz_FPmM-8" value="LoadAVG" style="text;html=1;resizable=0;autosize=1;align=center;verticalAlign=middle;points=[];fillColor=none;strokeColor=none;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-60" y="130" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="-7rz2lcqFbY8qTz_FPmM-11" value="MemInfo" style="text;html=1;resizable=0;autosize=1;align=center;verticalAlign=middle;points=[];fillColor=none;strokeColor=none;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="60" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
