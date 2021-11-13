@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bisoncorps/saido/driver"
-	"github.com/bisoncorps/saido/inspector"
+	"github.com/bisohns/saido/driver"
+	"github.com/bisohns/saido/inspector"
 )
 
 func TestDFonSSH(t *testing.T) {

@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 package integration
@@ -7,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bisoncorps/saido/driver"
-	"github.com/bisoncorps/saido/inspector"
+	"github.com/bisohns/saido/driver"
+	"github.com/bisohns/saido/inspector"
 )
 
 func TestDFonLocal(t *testing.T) {

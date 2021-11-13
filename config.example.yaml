@@ -1,0 +1,32 @@
+# Ansible inspired Config
+hosts:
+  connection:
+    type: ssh
+    username: root 
+    password: somethingSecret
+  x.example.net:
+  y.example.net:
+  z.example.net:
+  "192.0.1.5":
+    alias: home-server
+    connection: 
+      type: ssh
+      username: root 
+      password: somethingSecret
+    port: 33
+  "192.0.1.4":
+    connection: 
+      type: local
+  children:
+    eu-west1:
+      hosts:
+        "192.0.10.3":
+        "192.0.10.5":
+      connection:
+        type: ssh
+        privateKeyPath: /path/to/private/key
+      port: 2222
+
+metrics:
+- memory
+- cpu
