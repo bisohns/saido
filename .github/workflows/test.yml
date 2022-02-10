@@ -21,7 +21,7 @@ jobs:
       - name: Setup SSH server
         # run docker ssh container for ssh tests
         run: |
-          mkdir -p /home/runner/.ssh
+          sudo mkdir -p /home/runner/.ssh
           echo "${{ secrets.TEST_PUB_KEY }}" >> /home/runner/.ssh/id_rsa.pub
           echo "${{ secrets.TEST_PRIV_KEY }}" >> /home/runner/.ssh/id_rsa
           docker run -d \
