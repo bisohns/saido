@@ -62,6 +62,10 @@ func LoadConfig(configPath string) *Config {
 	return config
 }
 
+func (cf *Config) parse() {
+
+}
+
 func GetConfig() *Config {
 	return config
 }

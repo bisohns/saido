@@ -17,15 +17,15 @@ hosts:
   "192.0.1.4":
     connection: 
       type: local
-  children:
-    eu-west1:
+  eu-west1:
+    connection:
+      type: ssh
+      privateKeyPath: /path/to/private/key
+    port: 2222
+    children:
       hosts:
         "192.0.10.3":
         "192.0.10.5":
-      connection:
-        type: ssh
-        privateKeyPath: /path/to/private/key
-      port: 2222
 
 metrics:
 - memory

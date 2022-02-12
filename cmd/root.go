@@ -54,6 +54,7 @@ var rootCmd = &cobra.Command{
 
 		cfg := config.GetConfig()
 		log.Infof("%v", cfg)
+		// charts.Main()
 	},
 }
 
