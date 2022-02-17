@@ -1,42 +1,35 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
-	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 
 	"gopkg.in/yaml.v2"
 )
 
 var config = &Config{}
+var allHosts []Host
 
 type Connection struct {
-	Type           string
-	Username       string
-	Password       string
-	PrivateKeyPath string
-}
-
-// Group represents group specified under children
-type Group struct {
-	Name       string
-	Hosts      map[string]*Host
-	Children   map[string]*Group
-	Connection *Connection
+	Type           string `mapstructure:"type"`
+	Username       string `mapstructure:"type"`
+	Password       string `mapstructure:"type"`
+	PrivateKeyPath string `mapstructure:"private_key_path"`
+	Port           int32  `mapstructure:"port"`
 }
 
 type Host struct {
-	Alias        string
-	Port         int32
-	Connection   *Connection
-	Hosts        map[string]*Host
-	directGroups map[string]*Group
+	Address    string
+	Alias      string
+	Connection *Connection
 }
 
 type Config struct {
-	Hosts   map[string]interface{} `yaml:"hosts"`
-	Metrics []string               `yaml:"metrics"`
+	Hosts   map[interface{}]interface{} `yaml:"hosts"`
+	Metrics []string                    `yaml:"metrics"`
 }
 
 func LoadConfig(configPath string) *Config {
@@ -49,14 +42,10 @@ func LoadConfig(configPath string) *Config {
 		log.Fatalf("error: %v", err)
 	}
 
-	for k, v := range config.Hosts {
-		// Parser Children
-		if strings.ToLower(k) == "children" {
+	parseConfig("root", "", config.Hosts, &Connection{})
 
-		} else {
-
-		}
-		log.Info(k, v)
+	for _, i := range allHosts {
+		log.Infof("Name: %s, Connection: %+v", i.Address, i.Connection)
 	}
 
 	return config
@@ -70,6 +59,49 @@ func GetConfig() *Config {
 	return config
 }
 
-func parseHosts(h interface{}) []*Host {
-	return []*Host{}
+func parseConnection(conn map[interface{}]interface{}) *Connection {
+	var c Connection
+	mapstructure.Decode(conn, &c)
+	return &c
+}
+
+func parseConfig(name string, host string, group map[interface{}]interface{}, currentConnection *Connection) {
+	currentConn := currentConnection
+	log.Infof("Loading config for %s and host: %s with Connection: %+v", name, host, currentConn)
+	isParent := false // Set to true for groups that contain just children data i.e children
+	if conn, ok := group["connection"]; ok {
+		v, ok := conn.(map[interface{}]interface{})
+		if !ok {
+			log.Errorf("Failed to parse connection for %s", name)
+		}
+
+		currentConn = parseConnection(v)
+	}
+
+	if children, ok := group["children"]; ok {
+		isParent = true
+		parsedChildren, ok := children.(map[interface{}]interface{})
+		if !ok {
+			log.Fatalf("Failed to parse children of %s", name)
+			return
+		}
+
+		for k, v := range parsedChildren {
+			host := make(map[interface{}]interface{})
+			host, ok := v.(map[interface{}]interface{})
+			if !ok && v != nil { // some leaf nodes do not contain extra data under
+				log.Errorf("Failed to parse children of %s", name)
+			}
+			parseConfig(fmt.Sprintf("%s:%s", name, k), fmt.Sprintf("%s", k), host, currentConn)
+		}
+	}
+
+	if !isParent {
+		newHost := Host{
+			Address:    host,
+			Connection: currentConn,
+		}
+
+		allHosts = append(allHosts, newHost)
+	}
 }

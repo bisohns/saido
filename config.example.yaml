@@ -4,26 +4,26 @@ hosts:
     type: ssh
     username: root 
     password: somethingSecret
-  x.example.net:
-  y.example.net:
-  z.example.net:
-  "192.0.1.5":
-    alias: home-server
-    connection: 
-      type: ssh
-      username: root 
-      password: somethingSecret
-    port: 33
-  "192.0.1.4":
-    connection: 
-      type: local
-  eu-west1:
-    connection:
-      type: ssh
-      privateKeyPath: /path/to/private/key
-    port: 2222
-    children:
-      hosts:
+  children:
+    x.example.net:
+    y.example.net:
+    z.example.net:
+    "192.0.1.5":
+      alias: home-server
+      connection: 
+        type: ssh
+        username: root 
+        password: somethingSecret
+        port: 33
+    "192.0.1.4":
+      connection: 
+        type: local
+    eu-west1:
+      connection:
+        type: ssh
+        private_key_path: /path/to/private/key
+        port: 2222
+      children:
         "192.0.10.3":
         "192.0.10.5":
 
