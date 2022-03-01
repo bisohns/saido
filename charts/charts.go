@@ -456,7 +456,7 @@ const (
 	tcellTerminal   = "tcell"
 )
 
-func charts_main() {
+func Main() {
 	log.Debug("Starting Saido Main")
 	t, err := tcell.New(tcell.ColorMode(terminalapi.ColorMode256))
 	if err != nil {
