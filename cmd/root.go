@@ -44,7 +44,8 @@ var rootCmd = &cobra.Command{
 		if verbose {
 			log.SetLevel(log.DebugLevel)
 		} else {
-			log.SetLevel(log.InfoLevel)
+			//      log.SetLevel(log.InfoLevel)
+			log.SetLevel(log.DebugLevel)
 		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
@@ -53,8 +54,9 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Saido is running ...")
 
-		cfg := config.GetConfig()
-		log.Infof("%v", cfg)
+		_ = config.GetConfig()
+		//    log.Infof("%v", cfg)
+		//    charts.Main()
 	},
 }
 
