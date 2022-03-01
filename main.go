@@ -15,7 +15,9 @@ limitations under the License.
 */
 package main
 
-import "github.com/bisohns/saido/cmd"
+import (
+	"github.com/bisohns/saido/cmd"
+)
 
 func main() {
 	cmd.Execute()

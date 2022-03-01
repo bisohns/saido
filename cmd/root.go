@@ -22,6 +22,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/bisohns/saido/charts"
 	"github.com/bisohns/saido/config"
 )
 
@@ -67,6 +68,7 @@ func Execute() {
 }
 
 func init() {
+	charts.Main()
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to config file")
 
