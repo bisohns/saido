@@ -29,7 +29,8 @@ import (
 var (
 	cfgFile string
 	// Verbose : Should display verbose logs
-	verbose bool
+	verbose       bool
+	dashboardInfo *config.DashBoardInfo
 )
 
 const appName = "saido"
@@ -54,9 +55,8 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Saido is running ...")
 
-		_ = config.GetConfig()
-		//    log.Infof("%v", cfg)
-		//    charts.Main()
+		log.Info(dashboardInfo.Hosts)
+		charts.Main(dashboardInfo)
 	},
 }
 
@@ -70,7 +70,6 @@ func Execute() {
 }
 
 func init() {
-	charts.Main()
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to config file")
 
@@ -79,5 +78,5 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	_ = config.LoadConfig(cfgFile)
+	dashboardInfo = config.LoadConfig(cfgFile)
 }

@@ -11,7 +11,13 @@ import (
 )
 
 var config = &Config{}
-var allHosts []Host
+
+// DashBoardInfo is the completely parsed config
+type DashBoardInfo struct {
+	Hosts   []Host
+	Metrics []string
+	Title   string
+}
 
 type Connection struct {
 	Type           string `mapstructure:"type"`
@@ -30,10 +36,14 @@ type Host struct {
 type Config struct {
 	Hosts   map[interface{}]interface{} `yaml:"hosts"`
 	Metrics []string                    `yaml:"metrics"`
+	Title   string                      `yaml: "title"`
 }
 
-func LoadConfig(configPath string) *Config {
+func LoadConfig(configPath string) *DashBoardInfo {
 	confYaml, err := ioutil.ReadFile(configPath)
+	dashboardInfo := &DashBoardInfo{
+		Title: "Saido",
+	}
 	if err != nil {
 		log.Errorf("yamlFile.Get err   %v ", err)
 	}
@@ -41,14 +51,18 @@ func LoadConfig(configPath string) *Config {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
+	if config.Title != "" {
+		dashboardInfo.Title = config.Title
+	}
 
-	parseConfig("root", "", config.Hosts, &Connection{})
+	allHosts := parseConfig("root", "", config.Hosts, &Connection{})
 
 	for _, i := range allHosts {
 		log.Infof("Name: %s, Connection: %+v", i.Address, i.Connection)
+		dashboardInfo.Hosts = append(dashboardInfo.Hosts, i)
 	}
-
-	return config
+	dashboardInfo.Metrics = config.Metrics
+	return dashboardInfo
 }
 
 func (cf *Config) parse() {
@@ -65,8 +79,9 @@ func parseConnection(conn map[interface{}]interface{}) *Connection {
 	return &c
 }
 
-func parseConfig(name string, host string, group map[interface{}]interface{}, currentConnection *Connection) {
+func parseConfig(name string, host string, group map[interface{}]interface{}, currentConnection *Connection) []Host {
 	currentConn := currentConnection
+	allHosts := []Host{}
 	log.Infof("Loading config for %s and host: %s with Connection: %+v", name, host, currentConn)
 	isParent := false // Set to true for groups that contain just children data i.e children
 	if conn, ok := group["connection"]; ok {
@@ -83,7 +98,7 @@ func parseConfig(name string, host string, group map[interface{}]interface{}, cu
 		parsedChildren, ok := children.(map[interface{}]interface{})
 		if !ok {
 			log.Fatalf("Failed to parse children of %s", name)
-			return
+			return nil
 		}
 
 		for k, v := range parsedChildren {
@@ -92,7 +107,7 @@ func parseConfig(name string, host string, group map[interface{}]interface{}, cu
 			if !ok && v != nil { // some leaf nodes do not contain extra data under
 				log.Errorf("Failed to parse children of %s", name)
 			}
-			parseConfig(fmt.Sprintf("%s:%s", name, k), fmt.Sprintf("%s", k), host, currentConn)
+			allHosts = append(allHosts, parseConfig(fmt.Sprintf("%s:%s", name, k), fmt.Sprintf("%s", k), host, currentConn)...)
 		}
 	}
 
@@ -104,4 +119,5 @@ func parseConfig(name string, host string, group map[interface{}]interface{}, cu
 
 		allHosts = append(allHosts, newHost)
 	}
+	return allHosts
 }

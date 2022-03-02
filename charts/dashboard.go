@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bisohns/saido/config"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mum4k/termdash"
@@ -36,40 +37,31 @@ type widgets struct {
 	input    *textinput.TextInput
 	rollT    *text.Text
 	spGreen  *sparkline.SparkLine
-	spRed    *sparkline.SparkLine
-	heartLC  *linechart.LineChart
 	barChart *barchart.BarChart
 	donut    *donut.Donut
 	leftB    *button.Button
 	rightB   *button.Button
 	sineLC   *linechart.LineChart
+	hosts    []*button.Button
 
 	buttons *layoutButtons
 }
 
+var logToDashBoard func(string) error
+
 // newWidgets creates all widgets used by this demo.
-func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Container) (*widgets, error) {
-	updateText := make(chan string)
-	sd, err := newSegmentDisplay(ctx, t, updateText)
+func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Container, dashboardInfo *config.DashBoardInfo) (*widgets, error) {
+	sd, err := newSegmentDisplay(ctx, t, dashboardInfo.Title)
 	if err != nil {
 		return nil, err
 	}
 
-	input, err := newTextInput(updateText)
+	rollT, logToDashBoardfunc, err := newRollText(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	rollT, err := newRollText(ctx)
-	if err != nil {
-		return nil, err
-	}
-	spGreen, spRed, err := newSparkLines(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	heartLC, err := newHeartbeat(ctx)
+	logToDashBoard = logToDashBoardfunc
+	spGreen, err := newSparkLines(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -88,18 +80,22 @@ func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Contai
 	if err != nil {
 		return nil, err
 	}
+
+	hosts, err := newHostButtons(ctx, dashboardInfo.Hosts)
+	if err != nil {
+		return nil, err
+	}
+
 	return &widgets{
 		segDist:  sd,
-		input:    input,
 		rollT:    rollT,
 		spGreen:  spGreen,
-		spRed:    spRed,
-		heartLC:  heartLC,
 		barChart: bc,
 		donut:    don,
 		leftB:    leftB,
 		rightB:   rightB,
 		sineLC:   sineLC,
+		hosts:    hosts,
 	}, nil
 }
 
@@ -130,10 +126,6 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 			),
 		),
 		grid.RowHeightPerc(5,
-			grid.Widget(w.input),
-		),
-
-		grid.RowHeightPerc(5,
 			grid.ColWidthPerc(25,
 				grid.Widget(w.buttons.allB),
 			),
@@ -152,31 +144,17 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 	case layoutAll:
 		leftRows = append(leftRows,
 			grid.RowHeightPerc(20,
-				grid.ColWidthPerc(50,
+				grid.ColWidthPerc(20,
 					grid.Widget(w.rollT,
 						container.Border(linestyle.Light),
-						container.BorderTitle("A rolling text"),
+						container.BorderTitle("Log reports"),
 					),
 				),
-				grid.ColWidthPerc(50,
-					grid.RowHeightPerc(50,
-						grid.Widget(w.spGreen,
-							container.Border(linestyle.Light),
-							container.BorderTitle("Green SparkLine"),
-						),
+				grid.ColWidthPerc(80,
+					grid.Widget(w.spGreen,
+						container.Border(linestyle.Light),
+						container.BorderTitle("Hosts"),
 					),
-					grid.RowHeightPerc(50,
-						grid.Widget(w.spRed,
-							container.Border(linestyle.Light),
-							container.BorderTitle("Red SparkLine"),
-						),
-					),
-				),
-			),
-			grid.RowHeightPerc(38,
-				grid.Widget(w.heartLC,
-					container.Border(linestyle.Light),
-					container.BorderTitle("A LineChart"),
 				),
 			),
 		)
@@ -190,31 +168,6 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 			),
 		)
 
-	case layoutSparkLines:
-		leftRows = append(leftRows,
-			grid.RowHeightPerc(32,
-				grid.Widget(w.spGreen,
-					container.Border(linestyle.Light),
-					container.BorderTitle("Green SparkLine"),
-				),
-			),
-			grid.RowHeightPerc(33,
-				grid.Widget(w.spRed,
-					container.Border(linestyle.Light),
-					container.BorderTitle("Red SparkLine"),
-				),
-			),
-		)
-
-	case layoutLineChart:
-		leftRows = append(leftRows,
-			grid.RowHeightPerc(65,
-				grid.Widget(w.heartLC,
-					container.Border(linestyle.Light),
-					container.BorderTitle("A LineChart"),
-				),
-			),
-		)
 	}
 
 	builder := grid.New()
@@ -274,11 +227,7 @@ func contLayout(w *widgets) ([]container.Option, error) {
 						container.BorderTitle("Green SparkLine"),
 						container.PlaceWidget(w.spGreen),
 					),
-					container.Bottom(
-						container.Border(linestyle.Light),
-						container.BorderTitle("Red SparkLine"),
-						container.PlaceWidget(w.spRed),
-					),
+					container.Bottom(),
 				),
 			),
 		),
@@ -295,9 +244,7 @@ func contLayout(w *widgets) ([]container.Option, error) {
 				container.SplitHorizontal(
 					container.Top(
 						container.SplitHorizontal(
-							container.Top(
-								container.PlaceWidget(w.input),
-							),
+							container.Top(),
 							container.Bottom(buttonRow...),
 						),
 					),
@@ -312,11 +259,7 @@ func contLayout(w *widgets) ([]container.Option, error) {
 	gaugeAndHeartbeat := []container.Option{
 		container.SplitHorizontal(
 			container.Top(),
-			container.Bottom(
-				container.Border(linestyle.Light),
-				container.BorderTitle("A LineChart"),
-				container.PlaceWidget(w.heartLC),
-			),
+			container.Bottom(),
 			container.SplitPercent(20),
 		),
 	}
@@ -397,8 +340,9 @@ const (
 	tcellTerminal   = "tcell"
 )
 
-func Main() {
-	log.Debug("Starting Saido Main")
+func Main(dashboardInfo *config.DashBoardInfo) {
+	log.Debugf("Starting %s", dashboardInfo.Title)
+	panic(dashboardInfo.Hosts)
 	t, err := tcell.New(tcell.ColorMode(terminalapi.ColorMode256))
 	if err != nil {
 		panic(err)
@@ -411,7 +355,7 @@ func Main() {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	w, err := newWidgets(ctx, t, c)
+	w, err := newWidgets(ctx, t, c, dashboardInfo)
 	if err != nil {
 		panic(err)
 	}
@@ -455,28 +399,9 @@ func textState(text string, capacity, step int) []rune {
 	return rotateRunes(state, step)
 }
 
-// newTextInput creates a new TextInput field that changes the text on the
-// SegmentDisplay.
-func newTextInput(updateText chan<- string) (*textinput.TextInput, error) {
-	input, err := textinput.New(
-		textinput.Label("Change text to: ", cell.FgColor(cell.ColorNumber(33))),
-		textinput.MaxWidthCells(20),
-		textinput.PlaceHolder("enter any text"),
-		textinput.OnSubmit(func(text string) error {
-			updateText <- text
-			return nil
-		}),
-		textinput.ClearOnSubmit(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return input, err
-}
-
 // newSegmentDisplay creates a new SegmentDisplay that initially shows the
 // Termdash name. Shows any text that is sent over the channel.
-func newSegmentDisplay(ctx context.Context, t terminalapi.Terminal, updateText <-chan string) (*segmentdisplay.SegmentDisplay, error) {
+func newSegmentDisplay(ctx context.Context, t terminalapi.Terminal, text string) (*segmentdisplay.SegmentDisplay, error) {
 	sd, err := segmentdisplay.New()
 	if err != nil {
 		return nil, err
@@ -493,7 +418,6 @@ func newSegmentDisplay(ctx context.Context, t terminalapi.Terminal, updateText <
 		cell.ColorRed,
 	}
 
-	text := "Saido"
 	step := 0
 
 	go func() {
@@ -544,11 +468,6 @@ func newSegmentDisplay(ctx context.Context, t terminalapi.Terminal, updateText <
 				}
 				step++
 
-			case t := <-updateText:
-				text = t
-				sd.Reset()
-				step = 0
-
 			case <-ctx.Done():
 				return
 			}
@@ -557,31 +476,44 @@ func newSegmentDisplay(ctx context.Context, t terminalapi.Terminal, updateText <
 	return sd, nil
 }
 
+//buttonChunks creates a button chunk with design
+func buttonChunks(text string) []*button.TextChunk {
+	if len(text) == 0 {
+		return nil
+	}
+	// TODO: Customize outlook of Button
+	return []*button.TextChunk{
+		button.NewChunk(text,
+			button.TextCellOpts(cell.FgColor(cell.ColorWhite)),
+			button.FocusedTextCellOpts(cell.FgColor(cell.ColorBlack)),
+			button.PressedTextCellOpts(cell.FgColor(cell.ColorBlack)),
+		),
+	}
+}
+
 // newRollText creates a new Text widget that displays rolling text.
-func newRollText(ctx context.Context) (*text.Text, error) {
+func newRollText(ctx context.Context) (*text.Text, func(string) error, error) {
 	t, err := text.New(text.RollContent())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	i := 0
-	go Periodic(ctx, 1*time.Second, func() error {
-		if err := t.Write(fmt.Sprintf("Writing line %d.\n", i), text.WriteCellOpts(cell.FgColor(cell.ColorNumber(142)))); err != nil {
+	logToDashBoard := func(message string) error {
+		if err := t.Write(fmt.Sprintf("%s\n", message), text.WriteCellOpts(cell.FgColor(cell.ColorNumber(142)))); err != nil {
 			return err
 		}
-		i++
 		return nil
-	})
-	return t, nil
+	}
+	return t, logToDashBoard, nil
 }
 
 // newSparkLines creates two new sparklines displaying random values.
-func newSparkLines(ctx context.Context) (*sparkline.SparkLine, *sparkline.SparkLine, error) {
+func newSparkLines(ctx context.Context) (*sparkline.SparkLine, error) {
 	spGreen, err := sparkline.New(
 		sparkline.Color(cell.ColorGreen),
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	const max = 100
@@ -590,17 +522,7 @@ func newSparkLines(ctx context.Context) (*sparkline.SparkLine, *sparkline.SparkL
 		return spGreen.Add([]int{v})
 	})
 
-	spRed, err := sparkline.New(
-		sparkline.Color(cell.ColorRed),
-	)
-	if err != nil {
-		return nil, nil, err
-	}
-	go Periodic(ctx, 500*time.Millisecond, func() error {
-		v := int(rand.Int31n(max + 1))
-		return spRed.Add([]int{v})
-	})
-	return spGreen, spRed, nil
+	return spGreen, nil
 
 }
 
@@ -627,35 +549,6 @@ func newDonut(ctx context.Context) (*donut.Donut, error) {
 		return nil
 	})
 	return d, nil
-}
-
-// newHeartbeat returns a line chart that displays a heartbeat-like progression.
-func newHeartbeat(ctx context.Context) (*linechart.LineChart, error) {
-	var inputs []float64
-	for i := 0; i < 100; i++ {
-		v := math.Pow(math.Sin(float64(i)), 63) * math.Sin(float64(i)+1.5) * 8
-		inputs = append(inputs, v)
-	}
-
-	lc, err := linechart.New(
-		linechart.AxesCellOpts(cell.FgColor(cell.ColorRed)),
-		linechart.YLabelCellOpts(cell.FgColor(cell.ColorGreen)),
-		linechart.XLabelCellOpts(cell.FgColor(cell.ColorGreen)),
-	)
-	if err != nil {
-		return nil, err
-	}
-	step := 0
-	go Periodic(ctx, RedrawInterval/3, func() error {
-		step = (step + 1) % len(inputs)
-		return lc.Series("heartbeat", rotateFloats(inputs, step),
-			linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
-			linechart.SeriesXLabels(map[int]string{
-				0: "zero",
-			}),
-		)
-	})
-	return lc, nil
 }
 
 // newBarChart returns a BarcChart that displays random values on multiple bars.
@@ -717,6 +610,32 @@ func (d *distance) get() int {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	return d.v
+}
+
+// newHostButtons returns a group of buttons that displays each individual host
+// for expansion upon click
+func newHostButtons(ctx context.Context, hosts []config.Host) ([]*button.Button, error) {
+	buttons := []*button.Button{}
+	for _, host := range hosts {
+		hostButton, err := button.NewFromChunks(buttonChunks(host.Alias), func() error {
+			logToDashBoard(host.Alias)
+			return nil
+		},
+			button.Key(keyboard.KeyEnter),
+			button.DisableShadow(),
+			button.Height(1),
+			button.TextHorizontalPadding(0),
+			button.FillColor(cell.ColorBlack),
+			button.FocusedFillColor(cell.ColorNumber(117)),
+			button.PressedFillColor(cell.ColorNumber(220)),
+		)
+		if err != nil {
+			return nil, err
+		} else {
+			buttons = append(buttons, hostButton)
+		}
+	}
+	return buttons, nil
 }
 
 // newSines returns a line chart that displays multiple sine series and two buttons.

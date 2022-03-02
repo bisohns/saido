@@ -30,3 +30,5 @@ hosts:
 metrics:
 - memory
 - cpu
+
+title: Example Saido Dashboard
