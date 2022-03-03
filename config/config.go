@@ -10,9 +10,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var config = &Config{}
-
-// DashboardInfo is the completely parsed config
 type DashboardInfo struct {
 	Hosts   []Host
 	Metrics []string
@@ -39,7 +36,8 @@ type Config struct {
 	Title   string                      `yaml:"title"`
 }
 
-func LoadConfig(configPath string) {
+func LoadConfig(configPath string) *Config {
+	var config = &Config{}
 	confYaml, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		log.Errorf("yamlFile.Get err   %v ", err)
@@ -48,15 +46,10 @@ func LoadConfig(configPath string) {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-}
-
-func (cf *Config) parse() {}
-
-func GetConfig() *Config {
 	return config
 }
 
-func GetDashboardInfoConfig() *DashboardInfo {
+func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 	dashboardInfo := &DashboardInfo{
 		Title: "Saido",
 	}
