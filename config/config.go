@@ -12,8 +12,8 @@ import (
 
 var config = &Config{}
 
-// DashBoardInfo is the completely parsed config
-type DashBoardInfo struct {
+// DashboardInfo is the completely parsed config
+type DashboardInfo struct {
 	Hosts   []Host
 	Metrics []string
 	Title   string
@@ -36,14 +36,11 @@ type Host struct {
 type Config struct {
 	Hosts   map[interface{}]interface{} `yaml:"hosts"`
 	Metrics []string                    `yaml:"metrics"`
-	Title   string                      `yaml: "title"`
+	Title   string                      `yaml:"title"`
 }
 
-func LoadConfig(configPath string) *DashBoardInfo {
+func LoadConfig(configPath string) {
 	confYaml, err := ioutil.ReadFile(configPath)
-	dashboardInfo := &DashBoardInfo{
-		Title: "Saido",
-	}
 	if err != nil {
 		log.Errorf("yamlFile.Get err   %v ", err)
 	}
@@ -51,26 +48,25 @@ func LoadConfig(configPath string) *DashBoardInfo {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
+}
+
+func (cf *Config) parse() {}
+
+func GetConfig() *Config {
+	return config
+}
+
+func GetDashboardInfoConfig() *DashboardInfo {
+	dashboardInfo := &DashboardInfo{
+		Title: "Saido",
+	}
 	if config.Title != "" {
 		dashboardInfo.Title = config.Title
 	}
 
-	allHosts := parseConfig("root", "", config.Hosts, &Connection{})
-
-	for _, i := range allHosts {
-		log.Infof("Name: %s, Connection: %+v", i.Address, i.Connection)
-		dashboardInfo.Hosts = append(dashboardInfo.Hosts, i)
-	}
+	dashboardInfo.Hosts = parseConfig("root", "", config.Hosts, &Connection{})
 	dashboardInfo.Metrics = config.Metrics
 	return dashboardInfo
-}
-
-func (cf *Config) parse() {
-
-}
-
-func GetConfig() *Config {
-	return config
 }
 
 func parseConnection(conn map[interface{}]interface{}) *Connection {

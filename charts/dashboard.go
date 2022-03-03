@@ -50,7 +50,7 @@ type widgets struct {
 var logToDashBoard func(string) error
 
 // newWidgets creates all widgets used by this demo.
-func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Container, dashboardInfo *config.DashBoardInfo) (*widgets, error) {
+func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Container, dashboardInfo *config.DashboardInfo) (*widgets, error) {
 	sd, err := newSegmentDisplay(ctx, t, dashboardInfo.Title)
 	if err != nil {
 		return nil, err
@@ -340,9 +340,10 @@ const (
 	tcellTerminal   = "tcell"
 )
 
-func Main(dashboardInfo *config.DashBoardInfo) {
+func Main() {
+	dashboardInfo := config.GetDashboardInfoConfig()
+	log.Errorf("%v", dashboardInfo)
 	log.Debugf("Starting %s", dashboardInfo.Title)
-	panic(dashboardInfo.Hosts)
 	t, err := tcell.New(tcell.ColorMode(terminalapi.ColorMode256))
 	if err != nil {
 		panic(err)
