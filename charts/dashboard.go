@@ -13,7 +13,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mum4k/termdash"
-	"github.com/mum4k/termdash/align"
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/container"
 	"github.com/mum4k/termdash/container/grid"
@@ -42,7 +41,7 @@ type widgets struct {
 	leftB    *button.Button
 	rightB   *button.Button
 	sineLC   *linechart.LineChart
-	hosts    []*button.Button
+	hosts    []grid.Element
 
 	buttons *layoutButtons
 }
@@ -51,7 +50,6 @@ var logToDashBoard func(string) error
 
 // newWidgets creates all widgets used by this demo.
 func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Container, dashboardInfo *config.DashboardInfo) (*widgets, error) {
-	log.Fatalf("%v", dashboardInfo)
 	sd, err := newSegmentDisplay(ctx, t, dashboardInfo.Title)
 	if err != nil {
 		return nil, err
@@ -82,7 +80,7 @@ func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Contai
 		return nil, err
 	}
 
-	hosts, err := newHostButtons(ctx, dashboardInfo.Hosts)
+	hosts, err := newHostButtonGrid(ctx, dashboardInfo.Hosts)
 	if err != nil {
 		return nil, err
 	}
@@ -151,11 +149,10 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 						container.BorderTitle("Log reports"),
 					),
 				),
-				grid.ColWidthPerc(80,
-					grid.Widget(w.spGreen,
-						container.Border(linestyle.Light),
-						container.BorderTitle("Hosts"),
-					),
+				grid.ColWidthPercWithOpts(60,
+					[]container.Option{container.Border(linestyle.Light),
+						container.BorderTitle("Hosts")},
+					w.hosts...,
 				),
 			),
 		)
@@ -189,52 +186,36 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 // both produce equivalent layouts for layoutType layoutAll.
 // contLayout only produces layoutAll.
 func contLayout(w *widgets) ([]container.Option, error) {
-	buttonRow := []container.Option{
-		container.SplitVertical(
-			container.Left(
-				container.SplitVertical(
-					container.Left(
-						container.PlaceWidget(w.buttons.allB),
-					),
-					container.Right(
-						container.PlaceWidget(w.buttons.textB),
-					),
-				),
-			),
-			container.Right(
-				container.SplitVertical(
-					container.Left(
-						container.PlaceWidget(w.buttons.spB),
-					),
-					container.Right(
-						container.PlaceWidget(w.buttons.lcB),
-					),
-				),
-			),
-		),
+
+	builder := grid.New()
+	builder.Add(
+		w.hosts...,
+	)
+	hostContainerOpts, err := builder.Build()
+	hostContainerOpts = append(
+		hostContainerOpts,
+		container.Border(linestyle.Light),
+		container.BorderTitle("Hosts"),
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	textAndSparks := []container.Option{
 		container.SplitVertical(
 			container.Left(
 				container.Border(linestyle.Light),
-				container.BorderTitle("A rolling text"),
+				container.BorderTitle("Logs"),
 				container.PlaceWidget(w.rollT),
 			),
 			container.Right(
-				container.SplitHorizontal(
-					container.Top(
-						container.Border(linestyle.Light),
-						container.BorderTitle("Green SparkLine"),
-						container.PlaceWidget(w.spGreen),
-					),
-					container.Bottom(),
-				),
+				hostContainerOpts...,
 			),
+			container.SplitPercent(40),
 		),
 	}
 
-	segmentTextInputSparks := []container.Option{
+	return []container.Option{
 		container.SplitHorizontal(
 			container.Top(
 				container.Border(linestyle.Light),
@@ -243,91 +224,12 @@ func contLayout(w *widgets) ([]container.Option, error) {
 			),
 			container.Bottom(
 				container.SplitHorizontal(
-					container.Top(
-						container.SplitHorizontal(
-							container.Top(),
-							container.Bottom(buttonRow...),
-						),
-					),
+					container.Top(),
 					container.Bottom(textAndSparks...),
-					container.SplitPercent(40),
+					container.SplitPercent(1),
 				),
 			),
-			container.SplitPercent(50),
-		),
-	}
-
-	gaugeAndHeartbeat := []container.Option{
-		container.SplitHorizontal(
-			container.Top(),
-			container.Bottom(),
 			container.SplitPercent(20),
-		),
-	}
-
-	leftSide := []container.Option{
-		container.SplitHorizontal(
-			container.Top(segmentTextInputSparks...),
-			container.Bottom(gaugeAndHeartbeat...),
-			container.SplitPercent(50),
-		),
-	}
-
-	lcAndButtons := []container.Option{
-		container.SplitHorizontal(
-			container.Top(
-				container.Border(linestyle.Light),
-				container.BorderTitle("Multiple series"),
-				container.BorderTitleAlignRight(),
-				container.PlaceWidget(w.sineLC),
-			),
-			container.Bottom(
-				container.SplitVertical(
-					container.Left(
-						container.PlaceWidget(w.leftB),
-						container.AlignHorizontal(align.HorizontalRight),
-						container.PaddingRight(1),
-					),
-					container.Right(
-						container.PlaceWidget(w.rightB),
-						container.AlignHorizontal(align.HorizontalLeft),
-						container.PaddingLeft(1),
-					),
-				),
-			),
-			container.SplitPercent(80),
-		),
-	}
-
-	rightSide := []container.Option{
-		container.SplitHorizontal(
-			container.Top(
-				container.Border(linestyle.Light),
-				container.BorderTitle("BarChart"),
-				container.PlaceWidget(w.barChart),
-				container.BorderTitleAlignRight(),
-			),
-			container.Bottom(
-				container.SplitHorizontal(
-					container.Top(
-						container.Border(linestyle.Light),
-						container.BorderTitle("A Donut"),
-						container.BorderTitleAlignRight(),
-						container.PlaceWidget(w.donut),
-					),
-					container.Bottom(lcAndButtons...),
-					container.SplitPercent(30),
-				),
-			),
-			container.SplitPercent(30),
-		),
-	}
-
-	return []container.Option{
-		container.SplitVertical(
-			container.Left(leftSide...),
-			container.Right(rightSide...),
-			container.SplitPercent(70),
 		),
 	}, nil
 }
@@ -368,6 +270,7 @@ func Main(cfg *config.Config) {
 	w.buttons = lb
 
 	gridOpts, err := gridLayout(w, layoutAll) // equivalent to contLayout(w)
+	//  gridOpts, err := contLayout(w)
 	if err != nil {
 		panic(err)
 	}
@@ -401,8 +304,7 @@ func textState(text string, capacity, step int) []rune {
 	return rotateRunes(state, step)
 }
 
-// newSegmentDisplay creates a new SegmentDisplay that initially shows the
-// Termdash name. Shows any text that is sent over the channel.
+// newSegmentDisplay creates a new SegmentDisplay that shows the dashboard name
 func newSegmentDisplay(ctx context.Context, t terminalapi.Terminal, text string) (*segmentdisplay.SegmentDisplay, error) {
 	sd, err := segmentdisplay.New()
 	if err != nil {
@@ -614,13 +516,16 @@ func (d *distance) get() int {
 	return d.v
 }
 
-// newHostButtons returns a group of buttons that displays each individual host
+// newHostButtonGrid returns a group of buttons that displays each individual host
 // for expansion upon click
-func newHostButtons(ctx context.Context, hosts []config.Host) ([]*button.Button, error) {
-	buttons := []*button.Button{}
+func newHostButtonGrid(ctx context.Context, hosts []config.Host) ([]grid.Element, error) {
+	buttonGrid := []grid.Element{}
+	percentage := 100 / len(hosts)
 	for _, host := range hosts {
-		hostButton, err := button.NewFromChunks(buttonChunks(host.Alias), func() error {
-			logToDashBoard(host.Alias)
+		// freeze addresss for the closure
+		address := host.Address
+		hostButton, err := button.NewFromChunks(buttonChunks(host.Address), func() error {
+			logToDashBoard(address)
 			return nil
 		},
 			button.Key(keyboard.KeyEnter),
@@ -634,10 +539,13 @@ func newHostButtons(ctx context.Context, hosts []config.Host) ([]*button.Button,
 		if err != nil {
 			return nil, err
 		} else {
-			buttons = append(buttons, hostButton)
+			buttonGrid = append(buttonGrid,
+				grid.RowHeightPerc(percentage,
+					grid.Widget(hostButton),
+				))
 		}
 	}
-	return buttons, nil
+	return buttonGrid, nil
 }
 
 // newSines returns a line chart that displays multiple sine series and two buttons.
