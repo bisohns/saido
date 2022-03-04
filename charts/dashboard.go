@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mum4k/termdash"
+	"github.com/mum4k/termdash/align"
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/container"
 	"github.com/mum4k/termdash/container/grid"
@@ -150,8 +151,10 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 					),
 				),
 				grid.ColWidthPercWithOpts(60,
-					[]container.Option{container.Border(linestyle.Light),
-						container.BorderTitle("Hosts")},
+					[]container.Option{
+						container.Border(linestyle.Light),
+						container.BorderTitle("Hosts"),
+					},
 					w.hosts...,
 				),
 			),
@@ -524,6 +527,10 @@ func newHostButtonGrid(ctx context.Context, hosts []config.Host) ([]grid.Element
 	for _, host := range hosts {
 		// freeze addresss for the closure
 		address := host.Address
+		aliasText := host.Alias
+		if aliasText == "" {
+			aliasText = "None"
+		}
 		hostButton, err := button.NewFromChunks(buttonChunks(host.Address), func() error {
 			logToDashBoard(address)
 			return nil
@@ -536,12 +543,35 @@ func newHostButtonGrid(ctx context.Context, hosts []config.Host) ([]grid.Element
 			button.FocusedFillColor(cell.ColorNumber(117)),
 			button.PressedFillColor(cell.ColorNumber(220)),
 		)
+		driver, err := text.New()
+		driver.Write(host.Connection.Type)
+		alias, err := text.New()
+		alias.Write(aliasText)
+
 		if err != nil {
 			return nil, err
 		} else {
+			commonStyles := []container.Option{
+				container.AlignHorizontal(align.HorizontalLeft),
+				container.PaddingLeft(5),
+				container.Border(linestyle.Round),
+			}
+
 			buttonGrid = append(buttonGrid,
 				grid.RowHeightPerc(percentage,
-					grid.Widget(hostButton),
+					grid.ColWidthPerc(34,
+						grid.Widget(hostButton,
+							commonStyles...,
+						),
+					),
+					grid.ColWidthPerc(33,
+						grid.Widget(driver,
+							commonStyles...,
+						)),
+					grid.ColWidthPerc(33,
+						grid.Widget(alias,
+							commonStyles...,
+						)),
 				))
 		}
 	}
