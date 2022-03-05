@@ -180,7 +180,7 @@ func contLayout(w *widgets) ([]container.Option, error) {
 
 	builder := grid.New()
 	builder.Add(
-		w.hosts[0]...,
+		w.hosts[currentHostPage]...,
 	)
 	hostContainerOpts, err := builder.Build()
 	hostContainerOpts = append(
@@ -387,7 +387,7 @@ func buttonChunks(text string) []*button.TextChunk {
 
 // newRollText creates a new Text widget that displays rolling text.
 func newRollText(ctx context.Context) (*text.Text, func(string) error, error) {
-	t, err := text.New(text.RollContent())
+	t, err := text.New(text.RollContent(), text.WrapAtWords())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -513,7 +513,7 @@ func addNextPrevButtons(c *container.Container, w *widgets) error {
 	next, err := button.New(">", func() error {
 		currentHostPage = Next(currentHostPage, pageLength)
 		refreshPage(c, w)
-		logToDashBoard(fmt.Sprintf("On Page %d", currentHostPage))
+		logToDashBoard(fmt.Sprintf("Moving on to next Page %d", currentHostPage))
 		return nil
 	},
 		nextandPrevButtonStyle...,
@@ -521,7 +521,7 @@ func addNextPrevButtons(c *container.Container, w *widgets) error {
 	prev, err := button.New("<", func() error {
 		currentHostPage = Prev(currentHostPage, pageLength)
 		refreshPage(c, w)
-		logToDashBoard(fmt.Sprintf("On Page %d", currentHostPage))
+		logToDashBoard(fmt.Sprintf("Moving on to previous Page %d", currentHostPage))
 		return nil
 	},
 		nextandPrevButtonStyle...,
