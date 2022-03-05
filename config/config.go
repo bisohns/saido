@@ -59,12 +59,18 @@ func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 
 	dashboardInfo.Hosts = parseConfig("root", "", config.Hosts, &Connection{})
 	dashboardInfo.Metrics = config.Metrics
+	for _, host := range dashboardInfo.Hosts {
+		log.Debugf("%s: %v", host.Address, host.Connection)
+	}
 	return dashboardInfo
 }
 
 func parseConnection(conn map[interface{}]interface{}) *Connection {
 	var c Connection
 	mapstructure.Decode(conn, &c)
+	if c.Type == "ssh" && c.Port == 0 {
+		c.Port = 22
+	}
 	return &c
 }
 
@@ -94,7 +100,7 @@ func parseConfig(name string, host string, group map[interface{}]interface{}, cu
 			host := make(map[interface{}]interface{})
 			host, ok := v.(map[interface{}]interface{})
 			if !ok && v != nil { // some leaf nodes do not contain extra data under
-				log.Errorf("Failed to parse children of %s", name)
+				log.Errorf("Faled to parse children of %s", name)
 			}
 			allHosts = append(allHosts, parseConfig(fmt.Sprintf("%s:%s", name, k), fmt.Sprintf("%s", k), host, currentConn)...)
 		}
@@ -104,6 +110,9 @@ func parseConfig(name string, host string, group map[interface{}]interface{}, cu
 		newHost := Host{
 			Address:    host,
 			Connection: currentConn,
+		}
+		if alias, ok := group["alias"]; ok {
+			newHost.Alias = alias.(string)
 		}
 
 		allHosts = append(allHosts, newHost)

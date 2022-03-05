@@ -16,6 +16,9 @@ hosts:
         password: somethingSecret
         port: 33
     "192.0.1.4":
+    a.example.net:
+    b.example.net:
+    c.example.net:
       connection: 
         type: local
     eu-west1:

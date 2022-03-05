@@ -13,7 +13,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mum4k/termdash"
-	"github.com/mum4k/termdash/align"
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/container"
 	"github.com/mum4k/termdash/container/grid"
@@ -42,12 +41,14 @@ type widgets struct {
 	leftB    *button.Button
 	rightB   *button.Button
 	sineLC   *linechart.LineChart
-	hosts    []grid.Element
-
-	buttons *layoutButtons
+	hosts    [][]grid.Element
 }
 
-var logToDashBoard func(string) error
+var (
+	logToDashBoard  func(string) error
+	hostsPerPage    int = 5
+	currentHostPage int = 0
+)
 
 // newWidgets creates all widgets used by this demo.
 func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Container, dashboardInfo *config.DashboardInfo) (*widgets, error) {
@@ -81,7 +82,8 @@ func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Contai
 		return nil, err
 	}
 
-	hosts, err := newHostButtonGrid(ctx, dashboardInfo.Hosts)
+	paginatedHosts := Paginate(dashboardInfo.Hosts, hostsPerPage)
+	hosts, err := newHostButtons(ctx, paginatedHosts)
 	if err != nil {
 		return nil, err
 	}
@@ -125,20 +127,6 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 				container.BorderTitle("Press Esc to quit"),
 			),
 		),
-		grid.RowHeightPerc(5,
-			grid.ColWidthPerc(25,
-				grid.Widget(w.buttons.allB),
-			),
-			grid.ColWidthPerc(25,
-				grid.Widget(w.buttons.textB),
-			),
-			grid.ColWidthPerc(25,
-				grid.Widget(w.buttons.spB),
-			),
-			grid.ColWidthPerc(25,
-				grid.Widget(w.buttons.lcB),
-			),
-		),
 	}
 	switch lt {
 	case layoutAll:
@@ -155,7 +143,7 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 						container.Border(linestyle.Light),
 						container.BorderTitle("Hosts"),
 					},
-					w.hosts...,
+					w.hosts[currentHostPage]...,
 				),
 			),
 		)
@@ -176,11 +164,11 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 		grid.ColWidthPerc(80, leftRows...),
 	)
 
-	gridOpts, err := builder.Build()
+	innergridOpts, err := builder.Build()
 	if err != nil {
 		return nil, err
 	}
-	return gridOpts, nil
+	return innergridOpts, nil
 }
 
 // contLayout prepares container options that represent the desired screen layout.
@@ -192,7 +180,7 @@ func contLayout(w *widgets) ([]container.Option, error) {
 
 	builder := grid.New()
 	builder.Add(
-		w.hosts...,
+		w.hosts[0]...,
 	)
 	hostContainerOpts, err := builder.Build()
 	hostContainerOpts = append(
@@ -266,11 +254,10 @@ func Main(cfg *config.Config) {
 	if err != nil {
 		panic(err)
 	}
-	lb, err := newLayoutButtons(c, w)
+	err = addNextPrevButtons(c, w)
 	if err != nil {
 		panic(err)
 	}
-	w.buttons = lb
 
 	gridOpts, err := gridLayout(w, layoutAll) // equivalent to contLayout(w)
 	//  gridOpts, err := contLayout(w)
@@ -519,11 +506,66 @@ func (d *distance) get() int {
 	return d.v
 }
 
-// newHostButtonGrid returns a group of buttons that displays each individual host
+// addNextPrevButtons adds next and previous buttons
+// to every host page
+func addNextPrevButtons(c *container.Container, w *widgets) error {
+	pageLength := len(w.hosts)
+	next, err := button.New(">", func() error {
+		currentHostPage = Next(currentHostPage, pageLength)
+		refreshPage(c, w)
+		logToDashBoard(fmt.Sprintf("On Page %d", currentHostPage))
+		return nil
+	},
+		nextandPrevButtonStyle...,
+	)
+	prev, err := button.New("<", func() error {
+		currentHostPage = Prev(currentHostPage, pageLength)
+		refreshPage(c, w)
+		logToDashBoard(fmt.Sprintf("On Page %d", currentHostPage))
+		return nil
+	},
+		nextandPrevButtonStyle...,
+	)
+	if err != nil {
+		return err
+	}
+	paginationBar := []grid.Element{
+		grid.RowHeightPerc(10,
+			grid.ColWidthPerc(50,
+				grid.Widget(prev),
+			),
+			grid.ColWidthPerc(50,
+				grid.Widget(next),
+			),
+		),
+	}
+	// prepend next and previous buttons to each
+	// page
+	for ind, _ := range w.hosts {
+		w.hosts[ind] = append(paginationBar, w.hosts[ind]...)
+	}
+	return nil
+}
+
+// newHostButtons returns all the pages of host buttons
+func newHostButtons(ctx context.Context, paginatedHosts [][]config.Host) ([][]grid.Element, error) {
+	buttonGrid := [][]grid.Element{}
+	for _, page := range paginatedHosts {
+		pageButtons, err := newHostButtonPage(ctx, page)
+		if err != nil {
+			return nil, err
+		}
+		buttonGrid = append(buttonGrid, pageButtons)
+	}
+	// create next and previous buttons
+	return buttonGrid, nil
+}
+
+// newHostButtonPage returns a group of buttons that displays each individual host
 // for expansion upon click
-func newHostButtonGrid(ctx context.Context, hosts []config.Host) ([]grid.Element, error) {
+func newHostButtonPage(ctx context.Context, hosts []config.Host) ([]grid.Element, error) {
 	buttonGrid := []grid.Element{}
-	percentage := 100 / len(hosts)
+	percentage := 90 / hostsPerPage
 	for _, host := range hosts {
 		// freeze addresss for the closure
 		address := host.Address
@@ -531,17 +573,12 @@ func newHostButtonGrid(ctx context.Context, hosts []config.Host) ([]grid.Element
 		if aliasText == "" {
 			aliasText = "None"
 		}
+
 		hostButton, err := button.NewFromChunks(buttonChunks(host.Address), func() error {
 			logToDashBoard(address)
 			return nil
 		},
-			button.Key(keyboard.KeyEnter),
-			button.DisableShadow(),
-			button.Height(1),
-			button.TextHorizontalPadding(0),
-			button.FillColor(cell.ColorBlack),
-			button.FocusedFillColor(cell.ColorNumber(117)),
-			button.PressedFillColor(cell.ColorNumber(220)),
+			buttonStyles...,
 		)
 		driver, err := text.New()
 		driver.Write(host.Connection.Type)
@@ -551,26 +588,20 @@ func newHostButtonGrid(ctx context.Context, hosts []config.Host) ([]grid.Element
 		if err != nil {
 			return nil, err
 		} else {
-			commonStyles := []container.Option{
-				container.AlignHorizontal(align.HorizontalLeft),
-				container.PaddingLeft(5),
-				container.Border(linestyle.Round),
-			}
-
 			buttonGrid = append(buttonGrid,
 				grid.RowHeightPerc(percentage,
 					grid.ColWidthPerc(34,
 						grid.Widget(hostButton,
-							commonStyles...,
+							singleGridStyle...,
 						),
 					),
 					grid.ColWidthPerc(33,
 						grid.Widget(driver,
-							commonStyles...,
+							singleGridStyle...,
 						)),
 					grid.ColWidthPerc(33,
 						grid.Widget(alias,
-							commonStyles...,
+							singleGridStyle...,
 						)),
 				))
 		}
@@ -641,6 +672,14 @@ func newSines(ctx context.Context) (left, right *button.Button, lc *linechart.Li
 // setLayout sets the specified layout.
 func setLayout(c *container.Container, w *widgets, lt layoutType) error {
 	gridOpts, err := gridLayout(w, lt)
+	if err != nil {
+		return err
+	}
+	return c.Update(rootID, gridOpts...)
+}
+
+func refreshPage(c *container.Container, w *widgets) error {
+	gridOpts, err := gridLayout(w, layoutAll)
 	if err != nil {
 		return err
 	}
