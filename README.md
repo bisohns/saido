@@ -2,7 +2,7 @@
 saido means monitor in Hausa
 
 
-![Logo](assets/Saido_small.jpg)
+![Logo](assets/Saido-px.jpg)
 
 [![Build Status](https://github.com/bisohns/saido/workflows/Test/badge.svg)](https://github.com/bisohns/saido/actions)
 
