@@ -32,8 +32,15 @@ type DockerStats struct {
 // Parse : run custom parsing on output of the command
 func (i *DockerStats) Parse(output string) {
 	var values []DockerStatsMetrics
+	var splitChars string
+	details := (*i.Driver).GetDetails()
+	if details.IsWindows {
+		splitChars = "\r\n"
+	} else {
+		splitChars = "\n"
+	}
 	log.Debug("Parsing ouput string in DockerStats inspector")
-	lines := strings.Split(output, "\n")
+	lines := strings.Split(output, splitChars)
 	for index, line := range lines {
 		// skip title line
 		if index == 0 {
