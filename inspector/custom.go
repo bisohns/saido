@@ -1,6 +1,9 @@
 package inspector
 
 import (
+	"fmt"
+
+	"github.com/bisohns/saido/driver"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -11,8 +14,9 @@ type CustomMetrics struct {
 
 // Custom : Parsing the custom command output for disk monitoring
 type Custom struct {
-	fields
-	Values CustomMetrics
+	Driver  *driver.Driver
+	Values  CustomMetrics
+	Command string
 }
 
 // Parse : run custom parsing on output of the command
@@ -27,13 +31,35 @@ func (i Custom) createMetric(output string) CustomMetrics {
 	}
 }
 
-// NewCustom : Initialize a new Custom instance
-func NewCustom(custom string) *Custom {
-	return &Custom{
-		fields: fields{
-			Type:    Command,
-			Command: custom,
-		},
+func (i *Custom) SetDriver(driver *driver.Driver) {
+	details := (*driver).GetDetails()
+	if details.IsWeb {
+		panic(fmt.Sprintf("Cannot use Custom(%s) on web", i.Command))
 	}
+	i.Driver = driver
+}
 
+func (i Custom) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *Custom) Execute() {
+	output, err := i.driverExec()(i.Command)
+	if err == nil {
+		i.Parse(output)
+	}
+}
+
+// NewCustom : Initialize a new Custom instance
+func NewCustom(custom string, driver *driver.Driver) Inspector {
+	var customInspector Inspector
+	details := (*driver).GetDetails()
+	if details.IsWeb {
+		panic(fmt.Sprintf("Cannot use Custom(%s) on web", custom))
+	}
+	customInspector = &Custom{
+		Command: custom,
+	}
+	customInspector.SetDriver(driver)
+	return customInspector
 }

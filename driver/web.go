@@ -62,16 +62,14 @@ func (d *Web) RunCommand(command string) (string, error) {
 	return ``, errors.New("Cannot read file on web driver")
 }
 
-func (d *Web) GetDetails() string {
-	return fmt.Sprintf(`Web - %s`, d.String())
-}
-
-func NewWebForTest() *Web {
-	return &Web{
-		URL:    "https://duckduckgo.com",
-		Method: GET,
-		fields: fields{
-			PollInterval: 5,
-		},
+func (d *Web) GetDetails() SystemDetails {
+	if d.Info == nil {
+		details := &SystemDetails{
+			Name:  "web",
+			Extra: d.URL,
+			IsWeb: true,
+		}
+		d.Info = details
 	}
+	return *d.Info
 }

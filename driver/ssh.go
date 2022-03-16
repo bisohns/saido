@@ -91,20 +91,31 @@ func (d *SSH) RunCommand(command string) (string, error) {
 	return string(out), nil
 }
 
-func (d *SSH) GetDetails() string {
-	return fmt.Sprintf(`SSH - %s`, d.String())
-}
-
-func NewSSHForTest() *SSH {
-	return &SSH{
-		User:            "dev",
-		Host:            "127.0.0.1",
-		Port:            2222,
-		KeyFile:         "/home/deven/.ssh/id_rsa",
-		KeyPass:         "",
-		CheckKnownHosts: false,
-		fields: fields{
-			PollInterval: 5,
-		},
+func (d *SSH) GetDetails() SystemDetails {
+	if d.Info == nil {
+		uname, err := d.RunCommand(`uname`)
+		// try windows command
+		if err != nil {
+			windowsName, err := d.RunCommand(`systeminfo | findstr /B /C:"OS Name"`)
+			if err == nil {
+				if strings.Contains(strings.ToLower(windowsName), "windows") {
+					uname = "windows"
+				}
+			}
+		}
+		details := &SystemDetails{}
+		details.Name = uname
+		switch details.Name {
+		case "windows":
+			details.IsWindows = true
+		case "linux":
+			details.IsLinux = true
+		case "darwin":
+			details.IsDarwin = true
+		default:
+			details.IsLinux = true
+		}
+		d.Info = details
 	}
+	return *d.Info
 }

@@ -40,12 +40,29 @@ func (d *Local) RunCommand(command string) (string, error) {
 		}
 	}
 	out, err := cmd.Output()
+	fmt.Printf("%s", string(out))
 	if err != nil {
 		return ``, err
 	}
 	return string(out), nil
 }
 
-func (d *Local) GetDetails() string {
-	return fmt.Sprintf(`Local - %s`, runtime.GOOS)
+func (d *Local) GetDetails() SystemDetails {
+	if d.Info == nil {
+		details := &SystemDetails{}
+		details.Name = runtime.GOOS
+		switch details.Name {
+		case "windows":
+			details.IsWindows = true
+		case "linux":
+			details.IsLinux = true
+		case "darwin":
+			details.IsDarwin = true
+		default:
+			details.IsLinux = true
+		}
+		details.Extra = runtime.GOARCH
+		d.Info = details
+	}
+	return *d.Info
 }

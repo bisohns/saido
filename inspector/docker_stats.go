@@ -1,9 +1,11 @@
 package inspector
 
 import (
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
+
+	"github.com/bisohns/saido/driver"
+	log "github.com/sirupsen/logrus"
 )
 
 // DockerStatsMetrics : Metrics used by DockerStats
@@ -19,7 +21,8 @@ type DockerStatsMetrics struct {
 
 // DockerStats : Parsing the `docker stats` output for container monitoring
 type DockerStats struct {
-	fields
+	Driver  *driver.Driver
+	Command string
 	// We want do display disk values in GB
 	DisplayByteSize string
 	// Values of metrics being read
@@ -83,14 +86,31 @@ func (i DockerStats) createMetric(
 	}
 }
 
-// NewDockerStats : Initialize a new DockerStats instance
-func NewDockerStats() *DockerStats {
-	return &DockerStats{
-		fields: fields{
-			Type:    Command,
-			Command: `docker stats --no-stream`,
-		},
-		DisplayByteSize: `GB`,
-	}
+func (i *DockerStats) SetDriver(driver *driver.Driver) {
+	i.Driver = driver
+}
 
+func (i DockerStats) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *DockerStats) Execute() {
+	output, err := i.driverExec()(i.Command)
+	if err == nil {
+		i.Parse(output)
+	}
+}
+
+// NewDockerStats : Initialize a new DockerStats instance
+func NewDockerStats(driver *driver.Driver) Inspector {
+	var dockerstats Inspector
+	details := (*driver).GetDetails()
+	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
+		panic("Cannot use LoadAvgDarwin on drivers outside (linux, darwin, windows)")
+	}
+	dockerstats = &DockerStats{
+		Command: `docker stats --no-stream`,
+	}
+	dockerstats.SetDriver(driver)
+	return dockerstats
 }

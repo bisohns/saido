@@ -1,9 +1,11 @@
 package inspector
 
 import (
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
+
+	"github.com/bisohns/saido/driver"
+	log "github.com/sirupsen/logrus"
 )
 
 // DFMetrics : Metrics used by DF
@@ -16,7 +18,8 @@ type DFMetrics struct {
 
 // DF : Parsing the `df` output for disk monitoring
 type DF struct {
-	fields
+	Driver  *driver.Driver
+	Command string
 	// The values read from the command output string are defaultly in KB
 	RawByteSize string
 	// We want do display disk values in GB
@@ -40,7 +43,7 @@ func (i *DF) Parse(output string) {
 			continue
 		}
 		columns := strings.Fields(line)
-		if len(columns) == 6 {
+		if len(columns) >= 6 {
 			percent := columns[4]
 			if len(percent) > 1 {
 				percent = percent[:len(percent)-1]
@@ -51,7 +54,7 @@ func (i *DF) Parse(output string) {
 			if err != nil {
 				log.Fatalf(`Error Parsing Percent Full: %s `, err)
 			}
-			if columns[5] == i.MountPoint {
+			if columns[len(columns)-1] == i.MountPoint {
 				values = append(values, i.createMetric(columns, percentInt))
 			} else if strings.HasPrefix(columns[0], i.DeviceStartsWith) &&
 				i.MountPoint == "" {
@@ -71,16 +74,45 @@ func (i DF) createMetric(columns []string, percent int) DFMetrics {
 	}
 }
 
-// NewDF : Initialize a new DF instance
-func NewDF() *DF {
-	return &DF{
-		fields: fields{
-			Type:    Command,
-			Command: `df -a`,
-		},
-		RawByteSize:     `KB`,
-		DisplayByteSize: `GB`,
-		MountPoint:      `/`,
-	}
+func (i *DF) SetDriver(driver *driver.Driver) {
+	i.Driver = driver
+}
 
+func (i DF) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *DF) Execute() {
+	output, err := i.driverExec()(i.Command)
+	if err == nil {
+		i.Parse(output)
+	}
+}
+
+// TODO: Implement DF for windows using
+// `wmic logicaldisk` to satisfy Inspector interface
+type WMIC struct {
+	Driver  *driver.Driver
+	Command string
+}
+
+// NewDF : Initialize a new DF instance
+func NewDF(driver *driver.Driver) Inspector {
+	var df Inspector
+	details := (*driver).GetDetails()
+	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
+		panic("Cannot use 'df' command on drivers outside (linux, darwin, windows)")
+	}
+	if details.IsLinux || details.IsDarwin {
+		df = &DF{
+			// Using -k to ensure size is
+			// always reported in posix standard of 1K-blocks
+			Command:         `df -a -k`,
+			RawByteSize:     `KB`,
+			DisplayByteSize: `GB`,
+			MountPoint:      `/`,
+		}
+	}
+	df.SetDriver(driver)
+	return df
 }
