@@ -120,10 +120,10 @@ func (i Process) createMetric(columns []string, pid int) ProcessMetrics {
 
 func (i *ProcessWin) Parse(output string) {
 	var values []ProcessMetricsWin
-	lines := strings.Split(output, "\n")
+	lines := strings.Split(output, "\r\n")
 	for index, line := range lines {
-		// skip title line
-		if index == 0 {
+		// skip title lines and ===== line
+		if index == 0 || index == 1 || index == 2 {
 			continue
 		}
 		columns := strings.Fields(line)
@@ -200,5 +200,6 @@ func NewProcess(driver *driver.Driver) Inspector {
 			Command: `tasklist`,
 		}
 	}
+	process.SetDriver(driver)
 	return process
 }
