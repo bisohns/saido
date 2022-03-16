@@ -21,7 +21,7 @@ const (
 	GET Request = "GET"
 )
 
-// Web : Driver for handling ssh executions
+// Web : Driver for handling web executions
 type Web struct {
 	fields
 	// URL e.g https://google.com

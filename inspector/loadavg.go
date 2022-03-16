@@ -59,6 +59,8 @@ func (i LoadAvgDarwin) driverExec() driver.Command {
 }
 
 func (i *LoadAvgDarwin) Parse(output string) {
+	output = strings.TrimSuffix(output, "}")
+	output = strings.TrimPrefix(output, "{")
 	i.Values = loadavgParseOutput(output)
 }
 
@@ -108,8 +110,8 @@ func NewLoadAvg(driver *driver.Driver) Inspector {
 		}
 	} else if details.IsDarwin {
 		loadavg = &LoadAvgDarwin{
-			//      Command: `sysctl -n vm.loadavg | awk '/./ { printf "%.2f %.2f %.2f ", $2, $3, $4 }'`,
-			Command: `top -l 1 | grep "Load Avg\:" | awk '{print $3, $4, $5}'`,
+			//      Command: `sysctl -n vm.loadavg | awk '{ printf "%.2f %.2f %.2f ", $2, $3, $4 }'`,
+			Command: `top -l 1 | grep "Load Avg:" | awk '{print $3, $4, $5}'`,
 		}
 	}
 	loadavg.SetDriver(driver)

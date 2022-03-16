@@ -1,12 +1,10 @@
 package driver
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"runtime"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -26,21 +24,25 @@ func (d *Local) ReadFile(path string) (string, error) {
 	return string(content), nil
 }
 
+// RunCommand : For simple commands without shell variables, pipes, e.t.c
+// They can be passed directly. For complex commands e.g
+// `echo something | awk $var`, turn into a file to be saved
+// under ./shell/
 func (d *Local) RunCommand(command string) (string, error) {
 	// FIXME: If command contains a shell variable $ or glob
 	// type pattern, it would not be executed, see
 	// https://pkg.go.dev/os/exec for more information
-	cmdArgs := strings.Fields(command)
+	var cmd *exec.Cmd
 	log.Debugf("Running command `%s` ", command)
-	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+	cmd = exec.Command("bash", "-c", command)
 	cmd.Env = os.Environ()
 	if len(d.Vars) != 0 {
 		for _, v := range d.Vars {
 			cmd.Env = append(cmd.Env, v)
 		}
 	}
+	_ = cmd.Wait()
 	out, err := cmd.Output()
-	fmt.Printf("%s", string(out))
 	if err != nil {
 		return ``, err
 	}
@@ -58,8 +60,6 @@ func (d *Local) GetDetails() SystemDetails {
 			details.IsLinux = true
 		case "darwin":
 			details.IsDarwin = true
-		default:
-			details.IsLinux = true
 		}
 		details.Extra = runtime.GOARCH
 		d.Info = details
