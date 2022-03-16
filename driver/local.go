@@ -34,7 +34,14 @@ func (d *Local) RunCommand(command string) (string, error) {
 	// https://pkg.go.dev/os/exec for more information
 	var cmd *exec.Cmd
 	log.Debugf("Running command `%s` ", command)
-	cmd = exec.Command("bash", "-c", command)
+	if d.Info == nil {
+		d.GetDetails()
+	}
+	if d.Info.IsLinux || d.Info.IsDarwin {
+		cmd = exec.Command("bash", "-c", command)
+	} else {
+		cmd = exec.Command("cmd", "/C", command)
+	}
 	cmd.Env = os.Environ()
 	if len(d.Vars) != 0 {
 		for _, v := range d.Vars {
