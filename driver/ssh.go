@@ -100,6 +100,9 @@ func (d *SSH) RunCommand(command string) (string, error) {
 
 func (d *SSH) GetDetails() SystemDetails {
 	if d.Info == nil {
+		// TODO: Check for goph specific errors
+		// within RunCommand and only return errors that are not
+		// goph specific
 		uname, err := d.RunCommand(`uname`)
 		// try windows command
 		if err != nil {
