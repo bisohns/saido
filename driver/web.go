@@ -53,7 +53,7 @@ func (d *Web) RunCommand(command string) (string, error) {
 			res, err = http.Get(d.URL)
 		}
 		if err != nil || res.StatusCode < 200 || res.StatusCode > 299 {
-			message := fmt.Sprintf("Error %s running request: %s", err, string(res.StatusCode))
+			message := fmt.Sprintf("Error %s running request: %d", err, res.StatusCode)
 			return ``, errors.New(message)
 		}
 		elapsed := time.Since(start)
