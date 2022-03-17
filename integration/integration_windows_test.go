@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -38,6 +39,19 @@ func TestCustomonLocal(t *testing.T) {
 	if ok {
 		if strings.TrimSpace(iConcrete.Values.Output) != "true" {
 			t.Errorf("Expected 'true', found %s", iConcrete.Values.Output)
+		}
+	}
+}
+
+func TestDFonLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`disk`, &d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.DFWin)
+	if ok {
+		fmt.Printf("%#v", iConcrete.Values)
+		if len(iConcrete.Values) < 1 {
+			t.Error("DFWin not showing at least one drive")
 		}
 	}
 }
