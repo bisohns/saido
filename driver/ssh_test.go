@@ -13,7 +13,7 @@ func NewSSHForTest() Driver {
 		KeyFile:         "/home/diretnan/.ssh/id_rsa",
 		KeyPass:         "",
 		CheckKnownHosts: false,
-		fields: fields{
+		driverBase: driverBase{
 			PollInterval: 5,
 		},
 	}

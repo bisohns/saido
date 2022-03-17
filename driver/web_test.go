@@ -8,7 +8,7 @@ func NewWebForTest() *Web {
 	return &Web{
 		URL:    "https://duckduckgo.com",
 		Method: GET,
-		fields: fields{
+		driverBase: driverBase{
 			PollInterval: 5,
 		},
 	}

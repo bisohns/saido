@@ -11,8 +11,8 @@ import (
 
 // Local : Driver for handling local executions
 type Local struct {
-	fields
-	Vars []string
+	driverBase
+	EnvVars []string
 }
 
 func (d *Local) ReadFile(path string) (string, error) {
@@ -43,8 +43,8 @@ func (d *Local) RunCommand(command string) (string, error) {
 		cmd = exec.Command("cmd", "/C", command)
 	}
 	cmd.Env = os.Environ()
-	if len(d.Vars) != 0 {
-		for _, v := range d.Vars {
+	if len(d.EnvVars) != 0 {
+		for _, v := range d.EnvVars {
 			cmd.Env = append(cmd.Env, v)
 		}
 	}

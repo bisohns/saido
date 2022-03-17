@@ -31,7 +31,7 @@ func TestProcessonLocal(t *testing.T) {
 func TestCustomonLocal(t *testing.T) {
 	d := NewLocalForTest()
 	dfConcrete, _ := d.(*driver.Local)
-	dfConcrete.Vars = []string{"EXAMPLES=true"}
+	dfConcrete.EnvVars = []string{"EXAMPLES=true"}
 	d = dfConcrete
 	i, _ := inspector.Init(`custom`, &d, `echo %EXAMPLES%`)
 	i.Execute()
