@@ -13,10 +13,10 @@ func TestWindowsRunCommand(t *testing.T) {
 	}
 }
 
-func TestWindowsLocalGetDetails(t *testing.T) {
+func TestWindowsLocalSystemDetails(t *testing.T) {
 	d := Local{}
-	output := d.GetDetails()
-	if output != "Local - windows" {
-		t.Error(output)
+	details := d.GetDetails()
+	if !details.IsWindows {
+		t.Errorf("Expected windows got %s", details.Name)
 	}
 }

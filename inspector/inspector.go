@@ -1,59 +1,42 @@
 package inspector
 
 import (
-	log "github.com/sirupsen/logrus"
+	"errors"
+	"fmt"
+
+	"github.com/bisohns/saido/driver"
 )
-
-// Mode : This specifies whether an Inspector is a command or a file
-type Mode int
-
-const (
-	// Command : Inspector is a command to be executes
-	Command Mode = iota
-	// File : Inspector is a file to be read
-	File
-)
-
-// exclude windows specific inspectors
-var inspectorMap = map[string]Inspector{
-	`disk`:         NewDF(),
-	`meminfo`:      NewMemInfo(),
-	`dockerstats`:  NewDockerStats(),
-	`uptime`:       NewUptime(),
-	`loadavg`:      NewLoadAvg(),
-	`responsetime`: NewResponseTime(),
-	`custom`:       NewCustom(``),
-}
-
-type fields struct {
-	// Specify a mode for the Inspector
-	Type Mode
-	// File path to read
-	FilePath string
-	// Command to execute
-	Command string
-}
-
-func (f *fields) String() string {
-	value := `None`
-	if f.Type == Command {
-		value = f.Command
-	} else if f.Type == File {
-		value = f.FilePath
-	}
-	return value
-}
 
 // Inspector : defines a particular metric supported by a driver
 type Inspector interface {
 	Parse(output string)
+	SetDriver(driver *driver.Driver)
+	Execute()
+	driverExec() driver.Command
 }
 
-// GetInspector : obtain an initialized inspector using name
-func GetInspector(name string) Inspector {
+type NewInspector func(driver *driver.Driver, custom ...string) (Inspector, error)
+
+var inspectorMap = map[string]NewInspector{
+	`disk`:         NewDF,
+	`docker`:       NewDockerStats,
+	`uptime`:       NewUptime,
+	`responsetime`: NewResponseTime,
+	`memory`:       NewMemInfo,
+	`process`:      NewProcess,
+	`custom`:       NewCustom,
+	`loadavg`:      NewLoadAvg,
+}
+
+// Init : initializes the specified inspector using name and driver
+func Init(name string, driver *driver.Driver, custom ...string) (Inspector, error) {
 	val, ok := inspectorMap[name]
-	if !ok {
-		log.Fatalf(`%s inspector not found`, name)
+	if ok {
+		inspector, err := val(driver, custom...)
+		if err != nil {
+			return nil, err
+		}
+		return inspector, nil
 	}
-	return val
+	return nil, errors.New(fmt.Sprintf("Cannot find inspector with name %s", name))
 }

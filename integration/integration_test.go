@@ -9,95 +9,141 @@ import (
 	"github.com/bisohns/saido/inspector"
 )
 
-func TestDFonSSH(t *testing.T) {
-	d := driver.NewSSHForTest()
-	i := inspector.NewDF()
-	output, err := d.RunCommand(i.String())
-	if err != nil {
-		t.Error(err)
+func NewWebForTest() driver.Driver {
+	return &driver.Web{
+		URL:    "https://duckduckgo.com",
+		Method: driver.GET,
 	}
-	i.Parse(output)
-	fmt.Printf(`%#v`, i.Values)
+}
+
+func NewSSHForTest() driver.Driver {
+	return &driver.SSH{
+		User:            "dev",
+		Host:            "127.0.0.1",
+		Port:            2222,
+		KeyFile:         "/home/diretnan/.ssh/id_rsa",
+		KeyPass:         "",
+		CheckKnownHosts: false,
+	}
+}
+
+func TestDFonSSH(t *testing.T) {
+	d := NewSSHForTest()
+	i, _ := inspector.Init(`disk`, &d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.DF)
+	if ok {
+		fmt.Printf(`%#v`, iConcrete.Values)
+	}
 }
 
 func TestMemInfoonSSH(t *testing.T) {
-	d := driver.NewSSHForTest()
-	i := inspector.NewMemInfo()
-	output, err := d.ReadFile(i.String())
-	if err != nil {
-		t.Error(err)
+	d := NewSSHForTest()
+	i, _ := inspector.NewMemInfo(&d)
+	i.Execute()
+	iConcreteLinux, ok := i.(*inspector.MemInfoLinux)
+	if ok {
+		if iConcreteLinux.Values.MemTotal == 0 {
+			t.Error("showing percent used as 0")
+		}
+		fmt.Printf(`%#v`, iConcreteLinux.Values)
 	}
-	i.Parse(output)
-	if i.Values.MemTotal == 0 {
-		t.Error("showing percent used as 0")
+	iConcreteDarwin, ok := i.(*inspector.MemInfoDarwin)
+	if ok {
+		if iConcreteDarwin.Values.MemTotal == 0 {
+			t.Error("showing percent used as 0")
+		}
+		fmt.Printf(`%#v`, iConcreteDarwin.Values)
 	}
-	fmt.Printf(`%#v`, i.Values)
 }
 
 func TestResponseTimeonWeb(t *testing.T) {
-	d := driver.NewWebForTest()
-	i := inspector.NewResponseTime()
-	output, err := d.RunCommand(i.String())
-	if err != nil {
-		t.Error(err)
+	d := NewWebForTest()
+	i, _ := inspector.NewResponseTime(&d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.ResponseTime)
+	if ok {
+		if iConcrete.Values.Seconds == 0 {
+			t.Error("showing response time as 0")
+		}
+		fmt.Printf(`%#v`, iConcrete.Values)
 	}
-	i.Parse(output)
-	if i.Values.Seconds == 0 {
-		t.Error("showing response time as 0")
-	}
-	fmt.Printf(`%#v`, i.Values)
 }
 
 func TestProcessonSSH(t *testing.T) {
-	d := driver.NewSSHForTest()
-	i := inspector.NewProcess()
-	output, err := d.RunCommand(i.String())
-	if err != nil {
-		t.Error(err)
+	d := NewSSHForTest()
+	i, _ := inspector.NewProcess(&d)
+	i.Execute()
+	iConcreteUnix, ok := i.(*inspector.Process)
+	if ok {
+		if len(iConcreteUnix.Values) <= 2 {
+			t.Error("Less than two processes running")
+		}
 	}
-	i.Parse(output)
-	if len(i.Values) <= 2 {
-		t.Error(err)
+	iConcreteWin, ok := i.(*inspector.ProcessWin)
+	if ok {
+		if len(iConcreteWin.Values) <= 2 {
+			t.Error("Less than two processes running")
+		}
 	}
 }
 
 func TestCustomonSSH(t *testing.T) {
-	d := driver.NewSSHForTest()
+	d := NewSSHForTest()
 	// set vars
-	d.Vars = []string{"MONKEY=true"}
-	i := inspector.NewCustom(`echo $MONKEY`)
-	output, err := d.RunCommand(i.String())
-	if err != nil {
-		t.Error(err)
-	}
-	i.Parse(output)
-	if strings.TrimSpace(i.Values.Output) != "true" {
-		t.Errorf("%s", i.Values.Output)
+	dfConcrete, _ := d.(*driver.SSH)
+	dfConcrete.Vars = []string{"MONKEY=true"}
+	d = dfConcrete
+	i, _ := inspector.NewCustom(&d, `echo $MONKEY`)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.Custom)
+	if ok {
+		if strings.TrimSpace(iConcrete.Values.Output) != "true" {
+			t.Errorf("%s", iConcrete.Values.Output)
+		}
 	}
 }
 
 func TestLoadAvgonSSH(t *testing.T) {
-	d := driver.NewSSHForTest()
-	i := inspector.NewLoadAvg()
-	output, err := d.ReadFile(i.String())
-	if err != nil {
-		t.Error(err)
+	d := NewSSHForTest()
+	i, _ := inspector.NewLoadAvg(&d)
+	i.Execute()
+	iConcreteLinux, ok := i.(*inspector.LoadAvg)
+	if ok {
+		if iConcreteLinux.Values.Load1M == 0 {
+			t.Errorf("%f", iConcreteLinux.Values.Load1M)
+		}
 	}
-	i.Parse(output)
-	if i.Values.Load1M == 0 {
-		t.Errorf("%f", i.Values.Load1M)
+	iConcreteDarwin, ok := i.(*inspector.LoadAvgDarwin)
+	if ok {
+		if iConcreteDarwin.Values.Load1M == 0 {
+			t.Errorf("%f", iConcreteDarwin.Values.Load1M)
+		}
+	}
+}
+
+func TestCustomonWeb(t *testing.T) {
+	d := NewWebForTest()
+	_, err := inspector.Init(`custom`, &d, `custom-command`)
+	if err == nil {
+		t.Error("should not instantiate custom on web")
 	}
 }
 
 func TestUptimeonSSH(t *testing.T) {
-	d := driver.NewSSHForTest()
-	i := inspector.NewUptime()
-	output, err := d.ReadFile(i.String())
-	if err != nil {
-		t.Error(err)
+	d := NewSSHForTest()
+	i, _ := inspector.NewUptime(&d)
+	i.Execute()
+	iConcreteLinux, ok := i.(*inspector.UptimeLinux)
+	if ok {
+		if iConcreteLinux.Values.Up == 0 {
+			t.Errorf("%f", iConcreteLinux.Values.Up)
+		}
 	}
-	i.Parse(output)
-	if i.Values.Up == 0 {
-		t.Errorf("%f", i.Values.Up)
+	iConcreteDarwin, ok := i.(*inspector.UptimeDarwin)
+	if ok {
+		if iConcreteDarwin.Values.Up == 0 {
+			t.Errorf("%f", iConcreteDarwin.Values.Up)
+		}
 	}
 }

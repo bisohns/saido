@@ -1,8 +1,11 @@
 package inspector
 
 import (
-	log "github.com/sirupsen/logrus"
+	"errors"
 	"strconv"
+
+	"github.com/bisohns/saido/driver"
+	log "github.com/sirupsen/logrus"
 )
 
 // ResponseTimeMetrics : Metrics used by ResponseTime
@@ -12,7 +15,8 @@ type ResponseTimeMetrics struct {
 
 // ResponseTime : Parsing the `web` output for response time
 type ResponseTime struct {
-	fields
+	Driver  *driver.Driver
+	Command string
 	// Values of metrics being read
 	Values ResponseTimeMetrics
 }
@@ -30,13 +34,31 @@ func (i *ResponseTime) Parse(output string) {
 	i.Values = values
 }
 
-// NewResponseTime : Initialize a new ResponseTime instance
-func NewResponseTime() *ResponseTime {
-	return &ResponseTime{
-		fields: fields{
-			Type:    Command,
-			Command: `response`,
-		},
-	}
+func (i *ResponseTime) SetDriver(driver *driver.Driver) {
+	i.Driver = driver
+}
 
+func (i ResponseTime) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *ResponseTime) Execute() {
+	output, err := i.driverExec()(i.Command)
+	if err == nil {
+		i.Parse(output)
+	}
+}
+
+// NewResponseTime : Initialize a new ResponseTime instance
+func NewResponseTime(driver *driver.Driver, _ ...string) (Inspector, error) {
+	var responsetime Inspector
+	details := (*driver).GetDetails()
+	if !(details.IsWeb) {
+		return nil, errors.New("Cannot use response time outside driver (web)")
+	}
+	responsetime = &ResponseTime{
+		Command: `response`,
+	}
+	responsetime.SetDriver(driver)
+	return responsetime, nil
 }
