@@ -21,9 +21,9 @@ const (
 	GET Request = "GET"
 )
 
-// Web : Driver for handling ssh executions
+// Web : Driver for handling web executions
 type Web struct {
-	fields
+	driverBase
 	// URL e.g https://google.com
 	URL string
 	// Method POST/GET
@@ -53,7 +53,7 @@ func (d *Web) RunCommand(command string) (string, error) {
 			res, err = http.Get(d.URL)
 		}
 		if err != nil || res.StatusCode < 200 || res.StatusCode > 299 {
-			message := fmt.Sprintf("Error %s running request: %s", err, string(res.StatusCode))
+			message := fmt.Sprintf("Error %s running request: %d", err, res.StatusCode)
 			return ``, errors.New(message)
 		}
 		elapsed := time.Since(start)
@@ -62,16 +62,14 @@ func (d *Web) RunCommand(command string) (string, error) {
 	return ``, errors.New("Cannot read file on web driver")
 }
 
-func (d *Web) GetDetails() string {
-	return fmt.Sprintf(`Web - %s`, d.String())
-}
-
-func NewWebForTest() *Web {
-	return &Web{
-		URL:    "https://duckduckgo.com",
-		Method: GET,
-		fields: fields{
-			PollInterval: 5,
-		},
+func (d *Web) GetDetails() SystemDetails {
+	if d.Info == nil {
+		details := &SystemDetails{
+			Name:  "web",
+			Extra: d.URL,
+			IsWeb: true,
+		}
+		d.Info = details
 	}
+	return *d.Info
 }

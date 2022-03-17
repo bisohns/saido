@@ -13,7 +13,7 @@ var port = 22
 
 // SSH : Driver for handling ssh executions
 type SSH struct {
-	fields
+	driverBase
 	// User e.g root
 	User string
 	// Host name/ip e.g 171.23.122.1
@@ -27,7 +27,8 @@ type SSH struct {
 	// Check known hosts (only disable for tests
 	CheckKnownHosts bool
 	// set environmental vars for server e.g []string{"DEBUG=1", "FAKE=echo"}
-	Vars []string
+	EnvVars       []string
+	SessionClient *goph.Client
 }
 
 func (d *SSH) String() string {
@@ -36,33 +37,39 @@ func (d *SSH) String() string {
 
 // set the goph Client
 func (d *SSH) Client() (*goph.Client, error) {
-	var err error
-	var client *goph.Client
-	var callback ssh.HostKeyCallback
-	if d.Port != 0 {
-		port = d.Port
-	}
-	auth, err := goph.Key(d.KeyFile, d.KeyPass)
-	if err != nil {
-		return nil, err
-	}
-	if d.CheckKnownHosts {
-		callback, err = goph.DefaultKnownHosts()
+	if d.SessionClient == nil {
+		var err error
+		var client *goph.Client
+		var callback ssh.HostKeyCallback
+		if d.Port != 0 {
+			port = d.Port
+		}
+		auth, err := goph.Key(d.KeyFile, d.KeyPass)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		callback = ssh.InsecureIgnoreHostKey()
+		if d.CheckKnownHosts {
+			callback, err = goph.DefaultKnownHosts()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			callback = ssh.InsecureIgnoreHostKey()
+		}
+		client, err = goph.NewConn(&goph.Config{
+			User:     d.User,
+			Addr:     d.Host,
+			Port:     uint(port),
+			Auth:     auth,
+			Timeout:  goph.DefaultTimeout,
+			Callback: callback,
+		})
+		if err != nil {
+			d.SessionClient = client
+		}
+		return client, err
 	}
-	client, err = goph.NewConn(&goph.Config{
-		User:     d.User,
-		Addr:     d.Host,
-		Port:     uint(port),
-		Auth:     auth,
-		Timeout:  goph.DefaultTimeout,
-		Callback: callback,
-	})
-	return client, err
+	return d.SessionClient, nil
 }
 
 func (d *SSH) ReadFile(path string) (string, error) {
@@ -72,16 +79,16 @@ func (d *SSH) ReadFile(path string) (string, error) {
 }
 
 func (d *SSH) RunCommand(command string) (string, error) {
-	// FIXME: Do we retain client across all command runs?
+	// TODO: Ensure clients of all SSH drivers are closed on context end
+	// i.e d.SessionClient.Close()
 	log.Debugf("Running remote command %s", command)
 	client, err := d.Client()
 	if err != nil {
 		return ``, err
 	}
-	defer client.Close()
-	if len(d.Vars) != 0 {
+	if len(d.EnvVars) != 0 {
 		// add env variable to command
-		envline := strings.Join(d.Vars, ";")
+		envline := strings.Join(d.EnvVars, ";")
 		command = strings.Join([]string{envline, command}, ";")
 	}
 	out, err := client.Run(command)
@@ -91,20 +98,32 @@ func (d *SSH) RunCommand(command string) (string, error) {
 	return string(out), nil
 }
 
-func (d *SSH) GetDetails() string {
-	return fmt.Sprintf(`SSH - %s`, d.String())
-}
-
-func NewSSHForTest() *SSH {
-	return &SSH{
-		User:            "dev",
-		Host:            "127.0.0.1",
-		Port:            2222,
-		KeyFile:         "/home/deven/.ssh/id_rsa",
-		KeyPass:         "",
-		CheckKnownHosts: false,
-		fields: fields{
-			PollInterval: 5,
-		},
+func (d *SSH) GetDetails() SystemDetails {
+	if d.Info == nil {
+		// TODO: Check for goph specific errors
+		// within RunCommand and only return errors that are not
+		// goph specific
+		uname, err := d.RunCommand(`uname`)
+		// try windows command
+		if err != nil {
+			windowsName, err := d.RunCommand(`systeminfo | findstr /B /C:"OS Name"`)
+			if err == nil {
+				if strings.Contains(strings.ToLower(windowsName), "windows") {
+					uname = "windows"
+				}
+			}
+		}
+		details := &SystemDetails{}
+		details.Name = uname
+		switch details.Name {
+		case "windows":
+			details.IsWindows = true
+		case "linux":
+			details.IsLinux = true
+		case "darwin":
+			details.IsDarwin = true
+		}
+		d.Info = details
 	}
+	return *d.Info
 }
