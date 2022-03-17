@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -97,11 +98,11 @@ type WMIC struct {
 }
 
 // NewDF : Initialize a new DF instance
-func NewDF(driver *driver.Driver) Inspector {
+func NewDF(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var df Inspector
 	details := (*driver).GetDetails()
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
-		panic("Cannot use 'df' command on drivers outside (linux, darwin, windows)")
+		return nil, errors.New("Cannot use 'df' command on drivers outside (linux, darwin, windows)")
 	}
 	if details.IsLinux || details.IsDarwin {
 		df = &DF{
@@ -114,5 +115,5 @@ func NewDF(driver *driver.Driver) Inspector {
 		}
 	}
 	df.SetDriver(driver)
-	return df
+	return df, nil
 }

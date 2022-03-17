@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/bisohns/saido/driver"
@@ -49,15 +50,15 @@ func (i *ResponseTime) Execute() {
 }
 
 // NewResponseTime : Initialize a new ResponseTime instance
-func NewResponseTime(driver *driver.Driver) Inspector {
+func NewResponseTime(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var responsetime Inspector
 	details := (*driver).GetDetails()
 	if !(details.IsWeb) {
-		panic("Cannot use response time outside driver (web)")
+		return nil, errors.New("Cannot use response time outside driver (web)")
 	}
 	responsetime = &ResponseTime{
 		Command: `response`,
 	}
 	responsetime.SetDriver(driver)
-	return responsetime
+	return responsetime, nil
 }

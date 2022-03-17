@@ -8,7 +8,7 @@ import (
 
 func TestMemInfoOnLocal(t *testing.T) {
 	driver := NewLocalForTest()
-	d := NewMemInfo(&driver)
+	d, _ := NewMemInfo(&driver)
 	d.Execute()
 	iConcreteLinux, ok := d.(*MemInfoLinux)
 	if ok {

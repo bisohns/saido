@@ -21,7 +21,7 @@ func NewSSHForTest() driver.Driver {
 
 func TestDFOnLocal(t *testing.T) {
 	driver := NewLocalForTest()
-	d := NewDF(&driver)
+	d, _ := NewDF(&driver)
 	d.Execute()
 	dfConcrete, _ := d.(*DF)
 	if len(dfConcrete.Values) == 0 {
@@ -31,7 +31,7 @@ func TestDFOnLocal(t *testing.T) {
 
 func TestDFOnSSH(t *testing.T) {
 	driver := NewSSHForTest()
-	d := NewDF(&driver)
+	d, _ := NewDF(&driver)
 	d.Execute()
 	dfConcrete, _ := d.(*DF)
 	if len(dfConcrete.Values) == 0 {

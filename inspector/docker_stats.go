@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -109,15 +110,15 @@ func (i *DockerStats) Execute() {
 }
 
 // NewDockerStats : Initialize a new DockerStats instance
-func NewDockerStats(driver *driver.Driver) Inspector {
+func NewDockerStats(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var dockerstats Inspector
 	details := (*driver).GetDetails()
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
-		panic("Cannot use LoadAvgDarwin on drivers outside (linux, darwin, windows)")
+		return nil, errors.New("Cannot use LoadAvgDarwin on drivers outside (linux, darwin, windows)")
 	}
 	dockerstats = &DockerStats{
 		Command: `docker stats --no-stream`,
 	}
 	dockerstats.SetDriver(driver)
-	return dockerstats
+	return dockerstats, nil
 }

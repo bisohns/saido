@@ -14,7 +14,7 @@ func NewLocalForTest() driver.Driver {
 
 func TestLoadAvg(t *testing.T) {
 	testDriver := NewLocalForTest()
-	loadavg := NewLoadAvg(&testDriver)
+	loadavg, _ := NewLoadAvg(&testDriver)
 	loadavg.Execute()
 	loadavgConcreteLinux, ok := loadavg.(*LoadAvg)
 	if ok {

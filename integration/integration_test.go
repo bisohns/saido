@@ -29,7 +29,7 @@ func NewSSHForTest() driver.Driver {
 
 func TestDFonSSH(t *testing.T) {
 	d := NewSSHForTest()
-	i := inspector.NewDF(&d)
+	i, _ := inspector.Init(`disk`, &d)
 	i.Execute()
 	iConcrete, ok := i.(*inspector.DF)
 	if ok {
@@ -39,7 +39,7 @@ func TestDFonSSH(t *testing.T) {
 
 func TestMemInfoonSSH(t *testing.T) {
 	d := NewSSHForTest()
-	i := inspector.NewMemInfo(&d)
+	i, _ := inspector.NewMemInfo(&d)
 	i.Execute()
 	iConcreteLinux, ok := i.(*inspector.MemInfoLinux)
 	if ok {
@@ -59,7 +59,7 @@ func TestMemInfoonSSH(t *testing.T) {
 
 func TestResponseTimeonWeb(t *testing.T) {
 	d := NewWebForTest()
-	i := inspector.NewResponseTime(&d)
+	i, _ := inspector.NewResponseTime(&d)
 	i.Execute()
 	iConcrete, ok := i.(*inspector.ResponseTime)
 	if ok {
@@ -72,7 +72,7 @@ func TestResponseTimeonWeb(t *testing.T) {
 
 func TestProcessonSSH(t *testing.T) {
 	d := NewSSHForTest()
-	i := inspector.NewProcess(&d)
+	i, _ := inspector.NewProcess(&d)
 	i.Execute()
 	iConcreteUnix, ok := i.(*inspector.Process)
 	if ok {
@@ -94,7 +94,7 @@ func TestCustomonSSH(t *testing.T) {
 	dfConcrete, _ := d.(*driver.SSH)
 	dfConcrete.Vars = []string{"MONKEY=true"}
 	d = dfConcrete
-	i := inspector.NewCustom(`echo $MONKEY`, &d)
+	i, _ := inspector.NewCustom(&d, `echo $MONKEY`)
 	i.Execute()
 	iConcrete, ok := i.(*inspector.Custom)
 	if ok {
@@ -106,7 +106,7 @@ func TestCustomonSSH(t *testing.T) {
 
 func TestLoadAvgonSSH(t *testing.T) {
 	d := NewSSHForTest()
-	i := inspector.NewLoadAvg(&d)
+	i, _ := inspector.NewLoadAvg(&d)
 	i.Execute()
 	iConcreteLinux, ok := i.(*inspector.LoadAvg)
 	if ok {
@@ -122,9 +122,17 @@ func TestLoadAvgonSSH(t *testing.T) {
 	}
 }
 
+func TestCustomonWeb(t *testing.T) {
+	d := NewWebForTest()
+	_, err := inspector.Init(`custom`, &d, `custom-command`)
+	if err == nil {
+		t.Error("should not instantiate custom on web")
+	}
+}
+
 func TestUptimeonSSH(t *testing.T) {
 	d := NewSSHForTest()
-	i := inspector.NewUptime(&d)
+	i, _ := inspector.NewUptime(&d)
 	i.Execute()
 	iConcreteLinux, ok := i.(*inspector.UptimeLinux)
 	if ok {

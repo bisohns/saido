@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -185,11 +186,11 @@ func (i *ProcessWin) Execute() {
 }
 
 // NewProcess : Initialize a new Process instance
-func NewProcess(driver *driver.Driver) Inspector {
+func NewProcess(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var process Inspector
 	details := (*driver).GetDetails()
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
-		panic("Cannot use Process on drivers outside (linux, darwin, windows)")
+		return nil, errors.New("Cannot use Process on drivers outside (linux, darwin, windows)")
 	}
 	if details.IsLinux || details.IsDarwin {
 		process = &Process{
@@ -201,5 +202,5 @@ func NewProcess(driver *driver.Driver) Inspector {
 		}
 	}
 	process.SetDriver(driver)
-	return process
+	return process, nil
 }

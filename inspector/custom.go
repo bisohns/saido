@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/bisohns/saido/driver"
@@ -51,15 +52,15 @@ func (i *Custom) Execute() {
 }
 
 // NewCustom : Initialize a new Custom instance
-func NewCustom(custom string, driver *driver.Driver) Inspector {
+func NewCustom(driver *driver.Driver, custom ...string) (Inspector, error) {
 	var customInspector Inspector
 	details := (*driver).GetDetails()
 	if details.IsWeb {
-		panic(fmt.Sprintf("Cannot use Custom(%s) on web", custom))
+		return nil, errors.New(fmt.Sprintf("Cannot use Custom(%s) on web", custom))
 	}
 	customInspector = &Custom{
-		Command: custom,
+		Command: custom[0],
 	}
 	customInspector.SetDriver(driver)
-	return customInspector
+	return customInspector, nil
 }

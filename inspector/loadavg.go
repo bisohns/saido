@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -98,11 +99,11 @@ func (i *LoadAvg) Execute() {
 // of LoadAvg
 
 // NewLoadAvg : Initialize a new LoadAvg instance
-func NewLoadAvg(driver *driver.Driver) Inspector {
+func NewLoadAvg(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var loadavg Inspector
 	details := (*driver).GetDetails()
 	if !(details.IsLinux || details.IsDarwin) {
-		panic("Cannot use LoadAvg on drivers outside (linux, darwin)")
+		return nil, errors.New("Cannot use LoadAvg on drivers outside (linux, darwin)")
 	}
 	if details.IsLinux {
 		loadavg = &LoadAvg{
@@ -115,6 +116,6 @@ func NewLoadAvg(driver *driver.Driver) Inspector {
 		}
 	}
 	loadavg.SetDriver(driver)
-	return loadavg
+	return loadavg, nil
 
 }

@@ -13,7 +13,7 @@ func NewLocalForTest() driver.Driver {
 
 func TestProcessonLocal(t *testing.T) {
 	d := NewLocalForTest()
-	i := inspector.NewProcess(&d)
+	i, _ := inspector.NewProcess(&d)
 	i.Execute()
 	iConcreteWin, ok := i.(*inspector.ProcessWin)
 	if ok {

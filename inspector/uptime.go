@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -115,11 +116,11 @@ func (i *UptimeDarwin) Execute() {
 //TODO: Windows equivalent of uptime
 
 // NewUptime : Initialize a new Uptime instance
-func NewUptime(driver *driver.Driver) Inspector {
+func NewUptime(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var uptime Inspector
 	details := (*driver).GetDetails()
 	if !(details.IsDarwin || details.IsLinux) {
-		panic("Cannot use Uptime on drivers outside (linux, darwin)")
+		return nil, errors.New("Cannot use Uptime on drivers outside (linux, darwin)")
 	}
 	if details.IsLinux {
 		uptime = &UptimeLinux{
@@ -132,5 +133,5 @@ func NewUptime(driver *driver.Driver) Inspector {
 		}
 	}
 	uptime.SetDriver(driver)
-	return uptime
+	return uptime, nil
 }

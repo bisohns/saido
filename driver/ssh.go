@@ -27,7 +27,8 @@ type SSH struct {
 	// Check known hosts (only disable for tests
 	CheckKnownHosts bool
 	// set environmental vars for server e.g []string{"DEBUG=1", "FAKE=echo"}
-	Vars []string
+	Vars          []string
+	SessionClient *goph.Client
 }
 
 func (d *SSH) String() string {
@@ -36,33 +37,37 @@ func (d *SSH) String() string {
 
 // set the goph Client
 func (d *SSH) Client() (*goph.Client, error) {
-	var err error
-	var client *goph.Client
-	var callback ssh.HostKeyCallback
-	if d.Port != 0 {
-		port = d.Port
-	}
-	auth, err := goph.Key(d.KeyFile, d.KeyPass)
-	if err != nil {
-		return nil, err
-	}
-	if d.CheckKnownHosts {
-		callback, err = goph.DefaultKnownHosts()
+	if d.SessionClient == nil {
+		var err error
+		var client *goph.Client
+		var callback ssh.HostKeyCallback
+		if d.Port != 0 {
+			port = d.Port
+		}
+		auth, err := goph.Key(d.KeyFile, d.KeyPass)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		callback = ssh.InsecureIgnoreHostKey()
+		if d.CheckKnownHosts {
+			callback, err = goph.DefaultKnownHosts()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			callback = ssh.InsecureIgnoreHostKey()
+		}
+		client, err = goph.NewConn(&goph.Config{
+			User:     d.User,
+			Addr:     d.Host,
+			Port:     uint(port),
+			Auth:     auth,
+			Timeout:  goph.DefaultTimeout,
+			Callback: callback,
+		})
+		d.SessionClient = client
+		return client, err
 	}
-	client, err = goph.NewConn(&goph.Config{
-		User:     d.User,
-		Addr:     d.Host,
-		Port:     uint(port),
-		Auth:     auth,
-		Timeout:  goph.DefaultTimeout,
-		Callback: callback,
-	})
-	return client, err
+	return d.SessionClient, nil
 }
 
 func (d *SSH) ReadFile(path string) (string, error) {
@@ -72,7 +77,7 @@ func (d *SSH) ReadFile(path string) (string, error) {
 }
 
 func (d *SSH) RunCommand(command string) (string, error) {
-	// FIXME: Do we retain client across all command runs?
+	// FIXME: provide refresh interface to somehow refresh d.Client if d.SessionClient somehow gets dropped
 	log.Debugf("Running remote command %s", command)
 	client, err := d.Client()
 	if err != nil {
@@ -112,8 +117,6 @@ func (d *SSH) GetDetails() SystemDetails {
 			details.IsLinux = true
 		case "darwin":
 			details.IsDarwin = true
-		default:
-			details.IsLinux = true
 		}
 		d.Info = details
 	}

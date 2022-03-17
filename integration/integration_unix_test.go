@@ -19,7 +19,7 @@ func NewLocalForTest() driver.Driver {
 func TestDFonLocal(t *testing.T) {
 	d := NewLocalForTest()
 	// can either use NewDF() or get the interface and perform type assertion
-	i := inspector.NewDF(&d)
+	i, _ := inspector.NewDF(&d)
 	i.Execute()
 	iConcrete, _ := i.(*inspector.DF)
 	if iConcrete.Values[0].Used == 0 {
@@ -30,7 +30,7 @@ func TestDFonLocal(t *testing.T) {
 
 func TestMemInfoonLocal(t *testing.T) {
 	d := NewLocalForTest()
-	i := inspector.NewMemInfo(&d)
+	i, _ := inspector.NewMemInfo(&d)
 	i.Execute()
 	iConcreteLinux, ok := i.(*inspector.MemInfoLinux)
 	if ok {
@@ -50,7 +50,7 @@ func TestMemInfoonLocal(t *testing.T) {
 
 func TestDockerStatsonLocal(t *testing.T) {
 	d := NewLocalForTest()
-	i := inspector.NewDockerStats(&d)
+	i, _ := inspector.NewDockerStats(&d)
 	i.Execute()
 	iConcrete, _ := i.(*inspector.DockerStats)
 	if len(iConcrete.Values) == 0 {
@@ -61,7 +61,7 @@ func TestDockerStatsonLocal(t *testing.T) {
 
 func TestProcessonLocal(t *testing.T) {
 	d := NewLocalForTest()
-	i := inspector.NewProcess(&d)
+	i, _ := inspector.NewProcess(&d)
 	i.Execute()
 	iConcreteUnix, ok := i.(*inspector.Process)
 	if ok {
@@ -107,7 +107,7 @@ func TestProcessonLocal(t *testing.T) {
 
 func TestCustomonLocal(t *testing.T) {
 	d := NewLocalForTest()
-	i := inspector.NewCustom(`echo /test/test`, &d)
+	i, _ := inspector.NewCustom(&d, `echo /test/test`)
 	i.Execute()
 	iConcrete, _ := i.(*inspector.Custom)
 	if strings.TrimSpace(iConcrete.Values.Output) != "/test/test" {
@@ -117,7 +117,7 @@ func TestCustomonLocal(t *testing.T) {
 
 func TestLoadAvgonLocal(t *testing.T) {
 	d := NewLocalForTest()
-	i := inspector.NewLoadAvg(&d)
+	i, _ := inspector.NewLoadAvg(&d)
 	i.Execute()
 	iConcreteDarwin, ok := i.(*inspector.LoadAvgDarwin)
 	if ok {
@@ -137,7 +137,7 @@ func TestLoadAvgonLocal(t *testing.T) {
 
 func TestUptimeonLocal(t *testing.T) {
 	d := NewLocalForTest()
-	i := inspector.NewUptime(&d)
+	i, _ := inspector.NewUptime(&d)
 	i.Execute()
 	iConcreteLinux, ok := i.(*inspector.UptimeLinux)
 	if ok {

@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -166,11 +167,11 @@ func (i *MemInfoDarwin) Execute() {
 // TODO: Windows Equivalents of MemInfo
 
 // NewMemInfoLinux : Initialize a new MemInfoLinux instance
-func NewMemInfo(driver *driver.Driver) Inspector {
+func NewMemInfo(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var meminfo Inspector
 	details := (*driver).GetDetails()
 	if !(details.IsLinux || details.IsDarwin) {
-		panic("Cannot use MemInfo on drivers outside (linux, darwin)")
+		return nil, errors.New("Cannot use MemInfo on drivers outside (linux, darwin)")
 	}
 	if details.IsLinux {
 		meminfo = &MemInfoLinux{
@@ -187,5 +188,5 @@ func NewMemInfo(driver *driver.Driver) Inspector {
 		}
 	}
 	meminfo.SetDriver(driver)
-	return meminfo
+	return meminfo, nil
 }
