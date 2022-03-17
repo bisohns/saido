@@ -52,7 +52,7 @@ var rootCmd = &cobra.Command{
 		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		fmt.Println("\n\nSaido - Bisoncorp (2020) (https://github.com/bisohns/saido)")
+		fmt.Println("\n\nSaido - Bisohns (2022) (https://github.com/bisohns/saido)")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Saido is running ...")
