@@ -66,6 +66,20 @@ func TestLoadAverageonLocal(t *testing.T) {
 		}
 	}
 }
+
+func TestMemInfoonLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`memory`, &d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.MemInfoWin)
+	if ok {
+		fmt.Printf("%#v", iConcrete.Values)
+		if iConcrete.Values.MemTotal == 0 {
+			t.Error("RAM reported as empty")
+		}
+	}
+}
+
 func TestDFonLocal(t *testing.T) {
 	d := NewLocalForTest()
 	i, _ := inspector.Init(`disk`, &d)
