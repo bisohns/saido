@@ -43,6 +43,29 @@ func TestCustomonLocal(t *testing.T) {
 	}
 }
 
+func TestUptimeonLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`uptime`, &d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.UptimeWindows)
+	if ok {
+		if iConcrete.Values.Up == 0 {
+			t.Error("Expected uptime on windows to be > 0")
+		}
+	}
+}
+
+func TestLoadAverageonLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`loadavg`, &d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.LoadAvgWin)
+	if ok {
+		if iConcrete.Values.Load1M == 0 {
+			t.Error("Expected load on windows to be > 0")
+		}
+	}
+}
 func TestDFonLocal(t *testing.T) {
 	d := NewLocalForTest()
 	i, _ := inspector.Init(`disk`, &d)

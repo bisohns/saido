@@ -92,7 +92,7 @@ func TestCustomonSSH(t *testing.T) {
 	d := NewSSHForTest()
 	// set vars
 	dfConcrete, _ := d.(*driver.SSH)
-	dfConcrete.Vars = []string{"MONKEY=true"}
+	dfConcrete.EnvVars = []string{"MONKEY=true"}
 	d = dfConcrete
 	i, _ := inspector.NewCustom(&d, `echo $MONKEY`)
 	i.Execute()

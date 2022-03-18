@@ -37,6 +37,12 @@ type UptimeDarwin struct {
 	Values      *UptimeMetrics
 }
 
+type UptimeWindows struct {
+	Driver    *driver.Driver
+	UpCommand string
+	Values    *UptimeMetrics
+}
+
 // Parse : run custom parsing on output of the command
 func (i *UptimeLinux) Parse(output string) {
 	var err error
@@ -113,13 +119,44 @@ func (i *UptimeDarwin) Execute() {
 	}
 }
 
-//TODO: Windows equivalent of uptime
+func (i *UptimeWindows) Parse(output string) {
+	log.Debug("Parsing ouput string in UptimeWindows inspector")
+	output = strings.ReplaceAll(output, "\r", "")
+	output = strings.ReplaceAll(output, " ", "")
+	upUnformatted := strings.Split(output, "\n")[1]
+	up, err := strconv.ParseFloat(upUnformatted, 64)
+	if err != nil {
+		panic(err)
+	}
+	i.Values = &UptimeMetrics{
+		Up: up,
+	}
+}
+
+func (i *UptimeWindows) SetDriver(driver *driver.Driver) {
+	details := (*driver).GetDetails()
+	if !details.IsWindows {
+		panic("Cannot use UptimeWindows on drivers outside (windows)")
+	}
+	i.Driver = driver
+}
+
+func (i UptimeWindows) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *UptimeWindows) Execute() {
+	output, err := i.driverExec()(i.UpCommand)
+	if err == nil {
+		i.Parse(output)
+	}
+}
 
 // NewUptime : Initialize a new Uptime instance
 func NewUptime(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var uptime Inspector
 	details := (*driver).GetDetails()
-	if !(details.IsDarwin || details.IsLinux) {
+	if !(details.IsDarwin || details.IsLinux || details.IsWindows) {
 		return nil, errors.New("Cannot use Uptime on drivers outside (linux, darwin)")
 	}
 	if details.IsLinux {
@@ -130,6 +167,10 @@ func NewUptime(driver *driver.Driver, _ ...string) (Inspector, error) {
 		uptime = &UptimeDarwin{
 			UpCommand:   `date +%s; sysctl kern.boottime | awk '{print $5}'`,
 			IdleCommand: `top -l 1 | grep "CPU usage" | awk '{print $7}'`,
+		}
+	} else if details.IsWindows {
+		uptime = &UptimeWindows{
+			UpCommand: `wmic path Win32_PerfFormattedData_PerfOS_System get SystemUptime`,
 		}
 	}
 	uptime.SetDriver(driver)

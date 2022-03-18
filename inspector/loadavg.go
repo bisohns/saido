@@ -2,6 +2,7 @@ package inspector
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -23,6 +24,19 @@ type LoadAvg struct {
 	Values   *LoadAvgMetrics
 }
 
+type LoadAvgDarwin struct {
+	Command string
+	Driver  *driver.Driver
+	Values  *LoadAvgMetrics
+}
+
+// LoadAvgWin : Only grants instantaneous load metrics and not historical
+type LoadAvgWin struct {
+	Command string
+	Driver  *driver.Driver
+	Values  *LoadAvgMetrics
+}
+
 func loadavgParseOutput(output string) *LoadAvgMetrics {
 	var err error
 	log.Debug("Parsing ouput string in LoadAvg inspector")
@@ -39,12 +53,6 @@ func loadavgParseOutput(output string) *LoadAvgMetrics {
 		Load5M,
 		Load15M,
 	}
-}
-
-type LoadAvgDarwin struct {
-	Command string
-	Driver  *driver.Driver
-	Values  *LoadAvgMetrics
 }
 
 func (i *LoadAvgDarwin) SetDriver(driver *driver.Driver) {
@@ -95,14 +103,41 @@ func (i *LoadAvg) Execute() {
 	}
 }
 
-//TODO: Windows Equivalents
-// of LoadAvg
+func (i *LoadAvgWin) Parse(output string) {
+	output = strings.ReplaceAll(output, "\r", "")
+	output = strings.ReplaceAll(output, " ", "")
+	columns := strings.Split(output, "\n")
+	// Only instantaneous metrics available so append the
+	// rest as zero
+	output = columns[1]
+	output = fmt.Sprintf("%s 0 0", output)
+	i.Values = loadavgParseOutput(output)
+}
+
+func (i *LoadAvgWin) SetDriver(driver *driver.Driver) {
+	details := (*driver).GetDetails()
+	if !details.IsWindows {
+		panic("Cannot use LoadAvgWin on drivers outside (windows)")
+	}
+	i.Driver = driver
+}
+
+func (i LoadAvgWin) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *LoadAvgWin) Execute() {
+	output, err := i.driverExec()(i.Command)
+	if err == nil {
+		i.Parse(output)
+	}
+}
 
 // NewLoadAvg : Initialize a new LoadAvg instance
 func NewLoadAvg(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var loadavg Inspector
 	details := (*driver).GetDetails()
-	if !(details.IsLinux || details.IsDarwin) {
+	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use LoadAvg on drivers outside (linux, darwin)")
 	}
 	if details.IsLinux {
@@ -113,6 +148,10 @@ func NewLoadAvg(driver *driver.Driver, _ ...string) (Inspector, error) {
 		loadavg = &LoadAvgDarwin{
 			//      Command: `sysctl -n vm.loadavg | awk '{ printf "%.2f %.2f %.2f ", $2, $3, $4 }'`,
 			Command: `top -l 1 | grep "Load Avg:" | awk '{print $3, $4, $5}'`,
+		}
+	} else if details.IsWindows {
+		loadavg = &LoadAvgWin{
+			Command: `wmic cpu get loadpercentage`,
 		}
 	}
 	loadavg.SetDriver(driver)
