@@ -46,6 +46,10 @@ For Darwin it looks something like
  /dev/disk1s4    244679060   6292564  47579472    12%       7 2446790593    0%   /private/var/vm
  map auto_home           0         0         0   100%       0          0  100%   /System/Volumes/Data/home
 
+ For Linux it looks something like
+
+ Filesystem     1K-blocks     Used Available Use% Mounted on                                                        sysfs                  0        0         0    - /sys                                                              proc                   0        0         0    - /proc                                                             udev             8029020        0   8029020   0% /dev                                                              devpts                 0        0         0    - /dev/pts                                                          tmpfs            1612500     2112   1610388   1% /run
+
 */
 func (i *DF) Parse(output string) {
 	var values []DFMetrics

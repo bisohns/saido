@@ -44,7 +44,11 @@ type UptimeWindows struct {
 }
 
 // Parse : run custom parsing on output of the command
+/*
+1545.95 12026.34
+*/
 func (i *UptimeLinux) Parse(output string) {
+	fmt.Print(output)
 	var err error
 	log.Debug("Parsing ouput string in Uptime inspector")
 	columns := strings.Fields(output)
@@ -166,7 +170,6 @@ func (i *UptimeWindows) Execute() {
 		i.Parse(output)
 	}
 }
-
 
 // NewUptime : Initialize a new Uptime instance
 func NewUptime(driver *driver.Driver, _ ...string) (Inspector, error) {

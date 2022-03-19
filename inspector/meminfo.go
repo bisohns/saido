@@ -101,6 +101,16 @@ func createMetric(columns []string, rawByteSize, displayByteSize string) *MemInf
 }
 
 // Parse : run custom parsing on output of the command
+/*
+
+MemTotal:       16124984 kB
+MemFree:        12929756 kB
+MemAvailable:   14203880 kB
+Buffers:           89316 kB
+Cached:          1567652 kB
+...
+
+*/
 func (i *MemInfoLinux) Parse(output string) {
 	log.Debug("Parsing ouput string in MemInfoLinux inspector")
 	i.Values = memInfoParseOutput(output, i.RawByteSize, i.DisplayByteSize)

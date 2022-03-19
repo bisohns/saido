@@ -76,6 +76,14 @@ USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME C
 formplus           980 111.4  0.1 12845480   5132   ??  S    28Feb22 4196:13.21 com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c
 formplus           864  10.2  0.2  5066712  20516   ??  S    28Feb22 419:29.39 /Applications/Docker.app/Contents/MacOS/com.docker
 formplus         83064   1.6  0.1  4301640   5448 s008  Ss   Sat09PM   0:43.12 -zsh
+
+
+for linux it looks like
+
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0 167580 11440 ?        Ss   18:07   0:00 /sbin/init splash
+root           2  0.0  0.0      0     0 ?        S    18:07   0:00 [kthreadd]
+root           3  0.0  0.0      0     0 ?        I<   18:07   0:00 [rcu_gp]
 */
 func (i *Process) Parse(output string) {
 	var values []ProcessMetrics

@@ -17,13 +17,14 @@ type LoadAvgMetrics struct {
 	Load15M float64
 }
 
-// LoadAvg : Parsing the /proc/loadavg output for load average monitoring
-type LoadAvg struct {
+// LoadAvgLinux : Parsing the /proc/loadavg output for load average monitoring
+type LoadAvgLinux struct {
 	FilePath string
 	Driver   *driver.Driver
 	Values   *LoadAvgMetrics
 }
 
+// LoadAvgDarwin : Parsing the `top` output  for Load Avg
 type LoadAvgDarwin struct {
 	Command string
 	Driver  *driver.Driver
@@ -83,11 +84,15 @@ func (i *LoadAvgDarwin) Execute() {
 	}
 }
 
-func (i *LoadAvg) Parse(output string) {
+// Parse : Linux Specific Parsing for Load Avg
+/*
+0.25 0.23 0.14 3/671 9362
+*/
+func (i *LoadAvgLinux) Parse(output string) {
 	i.Values = loadavgParseOutput(output)
 }
 
-func (i *LoadAvg) SetDriver(driver *driver.Driver) {
+func (i *LoadAvgLinux) SetDriver(driver *driver.Driver) {
 	details := (*driver).GetDetails()
 	if !details.IsLinux {
 		panic("Cannot use LoadAvg on drivers outside (linux)")
@@ -95,11 +100,11 @@ func (i *LoadAvg) SetDriver(driver *driver.Driver) {
 	i.Driver = driver
 }
 
-func (i LoadAvg) driverExec() driver.Command {
+func (i LoadAvgLinux) driverExec() driver.Command {
 	return (*i.Driver).ReadFile
 }
 
-func (i *LoadAvg) Execute() {
+func (i *LoadAvgLinux) Execute() {
 	output, err := i.driverExec()(i.FilePath)
 	if err == nil {
 		i.Parse(output)
@@ -144,7 +149,7 @@ func NewLoadAvg(driver *driver.Driver, _ ...string) (Inspector, error) {
 		return nil, errors.New("Cannot use LoadAvg on drivers outside (linux, darwin)")
 	}
 	if details.IsLinux {
-		loadavg = &LoadAvg{
+		loadavg = &LoadAvgLinux{
 			FilePath: `/proc/loadavg`,
 		}
 	} else if details.IsDarwin {
