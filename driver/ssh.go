@@ -13,7 +13,7 @@ var port = 22
 
 // SSH : Driver for handling ssh executions
 type SSH struct {
-	fields
+	driverBase
 	// User e.g root
 	User string
 	// Host name/ip e.g 171.23.122.1
@@ -27,7 +27,7 @@ type SSH struct {
 	// Check known hosts (only disable for tests
 	CheckKnownHosts bool
 	// set environmental vars for server e.g []string{"DEBUG=1", "FAKE=echo"}
-	Vars          []string
+	EnvVars       []string
 	SessionClient *goph.Client
 }
 
@@ -64,7 +64,9 @@ func (d *SSH) Client() (*goph.Client, error) {
 			Timeout:  goph.DefaultTimeout,
 			Callback: callback,
 		})
-		d.SessionClient = client
+		if err != nil {
+			d.SessionClient = client
+		}
 		return client, err
 	}
 	return d.SessionClient, nil
@@ -77,16 +79,16 @@ func (d *SSH) ReadFile(path string) (string, error) {
 }
 
 func (d *SSH) RunCommand(command string) (string, error) {
-	// FIXME: provide refresh interface to somehow refresh d.Client if d.SessionClient somehow gets dropped
+	// TODO: Ensure clients of all SSH drivers are closed on context end
+	// i.e d.SessionClient.Close()
 	log.Debugf("Running remote command %s", command)
 	client, err := d.Client()
 	if err != nil {
 		return ``, err
 	}
-	defer client.Close()
-	if len(d.Vars) != 0 {
+	if len(d.EnvVars) != 0 {
 		// add env variable to command
-		envline := strings.Join(d.Vars, ";")
+		envline := strings.Join(d.EnvVars, ";")
 		command = strings.Join([]string{envline, command}, ";")
 	}
 	out, err := client.Run(command)
@@ -98,6 +100,9 @@ func (d *SSH) RunCommand(command string) (string, error) {
 
 func (d *SSH) GetDetails() SystemDetails {
 	if d.Info == nil {
+		// TODO: Check for goph specific errors
+		// within RunCommand and only return errors that are not
+		// goph specific
 		uname, err := d.RunCommand(`uname`)
 		// try windows command
 		if err != nil {

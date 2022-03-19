@@ -23,7 +23,7 @@ const (
 
 // Web : Driver for handling web executions
 type Web struct {
-	fields
+	driverBase
 	// URL e.g https://google.com
 	URL string
 	// Method POST/GET

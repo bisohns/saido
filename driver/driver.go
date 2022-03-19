@@ -10,11 +10,7 @@ type SystemDetails struct {
 	Extra     string
 }
 
-type fields struct {
-	// Supported inspector representations for specific driver
-	Supported []string
-	// Selected inspector representations
-	Selected []string
+type driverBase struct {
 	// Polling interval between retrievals
 	PollInterval int64
 	Info         *SystemDetails
