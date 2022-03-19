@@ -48,7 +48,12 @@ For Darwin it looks something like
 
  For Linux it looks something like
 
- Filesystem     1K-blocks     Used Available Use% Mounted on                                                        sysfs                  0        0         0    - /sys                                                              proc                   0        0         0    - /proc                                                             udev             8029020        0   8029020   0% /dev                                                              devpts                 0        0         0    - /dev/pts                                                          tmpfs            1612500     2112   1610388   1% /run
+ Filesystem     1K-blocks     Used Available Use% Mounted on
+ sysfs                  0        0         0    - /sys
+ proc                   0        0         0    - /proc
+ udev             8029020        0   8029020   0% /dev
+ devpts                 0        0         0    - /dev/pts
+ tmpfs            1612500     2112   1610388   1% /run
 
 */
 func (i *DF) Parse(output string) {
