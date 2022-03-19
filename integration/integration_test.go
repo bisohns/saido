@@ -92,7 +92,7 @@ func TestCustomonSSH(t *testing.T) {
 	d := NewSSHForTest()
 	// set vars
 	dfConcrete, _ := d.(*driver.SSH)
-	dfConcrete.Vars = []string{"MONKEY=true"}
+	dfConcrete.EnvVars = []string{"MONKEY=true"}
 	d = dfConcrete
 	i, _ := inspector.NewCustom(&d, `echo $MONKEY`)
 	i.Execute()
@@ -108,7 +108,7 @@ func TestLoadAvgonSSH(t *testing.T) {
 	d := NewSSHForTest()
 	i, _ := inspector.NewLoadAvg(&d)
 	i.Execute()
-	iConcreteLinux, ok := i.(*inspector.LoadAvg)
+	iConcreteLinux, ok := i.(*inspector.LoadAvgLinux)
 	if ok {
 		if iConcreteLinux.Values.Load1M == 0 {
 			t.Errorf("%f", iConcreteLinux.Values.Load1M)

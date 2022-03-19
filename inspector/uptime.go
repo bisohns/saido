@@ -37,8 +37,18 @@ type UptimeDarwin struct {
 	Values      *UptimeMetrics
 }
 
+type UptimeWindows struct {
+	Driver    *driver.Driver
+	UpCommand string
+	Values    *UptimeMetrics
+}
+
 // Parse : run custom parsing on output of the command
+/*
+1545.95 12026.34
+*/
 func (i *UptimeLinux) Parse(output string) {
+	fmt.Print(output)
 	var err error
 	log.Debug("Parsing ouput string in Uptime inspector")
 	columns := strings.Fields(output)
@@ -73,7 +83,14 @@ func (i *UptimeLinux) Execute() {
 	}
 }
 
+// Parse : Parsing output of uptime commands on darwin
+/*
+1647709177
+1646035560
+34.96
+*/
 func (i *UptimeDarwin) Parse(output string) {
+	fmt.Print(output)
 	log.Debug("Parsing ouput string in UptimeDarwin inspector")
 	output = strings.TrimSuffix(output, ",")
 	lines := strings.Split(output, "\n")
@@ -106,20 +123,59 @@ func (i *UptimeDarwin) Execute() {
 	upOutput, err := i.driverExec()(i.UpCommand)
 	idleOutput, err := i.driverExec()(i.IdleCommand)
 	if err == nil {
+		upOutput = strings.TrimSpace(upOutput)
 		upOutput = strings.TrimSuffix(upOutput, ",")
+		idleOutput = strings.TrimSpace(idleOutput)
 		idleOutput = strings.TrimSuffix(idleOutput, "%")
 		output := fmt.Sprintf("%s\n%s", upOutput, idleOutput)
 		i.Parse(output)
 	}
 }
 
-//TODO: Windows equivalent of uptime
+/* Parse : SystemUpTime on windows
+
+SystemUpTime
+162054
+
+*/
+func (i *UptimeWindows) Parse(output string) {
+	log.Debug("Parsing ouput string in UptimeWindows inspector")
+	output = strings.ReplaceAll(output, "\r", "")
+	output = strings.ReplaceAll(output, " ", "")
+	upUnformatted := strings.Split(output, "\n")[1]
+	up, err := strconv.ParseFloat(upUnformatted, 64)
+	if err != nil {
+		panic(err)
+	}
+	i.Values = &UptimeMetrics{
+		Up: up,
+	}
+}
+
+func (i *UptimeWindows) SetDriver(driver *driver.Driver) {
+	details := (*driver).GetDetails()
+	if !details.IsWindows {
+		panic("Cannot use UptimeWindows on drivers outside (windows)")
+	}
+	i.Driver = driver
+}
+
+func (i UptimeWindows) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *UptimeWindows) Execute() {
+	output, err := i.driverExec()(i.UpCommand)
+	if err == nil {
+		i.Parse(output)
+	}
+}
 
 // NewUptime : Initialize a new Uptime instance
 func NewUptime(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var uptime Inspector
 	details := (*driver).GetDetails()
-	if !(details.IsDarwin || details.IsLinux) {
+	if !(details.IsDarwin || details.IsLinux || details.IsWindows) {
 		return nil, errors.New("Cannot use Uptime on drivers outside (linux, darwin)")
 	}
 	if details.IsLinux {
@@ -130,6 +186,10 @@ func NewUptime(driver *driver.Driver, _ ...string) (Inspector, error) {
 		uptime = &UptimeDarwin{
 			UpCommand:   `date +%s; sysctl kern.boottime | awk '{print $5}'`,
 			IdleCommand: `top -l 1 | grep "CPU usage" | awk '{print $7}'`,
+		}
+	} else if details.IsWindows {
+		uptime = &UptimeWindows{
+			UpCommand: `wmic path Win32_PerfFormattedData_PerfOS_System get SystemUptime`,
 		}
 	}
 	uptime.SetDriver(driver)
