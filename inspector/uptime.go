@@ -73,7 +73,14 @@ func (i *UptimeLinux) Execute() {
 	}
 }
 
+// Parse : Parsing output of uptime commands on darwin
+/*
+1647709177
+1646035560
+34.96
+*/
 func (i *UptimeDarwin) Parse(output string) {
+	fmt.Print(output)
 	log.Debug("Parsing ouput string in UptimeDarwin inspector")
 	output = strings.TrimSuffix(output, ",")
 	lines := strings.Split(output, "\n")
@@ -106,14 +113,14 @@ func (i *UptimeDarwin) Execute() {
 	upOutput, err := i.driverExec()(i.UpCommand)
 	idleOutput, err := i.driverExec()(i.IdleCommand)
 	if err == nil {
+		upOutput = strings.TrimSpace(upOutput)
 		upOutput = strings.TrimSuffix(upOutput, ",")
+		idleOutput = strings.TrimSpace(idleOutput)
 		idleOutput = strings.TrimSuffix(idleOutput, "%")
 		output := fmt.Sprintf("%s\n%s", upOutput, idleOutput)
 		i.Parse(output)
 	}
 }
-
-//TODO: Windows equivalent of uptime
 
 // NewUptime : Initialize a new Uptime instance
 func NewUptime(driver *driver.Driver, _ ...string) (Inspector, error) {

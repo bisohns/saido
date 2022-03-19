@@ -30,7 +30,7 @@ type ProcessMetricsWin struct {
 	Memory      float64
 }
 
-// Process : Parsing the `ps -A u` output for process monitoring
+// Process : Parsing the `ps axu` output for process monitoring
 type Process struct {
 	Driver  *driver.Driver
 	Command string
@@ -68,6 +68,14 @@ func (i *Process) Execute() {
 }
 
 // Parse : run custom parsing on output of the command
+/*
+for darwin it looks something like
+
+USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
+formplus           980 111.4  0.1 12845480   5132   ??  S    28Feb22 4196:13.21 com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c
+formplus           864  10.2  0.2  5066712  20516   ??  S    28Feb22 419:29.39 /Applications/Docker.app/Contents/MacOS/com.docker
+formplus         83064   1.6  0.1  4301640   5448 s008  Ss   Sat09PM   0:43.12 -zsh
+*/
 func (i *Process) Parse(output string) {
 	var values []ProcessMetrics
 	lines := strings.Split(output, "\n")
@@ -104,7 +112,7 @@ func (i Process) createMetric(columns []string, pid int) ProcessMetrics {
 	tty := columns[6]
 	minutesStr := strings.Split(unparsedTime, ":")
 	minute, parseErr := strconv.Atoi(minutesStr[0])
-	second, parseErr := strconv.Atoi(minutesStr[1])
+	second, parseErr := strconv.ParseFloat(minutesStr[1], 64)
 	if parseErr != nil {
 		log.Fatal(parseErr)
 	}
@@ -114,7 +122,7 @@ func (i Process) createMetric(columns []string, pid int) ProcessMetrics {
 		User:    columns[0],
 		CPU:     cpu,
 		Memory:  mem,
-		Time:    int64((minute * 60) + second),
+		Time:    int64((minute * 60) + int(second)),
 		TTY:     tty,
 	}
 }
@@ -194,7 +202,7 @@ func NewProcess(driver *driver.Driver, _ ...string) (Inspector, error) {
 	}
 	if details.IsLinux || details.IsDarwin {
 		process = &Process{
-			Command: `ps -A u`,
+			Command: `ps axu`,
 		}
 	} else {
 		process = &ProcessWin{
