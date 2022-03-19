@@ -36,6 +36,17 @@ type DF struct {
 }
 
 // Parse : run custom parsing on output of the command
+/*
+For Darwin it looks something like
+
+ FileSystem    1024-blocks      Used Available Capacity iused      ifree %iused  Mounted on
+ /dev/disk1s5    244679060  10984568  47579472    19%  488275 2446302325    0%   /
+ devfs                 220       220         0   100%     774          0  100%   /dev
+ /dev/disk1s1    244679060 179090752  47579472    80% 1205263 2445585337    0%   /System/Volumes/Data
+ /dev/disk1s4    244679060   6292564  47579472    12%       7 2446790593    0%   /private/var/vm
+ map auto_home           0         0         0   100%       0          0  100%   /System/Volumes/Data/home
+
+*/
 func (i *DF) Parse(output string) {
 	var values []DFMetrics
 	log.Debug("Parsing ouput string in DF inspector")

@@ -67,9 +67,12 @@ func (i LoadAvgDarwin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
+// Parse : Parsing for darwin
+/*
+4.27, 5.04, 4.50
+*/
 func (i *LoadAvgDarwin) Parse(output string) {
-	output = strings.TrimSuffix(output, "}")
-	output = strings.TrimPrefix(output, "{")
+	output = strings.ReplaceAll(output, ",", "")
 	i.Values = loadavgParseOutput(output)
 }
 

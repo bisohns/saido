@@ -125,6 +125,11 @@ func (i *MemInfoLinux) Execute() {
 	}
 }
 
+// Parse : parsing meminfo for Darwin command
+/*
+7552M 640M
+5120.00M 1194.00M
+*/
 func (i *MemInfoDarwin) Parse(output string) {
 	rows := strings.Split(output, "\n")
 	physMemRaw := rows[0]
