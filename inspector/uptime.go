@@ -119,6 +119,12 @@ func (i *UptimeDarwin) Execute() {
 	}
 }
 
+/* Parse : SystemUpTime on windows
+
+SystemUpTime
+162054
+
+*/
 func (i *UptimeWindows) Parse(output string) {
 	log.Debug("Parsing ouput string in UptimeWindows inspector")
 	output = strings.ReplaceAll(output, "\r", "")

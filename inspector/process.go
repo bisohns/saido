@@ -2,6 +2,7 @@ package inspector
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -119,7 +120,19 @@ func (i Process) createMetric(columns []string, pid int) ProcessMetrics {
 	}
 }
 
+/* Parse for the following
+
+Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+System Idle Process              0 Services                   0          8 K
+System                           4 Services                   0      7,304 K
+Secure System                  104 Services                   0     40,344 K
+Registry                       168 Services                   0     93,448 K
+smss.exe                       604 Services                   0      1,080 K
+csrss.exe                      968 Services                   0      4,916 K
+*/
 func (i *ProcessWin) Parse(output string) {
+	fmt.Print(output)
 	var values []ProcessMetricsWin
 	lines := strings.Split(output, "\r\n")
 	for index, line := range lines {

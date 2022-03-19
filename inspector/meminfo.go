@@ -180,6 +180,14 @@ func (i *MemInfoDarwin) Execute() {
 }
 
 // Parse : run custom parsing on output of the command
+/*
+Total Physical Memory:     16,127 MB
+Available Physical Memory: 5,778 MB
+Virtual Memory: Max Size:  19,071 MB
+Virtual Memory: Available: 5,010 MB
+Virtual Memory: In Use:    14,061 MB
+5120         12288
+*/
 func (i *MemInfoWin) Parse(output string) {
 	log.Debug("Parsing ouput string in MemInfoWin inspector")
 	var cachesize, totalMem, freeMem, totalVirt, freeVirt int64

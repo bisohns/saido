@@ -92,8 +92,7 @@ func (i *DF) Execute() {
 	}
 }
 
-// TODO: Implement DF for windows using
-// `wmic logicaldisk` to satisfy Inspector interface
+// DFWin: parse `wmic logicaldisk` to satisfy Inspector interface
 type DFWin struct {
 	Driver  *driver.Driver
 	Command string
@@ -107,6 +106,11 @@ type DFWin struct {
 	Values []DFMetrics
 }
 
+/* Parse : For the following windows output
+
+Node,DeviceID,DriveType,FreeSpace,ProviderName,Size,VolumeName
+IMANI,C:,3,191980253184,,288303964160,OS
+*/
 func (i *DFWin) Parse(output string) {
 	var values []DFMetrics
 	log.Debug("Parsing ouput string in DF inspector")
