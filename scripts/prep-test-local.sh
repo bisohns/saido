@@ -1,4 +1,4 @@
-cat <<EOF > config-ci.yaml
+cat <<EOF > config-test.yaml
 hosts:
   children:
     "127.0.0.1":
