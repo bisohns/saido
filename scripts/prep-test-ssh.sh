@@ -12,6 +12,7 @@ hosts:
 	connection: 
 		type: ssh
 		username: ${SSH_USER}
+    port: 2222
 		private_key_path: $(pwd)/${SSH_KEY_NAME}.pub
 	children:
 		"$(docker inspect -f "{{ .NetworkSettings.IPAddress }}" saido-linux-sshserver)":
