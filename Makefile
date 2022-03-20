@@ -15,5 +15,6 @@ prep-ci-local:
 .PHONY: prep-ci-local-windows
 prep-ci-local-windows:
 	xcopy /s .\scripts\config.local.yaml .
+	ren .\config.local.yaml .\config-test.yaml
 	type config-test.yaml
 
