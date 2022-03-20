@@ -3,7 +3,6 @@
 #   make prep-ci-ssh
 .PHONY: prep-ci-ssh
 # Creates the ssh keys and docker container for running test
-# make prep-ci-ssh CONFIG_OUTPUT_PATH=config-test.yaml
 prep-ci-ssh:
 	./scripts/prep-test-ssh.sh
 	cat config-test.yaml
