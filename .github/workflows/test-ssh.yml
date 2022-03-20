@@ -1,0 +1,24 @@
+on: 
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+name: Test
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [1.16.x]
+    runs-on: ubunut-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup SSH server and config
+        # run docker ssh container for ssh tests
+        run: make prep-ci
+      - name: Test
+        run: go test -v ./...

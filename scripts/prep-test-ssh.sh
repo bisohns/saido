@@ -1,3 +1,4 @@
+# Creates a docker container with ssh and a config file for connecting to it
 SSH_KEY_NAME=${SSH_KEY_NAME:-ci-test-key}
 SSH_KEY_PATH=ssh-key/ci
 SSH_USER=ci-dev
@@ -13,6 +14,9 @@ hosts:
 		private_key_path: $(pwd)/${SSH_KEY_NAME}.pub
 	children:
 		 "$(docker inspect -f "{{ .NetworkSettings.IPAddress }}" linux-sshserver)":
+		"127.0.0.1":
+      connection: 
+        type: local
 
 metrics:
 	- memory

@@ -9,8 +9,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.16.x]
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
@@ -18,8 +17,8 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Setup SSH server
-        # run docker ssh container for ssh tests
-        run: make prep-ci
+      - name: Setup config script 
+        # using locals for mac-OS because github CI mac platforms don't have docker
+        run: make prep-ci-locals
       - name: Test
         run: go test -v ./...

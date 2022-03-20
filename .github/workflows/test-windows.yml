@@ -1,0 +1,28 @@
+on: 
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+name: Test
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [1.16.x]
+    runs-on: windows-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+     - name: Choco Install make
+        uses: crazy-max/ghaction-chocolatey@v1
+        with:
+          args: install make
+      - name: Setup config script 
+        # using locals for Windows because github CI Windows platforms don't have docker
+        run: make prep-ci-locals-windows
+      - name: Test
+        run: go test -v ./...
