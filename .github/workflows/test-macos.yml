@@ -3,18 +3,15 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
-name: Test
+name: Test-MacOs
 jobs:
   test:
-    strategy:
-      matrix:
-        go-version: [1.16.x]
     runs-on: macos-latest
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: 1.16
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Setup config script 
