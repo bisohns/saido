@@ -5,7 +5,8 @@ SSH_USER=ci-dev
 rm -rf $SSH_KEY_PATH
 mkdir -p $SSH_KEY_PATH
 ssh-keygen -f "$SSH_KEY_PATH/${SSH_KEY_NAME}" -N ""
-docker run -d -p 2222:2222 -e USER_NAME=$SSH_USER --name linux-sshserver -v $(pwd)/ci.pub:/config/.ssh/authorized_keys linuxserver/openssh-server
+docker kill saido-linux-sshserver | true
+docker run -d -p 2222:2222 -e USER_NAME=$SSH_USER --name saido-linux-sshserver -v $(pwd)/ci.pub:/config/.ssh/authorized_keys linuxserver/openssh-server
 cat <<EOF > config-ci.yaml
 hosts:
 	connection: 
@@ -13,7 +14,7 @@ hosts:
 		username: ${SSH_USER}
 		private_key_path: $(pwd)/${SSH_KEY_NAME}.pub
 	children:
-		"$(docker inspect -f "{{ .NetworkSettings.IPAddress }}" linux-sshserver)":
+		"$(docker inspect -f "{{ .NetworkSettings.IPAddress }}" saido-linux-sshserver)":
 		"127.0.0.1":
       connection: 
         type: local
