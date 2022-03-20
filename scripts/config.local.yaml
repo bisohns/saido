@@ -1,4 +1,4 @@
-cat <<EOF > config-test.yaml
+# Config file for local connection
 hosts:
   children:
     "127.0.0.1":
@@ -8,5 +8,4 @@ hosts:
 metrics:
 - memory
 - cpu
-EOF
 
