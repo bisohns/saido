@@ -6,7 +6,7 @@ on:
 name: Test-Linux
 jobs:
   test:
-    runs-on: ubunut-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
