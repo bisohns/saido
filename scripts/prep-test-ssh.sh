@@ -15,7 +15,7 @@ hosts:
     username: ${SSH_USER}
     private_key_path: $(pwd)/${SSH_KEY_NAME}
   children:
-    "(docker inspect -f "{{ .NetworkSettings.IPAddress }}" saido-linux-sshserver)":
+    "$(docker inspect -f "{{ .NetworkSettings.IPAddress }}" saido-linux-sshserver)":
     "127.0.0.1":
       connection:
         type: local
