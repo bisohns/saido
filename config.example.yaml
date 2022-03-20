@@ -14,7 +14,7 @@ hosts:
         type: ssh
         username: root 
         password: somethingSecret
-        port: 33
+        port: 2222
     "192.0.1.4":
       connection: 
         type: local

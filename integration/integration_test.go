@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bisohns/saido/config"
 	"github.com/bisohns/saido/driver"
 	"github.com/bisohns/saido/inspector"
 )
@@ -17,6 +18,7 @@ func NewWebForTest() driver.Driver {
 }
 
 func NewSSHForTest() driver.Driver {
+	_ = config.GetConfig()
 	return &driver.SSH{
 		User:            "dev",
 		Host:            "127.0.0.1",
