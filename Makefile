@@ -13,6 +13,7 @@ prep-ci-local:
 	cat config-test.yaml
 
 .PHONY: prep-ci-local-windows
+# Because we are using make, we can use linux cp and cat commands
 prep-ci-local-windows:
 	cp ".\scripts\config.local.yaml" ".\config-test.yaml"
 	cat config-test.yaml
