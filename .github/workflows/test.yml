@@ -20,18 +20,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup SSH server
         # run docker ssh container for ssh tests
-        run: |
-          sudo mkdir -p /home/runner/.ssh
-          echo "${{ secrets.TEST_PUB_KEY }}" >> /home/runner/.ssh/id_rsa.pub
-          echo "${{ secrets.TEST_PRIV_KEY }}" >> /home/runner/.ssh/id_rsa
-          docker run -d \
-          -e PASSWORD_ACCESS=false \
-          -e PGID=1000 \
-          -e PUID=1000 \
-          -e SUDO_ACCESS=false \
-          -e USER_NAME=dev \
-          -e PUBLIC_KEY_FILE=/root/.ssh/id_rsa.pub \
-          -v /home/runner/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub \
-          linuxserver/openssh-server
+        run: make prep-ci
       - name: Test
         run: go test -v ./...
