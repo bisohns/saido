@@ -13,7 +13,7 @@ hosts:
 		username: ${SSH_USER}
 		private_key_path: $(pwd)/${SSH_KEY_NAME}.pub
 	children:
-		 "$(docker inspect -f "{{ .NetworkSettings.IPAddress }}" linux-sshserver)":
+		"$(docker inspect -f "{{ .NetworkSettings.IPAddress }}" linux-sshserver)":
 		"127.0.0.1":
       connection: 
         type: local
