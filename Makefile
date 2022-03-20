@@ -14,6 +14,6 @@ prep-ci-local:
 
 .PHONY: prep-ci-local-windows
 prep-ci-local-windows:
-	Copy-Item ".\scripts\config.local.yaml" ".\config-test.yaml"
+	cp ".\scripts\config.local.yaml" ".\config-test.yaml"
 	type config-test.yaml
 
