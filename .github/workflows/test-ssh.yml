@@ -16,6 +16,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup SSH server and config
         # run docker ssh container for ssh tests
-        run: make prep-ci
+        run: make prep-ci-ssh
       - name: Test
         run: go test -v ./...

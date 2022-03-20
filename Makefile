@@ -8,7 +8,10 @@ prep-ci-ssh:
 	cat config-ci.yaml
 
 .PHONY: prep-ci-locals
-# Creates the ssh keys and docker container for running test
-prep-ci-ssh:
+prep-ci-local:
 	./scripts/prep-test-local.sh
 	cat config-ci.yaml
+
+.PHONY: prep-ci-local-windows
+prep-ci-local-windows:
+	# DO SOMETHING

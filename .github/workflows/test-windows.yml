@@ -20,6 +20,6 @@ jobs:
           args: install make
       - name: Setup config script 
         # using locals for Windows because github CI Windows platforms don't have docker
-        run: make prep-ci-locals-windows
+        run: make prep-ci-local-windows
       - name: Test
         run: go test -v ./...

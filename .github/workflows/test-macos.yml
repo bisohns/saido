@@ -16,6 +16,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup config script 
         # using locals for mac-OS because github CI mac platforms don't have docker
-        run: make prep-ci-locals
+        run: make prep-ci-local
       - name: Test
         run: go test -v ./...
