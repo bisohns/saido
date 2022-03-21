@@ -77,6 +77,15 @@ func (i *DF) Parse(output string) {
 			if err != nil {
 				log.Fatalf(`Error Parsing Percent Full: %s `, err)
 			}
+			// find size
+			for index := range columns {
+				_, err := strconv.ParseInt(columns[index], 0, 64)
+				if err == nil {
+					columns[0] = strings.Join(columns[:index], " ")
+					columns[1] = columns[index]
+					break
+				}
+			}
 			if strings.HasPrefix(columns[0], i.DeviceStartsWith) {
 				values = append(values, i.createMetric(columns, percentInt))
 			} else {

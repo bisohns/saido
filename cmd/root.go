@@ -22,14 +22,16 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/bisohns/saido/charts"
 	"github.com/bisohns/saido/config"
 )
 
 var (
 	cfgFile string
+	cfg     *config.Config
+
 	// Verbose : Should display verbose logs
-	verbose bool
+	verbose       bool
+	dashboardInfo *config.DashboardInfo
 )
 
 const appName = "saido"
@@ -54,9 +56,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Saido is running ...")
 
-		_ = config.GetConfig()
-		//    log.Infof("%v", cfg)
-		//    charts.Main()
+		//    charts.Main(cfg)
 	},
 }
 
@@ -70,7 +70,6 @@ func Execute() {
 }
 
 func init() {
-	charts.Main()
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to config file")
 
@@ -79,5 +78,5 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	_ = config.LoadConfig(cfgFile)
+	cfg = config.LoadConfig(cfgFile)
 }
