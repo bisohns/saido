@@ -12,7 +12,7 @@ import (
 )
 
 func SkipNonLinuxOnCI() bool {
-	if os.Getenv("GITHUB_ACTIONS") == "true" {
+	if os.Getenv("CI") == "true" {
 		if runtime.GOOS != "linux" {
 			return true
 		}

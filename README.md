@@ -4,7 +4,9 @@ saido means monitor in Hausa
 
 ![Logo](assets/Saido300.jpg)
 
-[![Build Status](https://github.com/bisohns/saido/workflows/Test/badge.svg)](https://github.com/bisohns/saido/actions)
+[![Test-Linux](https://github.com/bisohns/saido/actions/workflows/test-ssh.yml/badge.svg)](https://github.com/bisohns/saido/actions/workflows/test-ssh.yml)
+[![Test-MacOs](https://github.com/bisohns/saido/actions/workflows/test-macos.yml/badge.svg)](https://github.com/bisohns/saido/actions/workflows/test-macos.yml)
+[![Test-Windows](https://github.com/bisohns/saido/actions/workflows/test-windows.yml/badge.svg)](https://github.com/bisohns/saido/actions/workflows/test-windows.yml)
 
 NOTE: `!windows` flag is our current specification of what `unix` means, seee [issue](https://github.com/golang/go/issues/20322) for why *_unix.go files will still attempt to run on windows
 
