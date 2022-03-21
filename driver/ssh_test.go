@@ -38,6 +38,6 @@ func TestSSHSystemDetails(t *testing.T) {
 	d := NewSSHForTest()
 	details := d.GetDetails()
 	if !details.IsLinux {
-		t.Errorf("Expected linux server for ssh test got %s", details.Name)
+		t.Errorf("Expected linux server for ssh test got %#v", details)
 	}
 }

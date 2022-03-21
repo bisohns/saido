@@ -13,7 +13,7 @@ SSH_HOST="$(docker inspect -f "{{ .NetworkSettings.IPAddress }}" saido-linux-ssh
 cat <<EOF > config-test.yaml
 hosts:
   children:
-    "${SSH_HOST}":
+    "0.0.0.0":
       connection:
         type: ssh
         username: ${SSH_USER}

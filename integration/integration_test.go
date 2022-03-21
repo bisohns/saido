@@ -2,6 +2,8 @@ package integration
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -18,12 +20,16 @@ func NewWebForTest() driver.Driver {
 }
 
 func NewSSHForTest() driver.Driver {
-	_ = config.GetConfig()
+	workingDir, _ := os.Getwd()
+	workingDir = filepath.Dir(workingDir)
+	yamlPath := fmt.Sprintf("%s/%s", workingDir, "config-test.yaml")
+	conf := config.LoadConfig(yamlPath)
+	dashboardInfo := config.GetDashboardInfoConfig(conf)
 	return &driver.SSH{
-		User:            "dev",
-		Host:            "127.0.0.1",
-		Port:            2222,
-		KeyFile:         "/home/diretnan/.ssh/id_rsa",
+		User:            dashboardInfo.Hosts[0].Connection.Username,
+		Host:            dashboardInfo.Hosts[0].Address,
+		Port:            int(dashboardInfo.Hosts[0].Connection.Port),
+		KeyFile:         dashboardInfo.Hosts[0].Connection.PrivateKeyPath,
 		KeyPass:         "",
 		CheckKnownHosts: false,
 	}
