@@ -4,11 +4,21 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/bisohns/saido/config"
 )
+
+func SkipNonLinuxOnCI() bool {
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		if runtime.GOOS != "linux" {
+			return true
+		}
+	}
+	return false
+}
 
 func NewSSHForTest() Driver {
 	workingDir, _ := os.Getwd()
@@ -27,6 +37,9 @@ func NewSSHForTest() Driver {
 }
 
 func TestSSHRunCommand(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewSSHForTest()
 	output, err := d.RunCommand(`ps -A`)
 	if err != nil || !strings.Contains(output, "PID") {
@@ -35,6 +48,9 @@ func TestSSHRunCommand(t *testing.T) {
 }
 
 func TestSSHSystemDetails(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewSSHForTest()
 	details := d.GetDetails()
 	if !details.IsLinux {

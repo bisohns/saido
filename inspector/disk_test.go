@@ -6,11 +6,21 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/bisohns/saido/config"
 	"github.com/bisohns/saido/driver"
 )
+
+func SkipNonLinuxOnCI() bool {
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		if runtime.GOOS != "linux" {
+			return true
+		}
+	}
+	return false
+}
 
 func NewSSHForTest() driver.Driver {
 	workingDir, _ := os.Getwd()
@@ -39,6 +49,9 @@ func TestDFOnLocal(t *testing.T) {
 }
 
 func TestDFOnSSH(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	driver := NewSSHForTest()
 	d, _ := NewDF(&driver)
 	d.Execute()

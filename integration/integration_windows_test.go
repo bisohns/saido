@@ -61,7 +61,7 @@ func TestLoadAverageonLocal(t *testing.T) {
 	i.Execute()
 	iConcrete, ok := i.(*inspector.LoadAvgWin)
 	if ok {
-		if iConcrete.Values.Load1M == 0 {
+		if iConcrete.Values.Load1M == 0 && !SkipNonLinuxOnCI() {
 			t.Error("Expected load on windows to be > 0")
 		}
 	}

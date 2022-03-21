@@ -224,8 +224,12 @@ func (i *MemInfoWin) Parse(output string) {
 			freeVirt, _ = strconv.ParseInt(fields[fieldLen-1], 0, 64)
 		case 5:
 			// Last line is L2 and L3 CacheSize
+			// sometimes L3 is not shown like on CI
+			var l3 int64 = 0
 			l2, _ := strconv.ParseInt(fields[0], 0, 64)
-			l3, _ := strconv.ParseInt(fields[1], 0, 64)
+			if fieldLen > 1 {
+				l3, _ = strconv.ParseInt(fields[1], 0, 64)
+			}
 			cachesize = l2 + l3
 
 		}

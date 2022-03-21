@@ -49,6 +49,9 @@ func TestMemInfoonLocal(t *testing.T) {
 }
 
 func TestDockerStatsonLocal(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewLocalForTest()
 	i, _ := inspector.NewDockerStats(&d)
 	i.Execute()

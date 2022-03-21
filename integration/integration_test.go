@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -11,6 +12,15 @@ import (
 	"github.com/bisohns/saido/driver"
 	"github.com/bisohns/saido/inspector"
 )
+
+func SkipNonLinuxOnCI() bool {
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		if runtime.GOOS != "linux" {
+			return true
+		}
+	}
+	return false
+}
 
 func NewWebForTest() driver.Driver {
 	return &driver.Web{
@@ -36,6 +46,9 @@ func NewSSHForTest() driver.Driver {
 }
 
 func TestDFonSSH(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewSSHForTest()
 	i, _ := inspector.Init(`disk`, &d)
 	i.Execute()
@@ -46,6 +59,9 @@ func TestDFonSSH(t *testing.T) {
 }
 
 func TestMemInfoonSSH(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewSSHForTest()
 	i, _ := inspector.NewMemInfo(&d)
 	i.Execute()
@@ -79,6 +95,9 @@ func TestResponseTimeonWeb(t *testing.T) {
 }
 
 func TestProcessonSSH(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewSSHForTest()
 	i, _ := inspector.NewProcess(&d)
 	i.Execute()
@@ -97,6 +116,9 @@ func TestProcessonSSH(t *testing.T) {
 }
 
 func TestCustomonSSH(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewSSHForTest()
 	// set vars
 	dfConcrete, _ := d.(*driver.SSH)
@@ -113,6 +135,9 @@ func TestCustomonSSH(t *testing.T) {
 }
 
 func TestLoadAvgonSSH(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewSSHForTest()
 	i, _ := inspector.NewLoadAvg(&d)
 	i.Execute()
@@ -139,6 +164,9 @@ func TestCustomonWeb(t *testing.T) {
 }
 
 func TestUptimeonSSH(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewSSHForTest()
 	i, _ := inspector.NewUptime(&d)
 	i.Execute()
