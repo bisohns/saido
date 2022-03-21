@@ -49,6 +49,9 @@ func TestMemInfoonLocal(t *testing.T) {
 }
 
 func TestDockerStatsonLocal(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
 	d := NewLocalForTest()
 	i, _ := inspector.NewDockerStats(&d)
 	i.Execute()
@@ -126,7 +129,7 @@ func TestLoadAvgonLocal(t *testing.T) {
 		}
 		fmt.Printf("%#v", iConcreteDarwin.Values)
 	}
-	iConcrete, ok := i.(*inspector.LoadAvg)
+	iConcrete, ok := i.(*inspector.LoadAvgLinux)
 	if ok {
 		if iConcrete.Values.Load1M == 0 {
 			t.Errorf("%f", iConcrete.Values.Load1M)

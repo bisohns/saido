@@ -16,7 +16,7 @@ func TestLoadAvg(t *testing.T) {
 	testDriver := NewLocalForTest()
 	loadavg, _ := NewLoadAvg(&testDriver)
 	loadavg.Execute()
-	loadavgConcreteLinux, ok := loadavg.(*LoadAvg)
+	loadavgConcreteLinux, ok := loadavg.(*LoadAvgLinux)
 	if ok {
 		if loadavgConcreteLinux.Values == nil {
 			t.Error("Load metrics for linux did not get set")

@@ -106,21 +106,21 @@ func (d *SSH) GetDetails() SystemDetails {
 		uname, err := d.RunCommand(`uname`)
 		// try windows command
 		if err != nil {
-			windowsName, err := d.RunCommand(`systeminfo | findstr /B /C:"OS Name"`)
+			windowsName, err := d.RunCommand(`systeminfo | findstr /R /C:Windows`)
 			if err == nil {
 				if strings.Contains(strings.ToLower(windowsName), "windows") {
-					uname = "windows"
+					uname = "Windows"
 				}
 			}
 		}
 		details := &SystemDetails{}
-		details.Name = uname
+		details.Name = strings.TrimSpace(strings.Trim(uname, "\n"))
 		switch details.Name {
-		case "windows":
+		case "Windows":
 			details.IsWindows = true
-		case "linux":
+		case "Linux":
 			details.IsLinux = true
-		case "darwin":
+		case "Darwin":
 			details.IsDarwin = true
 		}
 		d.Info = details

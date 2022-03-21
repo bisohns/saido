@@ -2,6 +2,7 @@ package inspector
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -16,11 +17,25 @@ type LoadAvgMetrics struct {
 	Load15M float64
 }
 
-// LoadAvg : Parsing the /proc/loadavg output for load average monitoring
-type LoadAvg struct {
+// LoadAvgLinux : Parsing the /proc/loadavg output for load average monitoring
+type LoadAvgLinux struct {
 	FilePath string
 	Driver   *driver.Driver
 	Values   *LoadAvgMetrics
+}
+
+// LoadAvgDarwin : Parsing the `top` output  for Load Avg
+type LoadAvgDarwin struct {
+	Command string
+	Driver  *driver.Driver
+	Values  *LoadAvgMetrics
+}
+
+// LoadAvgWin : Only grants instantaneous load metrics and not historical
+type LoadAvgWin struct {
+	Command string
+	Driver  *driver.Driver
+	Values  *LoadAvgMetrics
 }
 
 func loadavgParseOutput(output string) *LoadAvgMetrics {
@@ -41,12 +56,6 @@ func loadavgParseOutput(output string) *LoadAvgMetrics {
 	}
 }
 
-type LoadAvgDarwin struct {
-	Command string
-	Driver  *driver.Driver
-	Values  *LoadAvgMetrics
-}
-
 func (i *LoadAvgDarwin) SetDriver(driver *driver.Driver) {
 	details := (*driver).GetDetails()
 	if !details.IsDarwin {
@@ -59,9 +68,12 @@ func (i LoadAvgDarwin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
+// Parse : Parsing for darwin
+/*
+4.27, 5.04, 4.50
+*/
 func (i *LoadAvgDarwin) Parse(output string) {
-	output = strings.TrimSuffix(output, "}")
-	output = strings.TrimPrefix(output, "{")
+	output = strings.ReplaceAll(output, ",", "")
 	i.Values = loadavgParseOutput(output)
 }
 
@@ -72,11 +84,15 @@ func (i *LoadAvgDarwin) Execute() {
 	}
 }
 
-func (i *LoadAvg) Parse(output string) {
+// Parse : Linux Specific Parsing for Load Avg
+/*
+0.25 0.23 0.14 3/671 9362
+*/
+func (i *LoadAvgLinux) Parse(output string) {
 	i.Values = loadavgParseOutput(output)
 }
 
-func (i *LoadAvg) SetDriver(driver *driver.Driver) {
+func (i *LoadAvgLinux) SetDriver(driver *driver.Driver) {
 	details := (*driver).GetDetails()
 	if !details.IsLinux {
 		panic("Cannot use LoadAvg on drivers outside (linux)")
@@ -84,35 +100,66 @@ func (i *LoadAvg) SetDriver(driver *driver.Driver) {
 	i.Driver = driver
 }
 
-func (i LoadAvg) driverExec() driver.Command {
+func (i LoadAvgLinux) driverExec() driver.Command {
 	return (*i.Driver).ReadFile
 }
 
-func (i *LoadAvg) Execute() {
+func (i *LoadAvgLinux) Execute() {
 	output, err := i.driverExec()(i.FilePath)
 	if err == nil {
 		i.Parse(output)
 	}
 }
 
-//TODO: Windows Equivalents
-// of LoadAvg
+func (i *LoadAvgWin) Parse(output string) {
+	output = strings.ReplaceAll(output, "\r", "")
+	output = strings.ReplaceAll(output, " ", "")
+	columns := strings.Split(output, "\n")
+	// Only instantaneous metrics available so append the
+	// rest as zero
+	output = columns[1]
+	output = fmt.Sprintf("%s 0 0", output)
+	i.Values = loadavgParseOutput(output)
+}
+
+func (i *LoadAvgWin) SetDriver(driver *driver.Driver) {
+	details := (*driver).GetDetails()
+	if !details.IsWindows {
+		panic("Cannot use LoadAvgWin on drivers outside (windows)")
+	}
+	i.Driver = driver
+}
+
+func (i LoadAvgWin) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *LoadAvgWin) Execute() {
+	output, err := i.driverExec()(i.Command)
+	if err == nil {
+		i.Parse(output)
+	}
+}
 
 // NewLoadAvg : Initialize a new LoadAvg instance
 func NewLoadAvg(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var loadavg Inspector
 	details := (*driver).GetDetails()
-	if !(details.IsLinux || details.IsDarwin) {
+	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use LoadAvg on drivers outside (linux, darwin)")
 	}
 	if details.IsLinux {
-		loadavg = &LoadAvg{
+		loadavg = &LoadAvgLinux{
 			FilePath: `/proc/loadavg`,
 		}
 	} else if details.IsDarwin {
 		loadavg = &LoadAvgDarwin{
 			//      Command: `sysctl -n vm.loadavg | awk '{ printf "%.2f %.2f %.2f ", $2, $3, $4 }'`,
 			Command: `top -l 1 | grep "Load Avg:" | awk '{print $3, $4, $5}'`,
+		}
+	} else if details.IsWindows {
+		loadavg = &LoadAvgWin{
+			Command: `wmic cpu get loadpercentage`,
 		}
 	}
 	loadavg.SetDriver(driver)

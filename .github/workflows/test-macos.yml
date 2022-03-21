@@ -1,0 +1,21 @@
+on: 
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+name: Test-MacOs
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup config script 
+        # using locals for mac-OS because github CI mac platforms don't have docker
+        run: make prep-ci-local
+      - name: Test
+        run: go test -v ./...

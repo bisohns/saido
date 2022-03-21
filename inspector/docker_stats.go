@@ -31,6 +31,11 @@ type DockerStats struct {
 }
 
 // Parse : run custom parsing on output of the command
+/*
+CONTAINER  CPU %     MEM USAGE / LIMIT     MEM %     NET I/O             BLOCK I/O             PIDS
+redis1     0.07%     796 KB / 64 MB        1.21%     788 B / 648 B       3.568 MB / 512 KB     2
+redis2     0.07%     2.746 MB / 64 MB      4.29%     1.266 KB / 648 B    12.4 MB / 0 B         3
+*/
 func (i *DockerStats) Parse(output string) {
 	var values []DockerStatsMetrics
 	var splitChars string
@@ -63,7 +68,8 @@ func (i *DockerStats) Parse(output string) {
 			}
 			pid, err := strconv.Atoi(columns[13])
 			if err != nil {
-				log.Fatal("Could not parse pid for docker stats")
+				log.Debug("Could not parse pid for docker stats, probably on windows")
+				pid = 0
 			}
 			value := i.createMetric(col, columns[0], columns[1], cpu, memory, pid)
 			values = append(values, value)

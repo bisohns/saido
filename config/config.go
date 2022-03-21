@@ -18,8 +18,8 @@ type DashboardInfo struct {
 
 type Connection struct {
 	Type           string `mapstructure:"type"`
-	Username       string `mapstructure:"type"`
-	Password       string `mapstructure:"type"`
+	Username       string `mapstructure:"username"`
+	Password       string `mapstructure:"password"`
 	PrivateKeyPath string `mapstructure:"private_key_path"`
 	Port           int32  `mapstructure:"port"`
 }

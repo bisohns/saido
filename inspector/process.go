@@ -2,6 +2,7 @@ package inspector
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -30,7 +31,7 @@ type ProcessMetricsWin struct {
 	Memory      float64
 }
 
-// Process : Parsing the `ps -A u` output for process monitoring
+// Process : Parsing the `ps axu` output for process monitoring
 type Process struct {
 	Driver  *driver.Driver
 	Command string
@@ -68,6 +69,22 @@ func (i *Process) Execute() {
 }
 
 // Parse : run custom parsing on output of the command
+/*
+for darwin it looks something like
+
+USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
+formplus           980 111.4  0.1 12845480   5132   ??  S    28Feb22 4196:13.21 com.docker.hyperkit -A -u -F vms/0/hyperkit.pid -c
+formplus           864  10.2  0.2  5066712  20516   ??  S    28Feb22 419:29.39 /Applications/Docker.app/Contents/MacOS/com.docker
+formplus         83064   1.6  0.1  4301640   5448 s008  Ss   Sat09PM   0:43.12 -zsh
+
+
+for linux it looks like
+
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0 167580 11440 ?        Ss   18:07   0:00 /sbin/init splash
+root           2  0.0  0.0      0     0 ?        S    18:07   0:00 [kthreadd]
+root           3  0.0  0.0      0     0 ?        I<   18:07   0:00 [rcu_gp]
+*/
 func (i *Process) Parse(output string) {
 	var values []ProcessMetrics
 	lines := strings.Split(output, "\n")
@@ -104,7 +121,7 @@ func (i Process) createMetric(columns []string, pid int) ProcessMetrics {
 	tty := columns[6]
 	minutesStr := strings.Split(unparsedTime, ":")
 	minute, parseErr := strconv.Atoi(minutesStr[0])
-	second, parseErr := strconv.Atoi(minutesStr[1])
+	second, parseErr := strconv.ParseFloat(minutesStr[1], 64)
 	if parseErr != nil {
 		log.Fatal(parseErr)
 	}
@@ -114,12 +131,24 @@ func (i Process) createMetric(columns []string, pid int) ProcessMetrics {
 		User:    columns[0],
 		CPU:     cpu,
 		Memory:  mem,
-		Time:    int64((minute * 60) + second),
+		Time:    int64((minute * 60) + int(second)),
 		TTY:     tty,
 	}
 }
 
+/* Parse for the following
+
+Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+System Idle Process              0 Services                   0          8 K
+System                           4 Services                   0      7,304 K
+Secure System                  104 Services                   0     40,344 K
+Registry                       168 Services                   0     93,448 K
+smss.exe                       604 Services                   0      1,080 K
+csrss.exe                      968 Services                   0      4,916 K
+*/
 func (i *ProcessWin) Parse(output string) {
+	fmt.Print(output)
 	var values []ProcessMetricsWin
 	lines := strings.Split(output, "\r\n")
 	for index, line := range lines {
@@ -194,7 +223,7 @@ func NewProcess(driver *driver.Driver, _ ...string) (Inspector, error) {
 	}
 	if details.IsLinux || details.IsDarwin {
 		process = &Process{
-			Command: `ps -A u`,
+			Command: `ps axu`,
 		}
 	} else {
 		process = &ProcessWin{

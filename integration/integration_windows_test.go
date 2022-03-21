@@ -43,6 +43,43 @@ func TestCustomonLocal(t *testing.T) {
 	}
 }
 
+func TestUptimeonLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`uptime`, &d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.UptimeWindows)
+	if ok {
+		if iConcrete.Values.Up == 0 {
+			t.Error("Expected uptime on windows to be > 0")
+		}
+	}
+}
+
+func TestLoadAverageonLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`loadavg`, &d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.LoadAvgWin)
+	if ok {
+		if iConcrete.Values.Load1M == 0 && !SkipNonLinuxOnCI() {
+			t.Error("Expected load on windows to be > 0")
+		}
+	}
+}
+
+func TestMemInfoonLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`memory`, &d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.MemInfoWin)
+	if ok {
+		fmt.Printf("%#v", iConcrete.Values)
+		if iConcrete.Values.MemTotal == 0 {
+			t.Error("RAM reported as empty")
+		}
+	}
+}
+
 func TestDFonLocal(t *testing.T) {
 	d := NewLocalForTest()
 	i, _ := inspector.Init(`disk`, &d)
