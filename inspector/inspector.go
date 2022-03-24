@@ -26,6 +26,7 @@ var inspectorMap = map[string]NewInspector{
 	`process`:      NewProcess,
 	`custom`:       NewCustom,
 	`loadavg`:      NewLoadAvg,
+	`tcp`:          NewTcp,
 }
 
 // Init : initializes the specified inspector using name and driver

@@ -157,3 +157,16 @@ func TestUptimeonLocal(t *testing.T) {
 		fmt.Printf("%#v", iConcreteDarwin.Values)
 	}
 }
+
+func TestTcponLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`tcp`, &d)
+	i.Execute()
+	iConcreteDarwin, ok := i.(*inspector.TcpDarwin)
+	if ok {
+		if len(iConcreteDarwin.Values.Ports) == 0 {
+			t.Errorf("%#v", iConcreteDarwin.Values.Ports)
+		}
+		fmt.Printf("%#v", iConcreteDarwin.Values.Ports)
+	}
+}
