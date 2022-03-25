@@ -30,6 +30,12 @@ type TcpLinux struct {
 	Values  TcpMetrics
 }
 
+type TcpWin struct {
+	Command string
+	Driver  *driver.Driver
+	Values  TcpMetrics
+}
+
 /* Parse : parsing the following kind of output
 Active Internet connections (including servers)
 Proto Recv-Q Send-Q  Local Address          Foreign Address        (state)
@@ -135,6 +141,61 @@ func (i *TcpLinux) Execute() {
 	}
 }
 
+/* Parse for output
+
+Active Connections
+
+  Proto  Local Address          Foreign Address        State
+  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING
+  TCP    0.0.0.0:445            0.0.0.0:0              LISTENING
+  TCP    0.0.0.0:5040           0.0.0.0:0              LISTENING
+  TCP    0.0.0.0:5700           0.0.0.0:0              LISTENING
+  TCP    0.0.0.0:6646           0.0.0.0:0              LISTENING
+  TCP    0.0.0.0:49664          0.0.0.0:0              LISTENING
+*/
+func (i *TcpWin) Parse(output string) {
+	ports := make(map[int]string)
+	lines := strings.Split(output, "\n")
+	for index, line := range lines {
+		// skip title lines
+		if index == 0 || index == 1 || index == 3 {
+			continue
+		}
+		columns := strings.Fields(line)
+		if len(columns) > 3 {
+			status := columns[3]
+			address := strings.Split(columns[1], ":")
+			portString := address[len(address)-1]
+			port, err := strconv.Atoi(portString)
+			if err != nil {
+				log.Fatal("Could not parse port number in TcpWin")
+			}
+			ports[port] = status
+
+		}
+	}
+	i.Values.Ports = ports
+}
+
+func (i *TcpWin) SetDriver(driver *driver.Driver) {
+	details := (*driver).GetDetails()
+	if !details.IsWindows {
+		panic("Cannot use TcpWin on drivers outside (windows)")
+	}
+	i.Driver = driver
+}
+
+func (i TcpWin) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *TcpWin) Execute() {
+	output, err := i.driverExec()(i.Command)
+	if err == nil {
+		i.Parse(output)
+	}
+}
+
 // NewTcp: Initialize a new Tcp instance
 func NewTcp(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var tcp Inspector
@@ -149,6 +210,10 @@ func NewTcp(driver *driver.Driver, _ ...string) (Inspector, error) {
 	} else if details.IsLinux {
 		tcp = &TcpLinux{
 			Command: `ss -tan`,
+		}
+	} else if details.IsWindows {
+		tcp = &TcpWin{
+			Command: `netstat -anp tcp`,
 		}
 	}
 	tcp.SetDriver(driver)
