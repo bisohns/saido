@@ -3,6 +3,7 @@ package inspector
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -10,8 +11,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// TcpMetricsDarwin : Metrics obtained by tcp monitoring on darwin
-type TcpMetricsDarwin struct {
+// TcpMetrics : Metrics obtained by tcp monitoring on darwin
+type TcpMetrics struct {
 	// Ports map a port to a status string
 	// e.g {8081: "LISTEN"}
 	Ports map[int]string
@@ -20,7 +21,13 @@ type TcpMetricsDarwin struct {
 type TcpDarwin struct {
 	Command string
 	Driver  *driver.Driver
-	Values  TcpMetricsDarwin
+	Values  TcpMetrics
+}
+
+type TcpLinux struct {
+	Command string
+	Driver  *driver.Driver
+	Values  TcpMetrics
 }
 
 /* Parse : parsing the following kind of output
@@ -74,6 +81,60 @@ func (i *TcpDarwin) Execute() {
 	}
 }
 
+/*
+Parse for output
+State     Recv-Q    Send-Q       Local Address:Port     Peer Address:Port       Process
+LISTEN      0         5            127.0.0.1:45481         0.0.0.0:*
+LISTEN      0        4096         127.0.0.53%lo:53         0.0.0.0:*
+LISTEN      0         5              127.0.0.1:631         0.0.0.0:*
+ESTAB       0         0        192.168.1.106:37986      198.252.206.25:443
+CLOSE-WAIT  1         0            127.0.0.1:54638         127.0.0.1:45481
+
+*/
+func (i *TcpLinux) Parse(output string) {
+	ports := make(map[int]string)
+	lines := strings.Split(output, "\n")
+	for index, line := range lines {
+		// skip title lines
+		if index == 0 {
+			continue
+		}
+		columns := strings.Fields(line)
+		if len(columns) >= 5 {
+			fmt.Print(columns)
+			status := columns[0]
+			address := strings.Split(columns[3], ":")
+			portString := address[len(address)-1]
+			port, err := strconv.Atoi(portString)
+			if err != nil {
+				log.Fatal("Could not parse port number in TcpLinux")
+			}
+			ports[port] = status
+
+		}
+	}
+	i.Values.Ports = ports
+}
+
+func (i *TcpLinux) SetDriver(driver *driver.Driver) {
+	details := (*driver).GetDetails()
+	if !details.IsLinux {
+		panic("Cannot use TcpLinux on drivers outside (linux)")
+	}
+	i.Driver = driver
+}
+
+func (i TcpLinux) driverExec() driver.Command {
+	return (*i.Driver).RunCommand
+}
+
+func (i *TcpLinux) Execute() {
+	output, err := i.driverExec()(i.Command)
+	if err == nil {
+		i.Parse(output)
+	}
+}
+
 // NewTcp: Initialize a new Tcp instance
 func NewTcp(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var tcp Inspector
@@ -84,6 +145,10 @@ func NewTcp(driver *driver.Driver, _ ...string) (Inspector, error) {
 	if details.IsDarwin {
 		tcp = &TcpDarwin{
 			Command: `netstat -anp tcp`,
+		}
+	} else if details.IsLinux {
+		tcp = &TcpLinux{
+			Command: `ss -tan`,
 		}
 	}
 	tcp.SetDriver(driver)

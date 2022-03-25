@@ -169,4 +169,11 @@ func TestTcponLocal(t *testing.T) {
 		}
 		fmt.Printf("%#v", iConcreteDarwin.Values.Ports)
 	}
+	iConcreteLinux, ok := i.(*inspector.TcpLinux)
+	if ok {
+		if len(iConcreteLinux.Values.Ports) == 0 {
+			t.Errorf("%#v", iConcreteLinux.Values.Ports)
+		}
+		fmt.Printf("%#v", iConcreteLinux.Values.Ports)
+	}
 }
