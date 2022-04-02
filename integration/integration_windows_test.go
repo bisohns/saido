@@ -92,3 +92,16 @@ func TestDFonLocal(t *testing.T) {
 		}
 	}
 }
+
+func TestTcponLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`tcp`, &d)
+	i.Execute()
+	iConcreteWindows, ok := i.(*inspector.TcpWin)
+	if ok {
+		if len(iConcreteWindows.Values.Ports) == 0 {
+			t.Errorf("%#v", iConcreteWindows.Values.Ports)
+		}
+		fmt.Printf("%#v", iConcreteWindows.Values.Ports)
+	}
+}
