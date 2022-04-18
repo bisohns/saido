@@ -6,6 +6,5 @@ hosts:
         type: local
 
 metrics:
-- memory
-- cpu
+- loadavg
 

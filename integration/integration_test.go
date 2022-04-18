@@ -45,6 +45,28 @@ func NewSSHForTest() driver.Driver {
 	}
 }
 
+func TestSSHRunCommand(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
+	d := NewSSHForTest()
+	output, err := d.RunCommand(`ps -A`)
+	if err != nil || !strings.Contains(output, "PID") {
+		t.Error(err)
+	}
+}
+
+func TestSSHSystemDetails(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
+	d := NewSSHForTest()
+	details := d.GetDetails()
+	if !details.IsLinux {
+		t.Errorf("Expected linux server for ssh test got %#v", details)
+	}
+}
+
 func TestDFonSSH(t *testing.T) {
 	if SkipNonLinuxOnCI() {
 		return

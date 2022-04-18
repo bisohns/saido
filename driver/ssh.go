@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/melbahja/goph"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -73,7 +72,6 @@ func (d *SSH) Client() (*goph.Client, error) {
 }
 
 func (d *SSH) ReadFile(path string) (string, error) {
-	log.Debugf("Reading remote content %s", path)
 	command := fmt.Sprintf(`cat %s`, path)
 	return d.RunCommand(command)
 }
@@ -81,7 +79,6 @@ func (d *SSH) ReadFile(path string) (string, error) {
 func (d *SSH) RunCommand(command string) (string, error) {
 	// TODO: Ensure clients of all SSH drivers are closed on context end
 	// i.e d.SessionClient.Close()
-	log.Debugf("Running remote command %s", command)
 	client, err := d.Client()
 	if err != nil {
 		return ``, err

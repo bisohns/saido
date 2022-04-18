@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/bisohns/saido/driver"
+	"github.com/bisohns/saido/inspector"
+
 	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 
@@ -16,12 +19,32 @@ type DashboardInfo struct {
 	Title   string
 }
 
+// Connection : dashboard mapstructure representation of a connection
 type Connection struct {
 	Type           string `mapstructure:"type"`
 	Username       string `mapstructure:"username"`
 	Password       string `mapstructure:"password"`
 	PrivateKeyPath string `mapstructure:"private_key_path"`
 	Port           int32  `mapstructure:"port"`
+	// set explicitly during parsing
+	Host string
+}
+
+// ToDriver : converts a dashboard connection into an executable driver
+func (conn Connection) ToDriver() driver.Driver {
+	switch conn.Type {
+	case "ssh":
+		return &driver.SSH{
+			User:            conn.Username,
+			Host:            conn.Host,
+			Port:            int(conn.Port),
+			KeyFile:         conn.PrivateKeyPath,
+			KeyPass:         conn.Password,
+			CheckKnownHosts: false,
+		}
+	default:
+		return &driver.Local{}
+	}
 }
 
 type Host struct {
@@ -58,6 +81,11 @@ func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 	}
 
 	dashboardInfo.Hosts = parseConfig("root", "", config.Hosts, &Connection{})
+	for _, metric := range config.Metrics {
+		if !inspector.Accepted(metric) {
+			log.Fatalf("Unknown inspector: %v", metric)
+		}
+	}
 	dashboardInfo.Metrics = config.Metrics
 	for _, host := range dashboardInfo.Hosts {
 		log.Debugf("%s: %v", host.Address, host.Connection)
@@ -107,6 +135,7 @@ func parseConfig(name string, host string, group map[interface{}]interface{}, cu
 	}
 
 	if !isParent {
+		currentConn.Host = host
 		newHost := Host{
 			Address:    host,
 			Connection: currentConn,

@@ -20,6 +20,5 @@ hosts:
         port: 2222
         private_key_path: "$SSH_KEY_PATH/${SSH_KEY_NAME}"
 metrics:
-- memory
-- cpu
+- loadavg
 EOF

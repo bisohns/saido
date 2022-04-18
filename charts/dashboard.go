@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bisohns/saido/config"
+	"github.com/bisohns/saido/inspector"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mum4k/termdash"
@@ -20,6 +21,7 @@ import (
 	"github.com/mum4k/termdash/linestyle"
 	"github.com/mum4k/termdash/terminal/tcell"
 	"github.com/mum4k/termdash/terminal/terminalapi"
+	"github.com/mum4k/termdash/widgetapi"
 	"github.com/mum4k/termdash/widgets/barchart"
 	"github.com/mum4k/termdash/widgets/button"
 	"github.com/mum4k/termdash/widgets/donut"
@@ -45,9 +47,12 @@ type widgets struct {
 }
 
 var (
-	logToDashBoard  func(string) error
-	hostsPerPage    int = 5
-	currentHostPage int = 0
+	logToDashBoard   func(string) error
+	hostsPerPage     int = 5
+	currentHostPage  int = 0
+	currentHost      string
+	currentMetric    string
+	inspectorWidgets map[string]map[string]widgetapi.Widget = map[string]map[string]widgetapi.Widget{}
 )
 
 // newWidgets creates all widgets used by this demo.
@@ -83,14 +88,18 @@ func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Contai
 	}
 
 	paginatedHosts := Paginate(dashboardInfo.Hosts, hostsPerPage)
-	hosts, err := newHostButtons(ctx, paginatedHosts)
+	constantWidgets := &widgets{
+		segDist: sd,
+		rollT:   rollT,
+	}
+	hosts, err := newHostButtons(ctx, c, paginatedHosts, dashboardInfo.Metrics, constantWidgets)
 	if err != nil {
 		return nil, err
 	}
 
 	return &widgets{
-		segDist:  sd,
-		rollT:    rollT,
+		segDist:  constantWidgets.segDist,
+		rollT:    constantWidgets.rollT,
 		spGreen:  spGreen,
 		barChart: bc,
 		donut:    don,
@@ -107,6 +116,8 @@ type layoutType int
 const (
 	// layoutAll displays all the widgets.
 	layoutAll layoutType = iota
+	// layoutSingle shows a single inspector of a host
+	layoutSingle
 	// layoutText focuses onto the text widget.
 	layoutText
 	// layoutSparkLines focuses onto the sparklines.
@@ -144,6 +155,24 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 						container.BorderTitle("Hosts"),
 					},
 					w.hosts[currentHostPage]...,
+				),
+			),
+		)
+	case layoutSingle:
+		leftRows = append(leftRows,
+			grid.RowHeightPerc(20,
+				grid.ColWidthPerc(20,
+					grid.Widget(w.rollT,
+						container.Border(linestyle.Light),
+						container.BorderTitle("Log reports"),
+					),
+				),
+				grid.ColWidthPercWithOpts(60,
+					[]container.Option{
+						container.Border(linestyle.Light),
+						container.BorderTitle(fmt.Sprintf("%s-%s", currentHost, currentMetric)),
+						container.PlaceWidget(inspectorWidgets[currentHost][currentMetric]),
+					},
 				),
 			),
 		)
@@ -510,7 +539,7 @@ func (d *distance) get() int {
 // to every host page
 func addNextPrevButtons(c *container.Container, w *widgets) error {
 	pageLength := len(w.hosts)
-	next, err := button.New(">", func() error {
+	next, err := button.New(">>>", func() error {
 		currentHostPage = Next(currentHostPage, pageLength)
 		refreshPage(c, w)
 		logToDashBoard(fmt.Sprintf("Moving on to next Page %d", currentHostPage))
@@ -518,7 +547,7 @@ func addNextPrevButtons(c *container.Container, w *widgets) error {
 	},
 		nextandPrevButtonStyle...,
 	)
-	prev, err := button.New("<", func() error {
+	prev, err := button.New("<<<", func() error {
 		currentHostPage = Prev(currentHostPage, pageLength)
 		refreshPage(c, w)
 		logToDashBoard(fmt.Sprintf("Moving on to previous Page %d", currentHostPage))
@@ -548,10 +577,10 @@ func addNextPrevButtons(c *container.Container, w *widgets) error {
 }
 
 // newHostButtons returns all the pages of host buttons
-func newHostButtons(ctx context.Context, paginatedHosts [][]config.Host) ([][]grid.Element, error) {
+func newHostButtons(ctx context.Context, c *container.Container, paginatedHosts [][]config.Host, metrics []string, w *widgets) ([][]grid.Element, error) {
 	buttonGrid := [][]grid.Element{}
 	for _, page := range paginatedHosts {
-		pageButtons, err := newHostButtonPage(ctx, page)
+		pageButtons, err := newHostButtonPage(ctx, c, page, metrics, w)
 		if err != nil {
 			return nil, err
 		}
@@ -563,25 +592,35 @@ func newHostButtons(ctx context.Context, paginatedHosts [][]config.Host) ([][]gr
 
 // newHostButtonPage returns a group of buttons that displays each individual host
 // for expansion upon click
-func newHostButtonPage(ctx context.Context, hosts []config.Host) ([]grid.Element, error) {
+func newHostButtonPage(ctx context.Context, c *container.Container, hosts []config.Host, metrics []string, w *widgets) ([]grid.Element, error) {
 	buttonGrid := []grid.Element{}
 	percentage := 90 / hostsPerPage
 	for _, host := range hosts {
-		// freeze addresss for the closure
+		// freeze variables for the closure
 		address := host.Address
+		inspectorWidgets[address] = map[string]widgetapi.Widget{}
+		driver := host.Connection.ToDriver()
+		for _, metric := range metrics {
+			i, _ := inspector.Init(metric, &driver)
+			inspectorWidgets[address][metric] = i.GetWidget()
+			go Periodic(ctx, 500*time.Millisecond, i.UpdateWidget)
+			currentMetric = metric
+		}
 		aliasText := host.Alias
 		if aliasText == "" {
 			aliasText = "None"
 		}
 
 		hostButton, err := button.NewFromChunks(buttonChunks(host.Address), func() error {
-			logToDashBoard(address)
+			currentHost = address
+			logToDashBoard(fmt.Sprintf("View %s - %s", currentHost, currentMetric))
+			setLayout(c, w, layoutSingle)
 			return nil
 		},
 			buttonStyles...,
 		)
-		driver, err := text.New()
-		driver.Write(host.Connection.Type)
+		driverText, err := text.New()
+		driverText.Write(host.Connection.Type)
 		alias, err := text.New()
 		alias.Write(aliasText)
 
@@ -596,7 +635,7 @@ func newHostButtonPage(ctx context.Context, hosts []config.Host) ([]grid.Element
 						),
 					),
 					grid.ColWidthPerc(33,
-						grid.Widget(driver,
+						grid.Widget(driverText,
 							singleGridStyle...,
 						)),
 					grid.ColWidthPerc(33,

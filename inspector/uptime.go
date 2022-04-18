@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/bisohns/saido/driver"
+	"github.com/mum4k/termdash/widgetapi"
+	"github.com/mum4k/termdash/widgets/barchart"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,6 +30,8 @@ type UptimeLinux struct {
 	Driver   *driver.Driver
 	FilePath string
 	Values   *UptimeMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 type UptimeDarwin struct {
@@ -35,12 +39,16 @@ type UptimeDarwin struct {
 	UpCommand   string
 	IdleCommand string
 	Values      *UptimeMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 type UptimeWindows struct {
 	Driver    *driver.Driver
 	UpCommand string
 	Values    *UptimeMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 // Parse : run custom parsing on output of the command
@@ -70,6 +78,17 @@ func (i *UptimeLinux) SetDriver(driver *driver.Driver) {
 		panic("Cannot use UptimeLinux on drivers outside (linux)")
 	}
 	i.Driver = driver
+}
+
+func (i *UptimeLinux) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *UptimeLinux) UpdateWidget() error {
+	i.Execute()
+	return nil
 }
 
 func (i UptimeLinux) driverExec() driver.Command {
@@ -115,6 +134,17 @@ func (i *UptimeDarwin) SetDriver(driver *driver.Driver) {
 	i.Driver = driver
 }
 
+func (i *UptimeDarwin) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *UptimeDarwin) UpdateWidget() error {
+	i.Execute()
+	return nil
+}
+
 func (i UptimeDarwin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
@@ -158,6 +188,17 @@ func (i *UptimeWindows) SetDriver(driver *driver.Driver) {
 		panic("Cannot use UptimeWindows on drivers outside (windows)")
 	}
 	i.Driver = driver
+}
+
+func (i *UptimeWindows) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *UptimeWindows) UpdateWidget() error {
+	i.Execute()
+	return nil
 }
 
 func (i UptimeWindows) driverExec() driver.Command {

@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/bisohns/saido/driver"
+	"github.com/mum4k/termdash/widgetapi"
+	"github.com/mum4k/termdash/widgets/barchart"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,6 +30,8 @@ type DockerStats struct {
 	DisplayByteSize string
 	// Values of metrics being read
 	Values []DockerStatsMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 // Parse : run custom parsing on output of the command
@@ -76,6 +80,17 @@ func (i *DockerStats) Parse(output string) {
 		}
 	}
 	i.Values = values
+}
+
+func (i *DockerStats) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *DockerStats) UpdateWidget() error {
+	i.Execute()
+	return nil
 }
 
 func (i DockerStats) createMetric(

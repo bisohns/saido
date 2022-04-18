@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/bisohns/saido/driver"
+	"github.com/mum4k/termdash/widgetapi"
+	"github.com/mum4k/termdash/widgets/barchart"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,6 +31,8 @@ type MemInfoLinux struct {
 	DisplayByteSize string
 	// Values of metrics being read
 	Values *MemInfoMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 // MemInfoDarwin : Parsing `top -l 1` and `sysctl` to be able to retrieve memory details
@@ -42,6 +46,8 @@ type MemInfoDarwin struct {
 	DisplayByteSize string
 	// Values of metrics being read
 	Values *MemInfoMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 // MemInfoWin : Parsing `systeminfo | findstr /R /C:"Memory"`
@@ -57,6 +63,8 @@ type MemInfoWin struct {
 	DisplayByteSize string
 	// Values of metrics being read
 	Values *MemInfoMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 func memInfoParseOutput(output, rawByteSize, displayByteSize string) *MemInfoMetrics {
@@ -114,6 +122,17 @@ Cached:          1567652 kB
 func (i *MemInfoLinux) Parse(output string) {
 	log.Debug("Parsing ouput string in MemInfoLinux inspector")
 	i.Values = memInfoParseOutput(output, i.RawByteSize, i.DisplayByteSize)
+}
+
+func (i *MemInfoLinux) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *MemInfoLinux) UpdateWidget() error {
+	i.Execute()
+	return nil
 }
 
 func (i *MemInfoLinux) SetDriver(driver *driver.Driver) {
@@ -176,6 +195,17 @@ func (i *MemInfoDarwin) SetDriver(driver *driver.Driver) {
 		panic("Cannot use MeminfoDarwin outside (darwin)")
 	}
 	i.Driver = driver
+}
+
+func (i *MemInfoDarwin) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *MemInfoDarwin) UpdateWidget() error {
+	i.Execute()
+	return nil
 }
 
 func (i MemInfoDarwin) driverExec() driver.Command {
@@ -251,6 +281,17 @@ func (i *MemInfoWin) SetDriver(driver *driver.Driver) {
 		panic("Cannot use MeminfoWin outside (windows)")
 	}
 	i.Driver = driver
+}
+
+func (i *MemInfoWin) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *MemInfoWin) UpdateWidget() error {
+	i.Execute()
+	return nil
 }
 
 func (i MemInfoWin) driverExec() driver.Command {

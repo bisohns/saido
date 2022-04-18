@@ -5,6 +5,9 @@ import (
 	"fmt"
 
 	"github.com/bisohns/saido/driver"
+	"github.com/mum4k/termdash/cell"
+	"github.com/mum4k/termdash/widgetapi"
+	"github.com/mum4k/termdash/widgets/text"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -17,6 +20,7 @@ type CustomMetrics struct {
 type Custom struct {
 	Driver  *driver.Driver
 	Values  CustomMetrics
+	Widget  *text.Text
 	Command string
 }
 
@@ -30,6 +34,18 @@ func (i Custom) createMetric(output string) CustomMetrics {
 	return CustomMetrics{
 		Output: output,
 	}
+}
+
+func (i *Custom) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+		i.Widget, _ = text.New(text.RollContent(), text.WrapAtWords())
+	}
+	return i.Widget
+}
+
+func (i *Custom) UpdateWidget() error {
+	i.Execute()
+	return i.Widget.Write(fmt.Sprintf("%s\n", i.Values.Output), text.WriteCellOpts(cell.FgColor(cell.ColorNumber(142))))
 }
 
 func (i *Custom) SetDriver(driver *driver.Driver) {

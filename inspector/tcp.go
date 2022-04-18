@@ -8,32 +8,43 @@ import (
 	"strings"
 
 	"github.com/bisohns/saido/driver"
+	"github.com/mum4k/termdash/widgetapi"
+	"github.com/mum4k/termdash/widgets/barchart"
 	log "github.com/sirupsen/logrus"
 )
 
-// TcpMetrics : Metrics obtained by tcp monitoring on darwin
-type TcpMetrics struct {
+// TCPMetrics : Metrics obtained by tcp monitoring on darwin
+type TCPMetrics struct {
 	// Ports map a port to a status string
 	// e.g {8081: "LISTEN"}
 	Ports map[int]string
 }
 
-type TcpDarwin struct {
+// TCPDarwin : TCP specfic to Darwin
+type TCPDarwin struct {
 	Command string
 	Driver  *driver.Driver
-	Values  TcpMetrics
+	Values  TCPMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
-type TcpLinux struct {
+// TCPLinux : TCP specfic to Linux
+type TCPLinux struct {
 	Command string
 	Driver  *driver.Driver
-	Values  TcpMetrics
+	Values  TCPMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
-type TcpWin struct {
+// TCPWin : TCP specfic to Windows
+type TCPWin struct {
 	Command string
 	Driver  *driver.Driver
-	Values  TcpMetrics
+	Values  TCPMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 /* Parse : parsing the following kind of output
@@ -44,7 +55,7 @@ tcp4       0      0  192.168.1.172.59964    162.247.243.147.443    SYN_SENT
 tcp4       0      0  192.168.1.172.59931    13.224.227.146.443     ESTABLISHED
 tcp4       0      0  127.0.0.1.59905        127.0.0.1.53300        CLOSE_WAIT
 */
-func (i *TcpDarwin) Parse(output string) {
+func (i *TCPDarwin) Parse(output string) {
 	ports := make(map[int]string)
 	lines := strings.Split(output, "\n")
 	for index, line := range lines {
@@ -59,7 +70,7 @@ func (i *TcpDarwin) Parse(output string) {
 			portString := address[len(address)-1]
 			port, err := strconv.Atoi(portString)
 			if err != nil {
-				log.Fatal("Could not parse port number in TcpDarwin")
+				log.Fatal("Could not parse port number in TCPDarwin")
 			}
 			ports[port] = status
 
@@ -68,19 +79,30 @@ func (i *TcpDarwin) Parse(output string) {
 	i.Values.Ports = ports
 }
 
-func (i *TcpDarwin) SetDriver(driver *driver.Driver) {
+func (i *TCPDarwin) SetDriver(driver *driver.Driver) {
 	details := (*driver).GetDetails()
 	if !details.IsDarwin {
-		panic("Cannot use TcpDarwin on drivers outside (darwin)")
+		panic("Cannot use TCPDarwin on drivers outside (darwin)")
 	}
 	i.Driver = driver
 }
 
-func (i TcpDarwin) driverExec() driver.Command {
+func (i *TCPDarwin) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *TCPDarwin) UpdateWidget() error {
+	i.Execute()
+	return nil
+}
+
+func (i TCPDarwin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *TcpDarwin) Execute() {
+func (i *TCPDarwin) Execute() {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
@@ -97,7 +119,7 @@ ESTAB       0         0        192.168.1.106:37986      198.252.206.25:443
 CLOSE-WAIT  1         0            127.0.0.1:54638         127.0.0.1:45481
 
 */
-func (i *TcpLinux) Parse(output string) {
+func (i *TCPLinux) Parse(output string) {
 	ports := make(map[int]string)
 	lines := strings.Split(output, "\n")
 	for index, line := range lines {
@@ -113,7 +135,7 @@ func (i *TcpLinux) Parse(output string) {
 			portString := address[len(address)-1]
 			port, err := strconv.Atoi(portString)
 			if err != nil {
-				log.Fatal("Could not parse port number in TcpLinux")
+				log.Fatal("Could not parse port number in TCPLinux")
 			}
 			ports[port] = status
 
@@ -122,19 +144,30 @@ func (i *TcpLinux) Parse(output string) {
 	i.Values.Ports = ports
 }
 
-func (i *TcpLinux) SetDriver(driver *driver.Driver) {
+func (i *TCPLinux) SetDriver(driver *driver.Driver) {
 	details := (*driver).GetDetails()
 	if !details.IsLinux {
-		panic("Cannot use TcpLinux on drivers outside (linux)")
+		panic("Cannot use TCPLinux on drivers outside (linux)")
 	}
 	i.Driver = driver
 }
 
-func (i TcpLinux) driverExec() driver.Command {
+func (i *TCPLinux) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *TCPLinux) UpdateWidget() error {
+	i.Execute()
+	return nil
+}
+
+func (i TCPLinux) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *TcpLinux) Execute() {
+func (i *TCPLinux) Execute() {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
@@ -153,7 +186,7 @@ Active Connections
   TCP    0.0.0.0:6646           0.0.0.0:0              LISTENING
   TCP    0.0.0.0:49664          0.0.0.0:0              LISTENING
 */
-func (i *TcpWin) Parse(output string) {
+func (i *TCPWin) Parse(output string) {
 	ports := make(map[int]string)
 	lines := strings.Split(output, "\n")
 	for index, line := range lines {
@@ -168,7 +201,7 @@ func (i *TcpWin) Parse(output string) {
 			portString := address[len(address)-1]
 			port, err := strconv.Atoi(portString)
 			if err != nil {
-				log.Fatal("Could not parse port number in TcpWin")
+				log.Fatal("Could not parse port number in TCPWin")
 			}
 			ports[port] = status
 
@@ -177,42 +210,53 @@ func (i *TcpWin) Parse(output string) {
 	i.Values.Ports = ports
 }
 
-func (i *TcpWin) SetDriver(driver *driver.Driver) {
+func (i *TCPWin) SetDriver(driver *driver.Driver) {
 	details := (*driver).GetDetails()
 	if !details.IsWindows {
-		panic("Cannot use TcpWin on drivers outside (windows)")
+		panic("Cannot use TCPWin on drivers outside (windows)")
 	}
 	i.Driver = driver
 }
 
-func (i TcpWin) driverExec() driver.Command {
+func (i *TCPWin) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *TCPWin) UpdateWidget() error {
+	i.Execute()
+	return nil
+}
+
+func (i TCPWin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *TcpWin) Execute() {
+func (i *TCPWin) Execute() {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
 	}
 }
 
-// NewTcp: Initialize a new Tcp instance
-func NewTcp(driver *driver.Driver, _ ...string) (Inspector, error) {
+// NewTCP: Initialize a new TCP instance
+func NewTCP(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var tcp Inspector
 	details := (*driver).GetDetails()
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
-		return nil, errors.New("Cannot use Tcp on drivers outside (linux, darwin, windows)")
+		return nil, errors.New("Cannot use TCP on drivers outside (linux, darwin, windows)")
 	}
 	if details.IsDarwin {
-		tcp = &TcpDarwin{
+		tcp = &TCPDarwin{
 			Command: `netstat -anp tcp`,
 		}
 	} else if details.IsLinux {
-		tcp = &TcpLinux{
+		tcp = &TCPLinux{
 			Command: `ss -tan`,
 		}
 	} else if details.IsWindows {
-		tcp = &TcpWin{
+		tcp = &TCPWin{
 			Command: `netstat -anp tcp`,
 		}
 	}
