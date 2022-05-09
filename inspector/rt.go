@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/bisohns/saido/driver"
+	"github.com/mum4k/termdash/widgetapi"
+	"github.com/mum4k/termdash/widgets/barchart"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,6 +21,8 @@ type ResponseTime struct {
 	Command string
 	// Values of metrics being read
 	Values ResponseTimeMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 // Parse : run custom parsing on output of the command
@@ -36,6 +40,17 @@ func (i *ResponseTime) Parse(output string) {
 
 func (i *ResponseTime) SetDriver(driver *driver.Driver) {
 	i.Driver = driver
+}
+
+func (i *ResponseTime) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *ResponseTime) UpdateWidget() error {
+	i.Execute()
+	return nil
 }
 
 func (i ResponseTime) driverExec() driver.Command {

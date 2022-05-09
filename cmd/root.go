@@ -22,6 +22,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/bisohns/saido/charts"
 	"github.com/bisohns/saido/config"
 )
 
@@ -51,12 +52,12 @@ var rootCmd = &cobra.Command{
 		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		fmt.Println("\n\nSaido - Bisoncorp (2020) (https://github.com/bisohns/saido)")
+		fmt.Println("\n\nSaido - Bisohns (2022) (https://github.com/bisohns/saido)")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Saido is running ...")
 
-		//    charts.Main(cfg)
+		charts.Main(cfg)
 	},
 }
 

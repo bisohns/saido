@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/bisohns/saido/driver"
+	"github.com/mum4k/termdash/widgetapi"
+	"github.com/mum4k/termdash/widgets/barchart"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -39,6 +41,8 @@ type Process struct {
 	TrackPID int
 	// Values of metrics being read
 	Values []ProcessMetrics
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 // ProcessWin : Parsing the `tasklist` output for process monitoring on windows
@@ -47,6 +51,8 @@ type ProcessWin struct {
 	Command  string
 	TrackPID int
 	Values   []ProcessMetricsWin
+	// FIXME: Get proper graph
+	Widget *barchart.BarChart
 }
 
 func (i *Process) SetDriver(driver *driver.Driver) {
@@ -55,6 +61,17 @@ func (i *Process) SetDriver(driver *driver.Driver) {
 		panic("Cannot use Process on drivers outside (linux, darwin)")
 	}
 	i.Driver = driver
+}
+
+func (i *Process) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *Process) UpdateWidget() error {
+	i.Execute()
+	return nil
 }
 
 func (i Process) driverExec() driver.Command {
@@ -201,6 +218,17 @@ func (i *ProcessWin) SetDriver(driver *driver.Driver) {
 		panic("Cannot use ProcessWin on drivers outside (windows)")
 	}
 	i.Driver = driver
+}
+
+func (i *ProcessWin) GetWidget() widgetapi.Widget {
+	if i.Widget == nil {
+	}
+	return i.Widget
+}
+
+func (i *ProcessWin) UpdateWidget() error {
+	i.Execute()
+	return nil
 }
 
 func (i ProcessWin) driverExec() driver.Command {

@@ -16,6 +16,9 @@ hosts:
         password: somethingSecret
         port: 2222
     "192.0.1.4":
+    a.example.net:
+    b.example.net:
+    c.example.net:
       connection: 
         type: local
     eu-west1:
@@ -30,3 +33,5 @@ hosts:
 metrics:
 - memory
 - cpu
+
+title: Example Saido Dashboard
