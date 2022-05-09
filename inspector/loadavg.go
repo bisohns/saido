@@ -19,7 +19,6 @@ type LoadAvgMetrics struct {
 	Load1M  float64
 	Load5M  float64
 	Load15M float64
-	Nproc   int
 }
 
 // LoadAvgLinux : Parsing the /proc/loadavg output for load average monitoring
@@ -47,12 +46,12 @@ type LoadAvgWin struct {
 	Widget  *barchart.BarChart
 }
 
-func normalize(value float64, cores, max int) int {
-	current := int((value * float64(max)) / float64(cores))
-	if current <= max {
+func normalize(value float64, cores, max int) float64 {
+	current := (value * float64(max)) / float64(cores)
+	if current <= float64(max) {
 		return current
 	}
-	return max
+	return float64(max)
 }
 
 func getBarChart(size int) (*barchart.BarChart, error) {
@@ -159,8 +158,11 @@ func (i *LoadAvgLinux) Parse(output string) {
 	splits := strings.Split(output, "\n")
 	i.Values = loadavgParseOutput(splits[0])
 	numberOfCores, err := strconv.Atoi(splits[1])
+	max := 100
 	if err == nil {
-		i.Values.Nproc = numberOfCores
+		i.Values.Load1M = normalize(i.Values.Load1M, numberOfCores, max)
+		i.Values.Load5M = normalize(i.Values.Load5M, numberOfCores, max)
+		i.Values.Load15M = normalize(i.Values.Load15M, numberOfCores, max)
 	}
 }
 
@@ -176,9 +178,9 @@ func (i *LoadAvgLinux) UpdateWidget() error {
 	i.Execute()
 	max := 100
 	values := []int{
-		normalize(i.Values.Load1M, i.Values.Nproc, max),
-		normalize(i.Values.Load5M, i.Values.Nproc, max),
-		normalize(i.Values.Load15M, i.Values.Nproc, max),
+		int(i.Values.Load1M),
+		int(i.Values.Load5M),
+		int(i.Values.Load5M),
 	}
 	// max value possible for a single bar is 100
 	return i.Widget.Values(values, max)
