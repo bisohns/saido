@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"image"
-	"math"
 	"math/rand"
 	"sync"
 	"time"
@@ -25,7 +24,6 @@ import (
 	"github.com/mum4k/termdash/widgets/barchart"
 	"github.com/mum4k/termdash/widgets/button"
 	"github.com/mum4k/termdash/widgets/donut"
-	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/segmentdisplay"
 	"github.com/mum4k/termdash/widgets/sparkline"
 	"github.com/mum4k/termdash/widgets/text"
@@ -34,79 +32,102 @@ import (
 
 // widgets holds the widgets used by this demo.
 type widgets struct {
-	segDist  *segmentdisplay.SegmentDisplay
-	input    *textinput.TextInput
-	rollT    *text.Text
-	spGreen  *sparkline.SparkLine
-	barChart *barchart.BarChart
-	donut    *donut.Donut
-	leftB    *button.Button
-	rightB   *button.Button
-	sineLC   *linechart.LineChart
-	hosts    [][]grid.Element
+	segDist      *segmentdisplay.SegmentDisplay
+	input        *textinput.TextInput
+	rollT        *text.Text
+	spGreen      *sparkline.SparkLine
+	barChart     *barchart.BarChart
+	donut        *donut.Donut
+	hosts        [][]grid.Element
+	goToMainPage *button.Button
 }
 
 var (
-	logToDashBoard   func(string) error
 	hostsPerPage     int = 5
 	currentHostPage  int = 0
 	currentHost      string
 	currentMetric    string
 	inspectorWidgets map[string]map[string]widgetapi.Widget = map[string]map[string]widgetapi.Widget{}
+	globalLogWidget  *text.Text                             = nil
+	globalLogFunc    func(string) error
+	globalContainer  *container.Container
+	dashboardInfo    *config.DashboardInfo
+	globalCtx        context.Context
+	globalCancel     context.CancelFunc
+	globalTerminal   terminalapi.Terminal
 )
 
+// getOrSetGlobalLog gets or sets the global log widget
+// in a persistent matter despite window refreshes
+func getOrSetGlobalLog() (*text.Text, error) {
+	var (
+		rollT              *text.Text
+		logToDashBoardfunc func(string) error
+		err                error
+	)
+	if globalLogWidget == nil {
+		rollT, logToDashBoardfunc, err = newRollText()
+		if err != nil {
+			return nil, err
+		}
+		globalLogWidget = rollT
+		globalLogFunc = logToDashBoardfunc
+	} else {
+		rollT = globalLogWidget
+		logToDashBoardfunc = globalLogFunc
+	}
+	return rollT, nil
+}
+
 // newWidgets creates all widgets used by this demo.
-func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Container, dashboardInfo *config.DashboardInfo) (*widgets, error) {
-	sd, err := newSegmentDisplay(ctx, t, dashboardInfo.Title)
+func newWidgets() (*widgets, error) {
+	sd, err := newRotatingSegmentDisplay(dashboardInfo.Title)
 	if err != nil {
 		return nil, err
 	}
 
-	rollT, logToDashBoardfunc, err := newRollText(ctx)
+	rollT, err := getOrSetGlobalLog()
 	if err != nil {
 		return nil, err
 	}
-	logToDashBoard = logToDashBoardfunc
-	spGreen, err := newSparkLines(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	bc, err := newBarChart(ctx)
+	spGreen, err := newSparkLines()
 	if err != nil {
 		return nil, err
 	}
 
-	don, err := newDonut(ctx)
+	bc, err := newBarChart()
 	if err != nil {
 		return nil, err
 	}
 
-	leftB, rightB, sineLC, err := newSines(ctx)
+	don, err := newDonut()
 	if err != nil {
 		return nil, err
 	}
 
 	paginatedHosts := Paginate(dashboardInfo.Hosts, hostsPerPage)
-	constantWidgets := &widgets{
-		segDist: sd,
-		rollT:   rollT,
+	goTo, err := addGoToMain()
+	if err != nil {
+		return nil, err
 	}
-	hosts, err := newHostButtons(ctx, c, paginatedHosts, dashboardInfo.Metrics, constantWidgets)
+	constantWidgets := &widgets{
+		segDist:      sd,
+		rollT:        rollT,
+		goToMainPage: goTo,
+	}
+	hosts, err := newHostButtons(paginatedHosts, dashboardInfo.Metrics, constantWidgets)
 	if err != nil {
 		return nil, err
 	}
 
 	return &widgets{
-		segDist:  constantWidgets.segDist,
-		rollT:    constantWidgets.rollT,
-		spGreen:  spGreen,
-		barChart: bc,
-		donut:    don,
-		leftB:    leftB,
-		rightB:   rightB,
-		sineLC:   sineLC,
-		hosts:    hosts,
+		segDist:      constantWidgets.segDist,
+		rollT:        constantWidgets.rollT,
+		spGreen:      spGreen,
+		barChart:     bc,
+		donut:        don,
+		hosts:        hosts,
+		goToMainPage: goTo,
 	}, nil
 }
 
@@ -114,10 +135,10 @@ func newWidgets(ctx context.Context, t terminalapi.Terminal, c *container.Contai
 type layoutType int
 
 const (
-	// layoutAll displays all the widgets.
-	layoutAll layoutType = iota
+	// mainDashboard displays all the widgets.
+	mainDashboard layoutType = iota
 	// layoutSingle shows a single inspector of a host
-	layoutSingle
+	hostMetric
 	// layoutText focuses onto the text widget.
 	layoutText
 	// layoutSparkLines focuses onto the sparklines.
@@ -129,7 +150,7 @@ const (
 // gridLayout prepares container options that represent the desired screen layout.
 // This function demonstrates the use of the grid builder.
 // gridLayout() and contLayout() demonstrate the two available layout APIs and
-// both produce equivalent layouts for layoutType layoutAll.
+// both produce equivalent layouts for layoutType mainDashboard.
 func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 	leftRows := []grid.Element{
 		grid.RowHeightPerc(25,
@@ -140,7 +161,7 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 		),
 	}
 	switch lt {
-	case layoutAll:
+	case mainDashboard:
 		leftRows = append(leftRows,
 			grid.RowHeightPerc(20,
 				grid.ColWidthPerc(20,
@@ -158,16 +179,35 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 				),
 			),
 		)
-	case layoutSingle:
-		leftRows = append(leftRows,
-			grid.RowHeightPerc(20,
+	case hostMetric:
+		headerWidget, err := newSegmentDisplay(currentHost)
+		if err != nil {
+			return nil, err
+		}
+		header := []grid.Element{
+			grid.RowHeightPerc(25,
+				grid.Widget(headerWidget,
+					container.Border(linestyle.Light),
+					container.BorderTitle("Press Esc to quit"),
+				),
+			),
+			grid.RowHeightPerc(10,
+				grid.Widget(w.goToMainPage,
+					container.Border(linestyle.Light),
+					container.BorderTitle("Press Esc to quit"),
+				),
+			),
+		}
+
+		leftRows = append(header,
+			grid.RowHeightPerc(65,
 				grid.ColWidthPerc(20,
 					grid.Widget(w.rollT,
 						container.Border(linestyle.Light),
 						container.BorderTitle("Log reports"),
 					),
 				),
-				grid.ColWidthPercWithOpts(60,
+				grid.ColWidthPercWithOpts(80,
 					[]container.Option{
 						container.Border(linestyle.Light),
 						container.BorderTitle(fmt.Sprintf("%s-%s", currentHost, currentMetric)),
@@ -200,60 +240,6 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 	return innergridOpts, nil
 }
 
-// contLayout prepares container options that represent the desired screen layout.
-// This function demonstrates the direct use of the container API.
-// gridLayout() and contLayout() demonstrate the two available layout APIs and
-// both produce equivalent layouts for layoutType layoutAll.
-// contLayout only produces layoutAll.
-func contLayout(w *widgets) ([]container.Option, error) {
-
-	builder := grid.New()
-	builder.Add(
-		w.hosts[currentHostPage]...,
-	)
-	hostContainerOpts, err := builder.Build()
-	hostContainerOpts = append(
-		hostContainerOpts,
-		container.Border(linestyle.Light),
-		container.BorderTitle("Hosts"),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	textAndSparks := []container.Option{
-		container.SplitVertical(
-			container.Left(
-				container.Border(linestyle.Light),
-				container.BorderTitle("Logs"),
-				container.PlaceWidget(w.rollT),
-			),
-			container.Right(
-				hostContainerOpts...,
-			),
-			container.SplitPercent(40),
-		),
-	}
-
-	return []container.Option{
-		container.SplitHorizontal(
-			container.Top(
-				container.Border(linestyle.Light),
-				container.BorderTitle("Press Esc to quit"),
-				container.PlaceWidget(w.segDist),
-			),
-			container.Bottom(
-				container.SplitHorizontal(
-					container.Top(),
-					container.Bottom(textAndSparks...),
-					container.SplitPercent(1),
-				),
-			),
-			container.SplitPercent(20),
-		),
-	}, nil
-}
-
 // rootID is the ID assigned to the root container.
 const rootID = "root"
 
@@ -264,46 +250,46 @@ const (
 )
 
 func Main(cfg *config.Config) {
-	dashboardInfo := config.GetDashboardInfoConfig(cfg)
+	var err error
+	dashboardInfo = config.GetDashboardInfoConfig(cfg)
 	log.Errorf("%v", dashboardInfo)
 	log.Debugf("Starting %s", dashboardInfo.Title)
-	t, err := tcell.New(tcell.ColorMode(terminalapi.ColorMode256))
+	globalTerminal, err = tcell.New(tcell.ColorMode(terminalapi.ColorMode256))
 	if err != nil {
 		panic(err)
 	}
-	defer t.Close()
+	defer globalTerminal.Close()
 
-	c, err := container.New(t, container.ID(rootID))
-	if err != nil {
-		panic(err)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	w, err := newWidgets(ctx, t, c, dashboardInfo)
-	if err != nil {
-		panic(err)
-	}
-	err = addNextPrevButtons(c, w)
+	globalContainer, err = container.New(globalTerminal, container.ID(rootID))
 	if err != nil {
 		panic(err)
 	}
 
-	gridOpts, err := gridLayout(w, layoutAll) // equivalent to contLayout(w)
-	//  gridOpts, err := contLayout(w)
+	globalCtx, globalCancel = context.WithCancel(context.Background())
+	w, err := newWidgets()
+	if err != nil {
+		panic(err)
+	}
+	err = addNextPrevButtons(w)
 	if err != nil {
 		panic(err)
 	}
 
-	if err := c.Update(rootID, gridOpts...); err != nil {
+	gridOpts, err := gridLayout(w, mainDashboard)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := globalContainer.Update(rootID, gridOpts...); err != nil {
 		panic(err)
 	}
 
 	quitter := func(k *terminalapi.Keyboard) {
 		if k.Key == keyboard.KeyEsc || k.Key == keyboard.KeyCtrlC {
-			cancel()
+			globalCancel()
 		}
 	}
-	if err := termdash.Run(ctx, t, c, termdash.KeyboardSubscriber(quitter), termdash.RedrawInterval(RedrawInterval)); err != nil {
+	if err := termdash.Run(globalCtx, globalTerminal, globalContainer, termdash.KeyboardSubscriber(quitter), termdash.RedrawInterval(RedrawInterval)); err != nil {
 		panic(err)
 	}
 }
@@ -323,8 +309,24 @@ func textState(text string, capacity, step int) []rune {
 	return rotateRunes(state, step)
 }
 
-// newSegmentDisplay creates a new SegmentDisplay that shows the dashboard name
-func newSegmentDisplay(ctx context.Context, t terminalapi.Terminal, text string) (*segmentdisplay.SegmentDisplay, error) {
+func newSegmentDisplay(text string) (*segmentdisplay.SegmentDisplay, error) {
+	sd, err := segmentdisplay.New()
+	if err != nil {
+		return nil, err
+	}
+	chunks := []*segmentdisplay.TextChunk{
+		segmentdisplay.NewChunk(text,
+			segmentdisplay.WriteCellOpts(cell.FgColor(cell.ColorNumber(33))),
+		),
+	}
+	if err := sd.Write(chunks); err != nil {
+		return nil, err
+	}
+	return sd, nil
+}
+
+// newRotatingSegmentDisplay creates a new SegmentDisplay that shows the dashboard name
+func newRotatingSegmentDisplay(text string) (*segmentdisplay.SegmentDisplay, error) {
 	sd, err := segmentdisplay.New()
 	if err != nil {
 		return nil, err
@@ -348,6 +350,7 @@ func newSegmentDisplay(ctx context.Context, t terminalapi.Terminal, text string)
 		defer ticker.Stop()
 
 		capacity := 0
+		t := globalTerminal
 		termSize := t.Size()
 		for {
 			select {
@@ -391,7 +394,7 @@ func newSegmentDisplay(ctx context.Context, t terminalapi.Terminal, text string)
 				}
 				step++
 
-			case <-ctx.Done():
+			case <-globalCtx.Done():
 				return
 			}
 		}
@@ -415,7 +418,7 @@ func buttonChunks(text string) []*button.TextChunk {
 }
 
 // newRollText creates a new Text widget that displays rolling text.
-func newRollText(ctx context.Context) (*text.Text, func(string) error, error) {
+func newRollText() (*text.Text, func(string) error, error) {
 	t, err := text.New(text.RollContent(), text.WrapAtWords())
 	if err != nil {
 		return nil, nil, err
@@ -431,7 +434,7 @@ func newRollText(ctx context.Context) (*text.Text, func(string) error, error) {
 }
 
 // newSparkLines creates two new sparklines displaying random values.
-func newSparkLines(ctx context.Context) (*sparkline.SparkLine, error) {
+func newSparkLines() (*sparkline.SparkLine, error) {
 	spGreen, err := sparkline.New(
 		sparkline.Color(cell.ColorGreen),
 	)
@@ -440,7 +443,7 @@ func newSparkLines(ctx context.Context) (*sparkline.SparkLine, error) {
 	}
 
 	const max = 100
-	go Periodic(ctx, 250*time.Millisecond, func() error {
+	go Periodic(globalCtx, 250*time.Millisecond, func() error {
 		v := int(rand.Int31n(max + 1))
 		return spGreen.Add([]int{v})
 	})
@@ -450,7 +453,7 @@ func newSparkLines(ctx context.Context) (*sparkline.SparkLine, error) {
 }
 
 // newDonut creates a demo Donut widget.
-func newDonut(ctx context.Context) (*donut.Donut, error) {
+func newDonut() (*donut.Donut, error) {
 	d, err := donut.New(donut.CellOpts(
 		cell.FgColor(cell.ColorNumber(33))),
 	)
@@ -461,7 +464,7 @@ func newDonut(ctx context.Context) (*donut.Donut, error) {
 	const start = 35
 	progress := start
 
-	go Periodic(ctx, 500*time.Millisecond, func() error {
+	go Periodic(globalCtx, 500*time.Millisecond, func() error {
 		if err := d.Percent(progress); err != nil {
 			return err
 		}
@@ -475,7 +478,7 @@ func newDonut(ctx context.Context) (*donut.Donut, error) {
 }
 
 // newBarChart returns a BarcChart that displays random values on multiple bars.
-func newBarChart(ctx context.Context) (*barchart.BarChart, error) {
+func newBarChart() (*barchart.BarChart, error) {
 	bc, err := barchart.New(
 		barchart.BarColors([]cell.Color{
 			cell.ColorNumber(33),
@@ -504,7 +507,7 @@ func newBarChart(ctx context.Context) (*barchart.BarChart, error) {
 		max  = 100
 	)
 	values := make([]int, bars)
-	go Periodic(ctx, 1*time.Second, func() error {
+	go Periodic(globalCtx, 1*time.Second, func() error {
 		for i := range values {
 			values[i] = int(rand.Int31n(max + 1))
 		}
@@ -535,22 +538,46 @@ func (d *distance) get() int {
 	return d.v
 }
 
+// addGoToMain adds a button to go to main page
+func addGoToMain() (*button.Button, error) {
+	backToMain, err := button.New("<< Back To Main", func() error {
+		w, err := newWidgets()
+		if err != nil {
+			return err
+		}
+		err = addNextPrevButtons(w)
+		if err != nil {
+			return err
+		}
+		refreshPage(w)
+		globalLogFunc("Back to Main clicked")
+		return nil
+	},
+		nextandPrevButtonStyle...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return backToMain, nil
+}
+
 // addNextPrevButtons adds next and previous buttons
 // to every host page
-func addNextPrevButtons(c *container.Container, w *widgets) error {
+func addNextPrevButtons(w *widgets) error {
 	pageLength := len(w.hosts)
 	next, err := button.New(">>>", func() error {
 		currentHostPage = Next(currentHostPage, pageLength)
-		refreshPage(c, w)
-		logToDashBoard(fmt.Sprintf("Moving on to next Page %d", currentHostPage))
+		refreshPage(w)
+		globalLogFunc(fmt.Sprintf("Moving on to next Page %d", currentHostPage))
 		return nil
 	},
 		nextandPrevButtonStyle...,
 	)
 	prev, err := button.New("<<<", func() error {
 		currentHostPage = Prev(currentHostPage, pageLength)
-		refreshPage(c, w)
-		logToDashBoard(fmt.Sprintf("Moving on to previous Page %d", currentHostPage))
+		refreshPage(w)
+		globalLogFunc(fmt.Sprintf("Moving on to previous Page %d", currentHostPage))
 		return nil
 	},
 		nextandPrevButtonStyle...,
@@ -570,17 +597,17 @@ func addNextPrevButtons(c *container.Container, w *widgets) error {
 	}
 	// prepend next and previous buttons to each
 	// page
-	for ind, _ := range w.hosts {
+	for ind := range w.hosts {
 		w.hosts[ind] = append(paginationBar, w.hosts[ind]...)
 	}
 	return nil
 }
 
 // newHostButtons returns all the pages of host buttons
-func newHostButtons(ctx context.Context, c *container.Container, paginatedHosts [][]config.Host, metrics []string, w *widgets) ([][]grid.Element, error) {
+func newHostButtons(paginatedHosts [][]config.Host, metrics []string, w *widgets) ([][]grid.Element, error) {
 	buttonGrid := [][]grid.Element{}
 	for _, page := range paginatedHosts {
-		pageButtons, err := newHostButtonPage(ctx, c, page, metrics, w)
+		pageButtons, err := newHostButtonPage(page, metrics, w)
 		if err != nil {
 			return nil, err
 		}
@@ -592,7 +619,7 @@ func newHostButtons(ctx context.Context, c *container.Container, paginatedHosts 
 
 // newHostButtonPage returns a group of buttons that displays each individual host
 // for expansion upon click
-func newHostButtonPage(ctx context.Context, c *container.Container, hosts []config.Host, metrics []string, w *widgets) ([]grid.Element, error) {
+func newHostButtonPage(hosts []config.Host, metrics []string, w *widgets) ([]grid.Element, error) {
 	buttonGrid := []grid.Element{}
 	percentage := 90 / hostsPerPage
 	for _, host := range hosts {
@@ -603,7 +630,7 @@ func newHostButtonPage(ctx context.Context, c *container.Container, hosts []conf
 		for _, metric := range metrics {
 			i, _ := inspector.Init(metric, &driver)
 			inspectorWidgets[address][metric] = i.GetWidget()
-			go Periodic(ctx, 500*time.Millisecond, i.UpdateWidget)
+			go Periodic(globalCtx, 500*time.Millisecond, i.UpdateWidget)
 			currentMetric = metric
 		}
 		aliasText := host.Alias
@@ -613,8 +640,8 @@ func newHostButtonPage(ctx context.Context, c *container.Container, hosts []conf
 
 		hostButton, err := button.NewFromChunks(buttonChunks(host.Address), func() error {
 			currentHost = address
-			logToDashBoard(fmt.Sprintf("View %s - %s", currentHost, currentMetric))
-			setLayout(c, w, layoutSingle)
+			globalLogFunc(fmt.Sprintf("View %s - %s", currentHost, currentMetric))
+			setLayout(w, hostMetric)
 			return nil
 		},
 			buttonStyles...,
@@ -626,155 +653,42 @@ func newHostButtonPage(ctx context.Context, c *container.Container, hosts []conf
 
 		if err != nil {
 			return nil, err
-		} else {
-			buttonGrid = append(buttonGrid,
-				grid.RowHeightPerc(percentage,
-					grid.ColWidthPerc(34,
-						grid.Widget(hostButton,
-							singleGridStyle...,
-						),
-					),
-					grid.ColWidthPerc(33,
-						grid.Widget(driverText,
-							singleGridStyle...,
-						)),
-					grid.ColWidthPerc(33,
-						grid.Widget(alias,
-							singleGridStyle...,
-						)),
-				))
 		}
+		buttonGrid = append(buttonGrid,
+			grid.RowHeightPerc(percentage,
+				grid.ColWidthPerc(34,
+					grid.Widget(hostButton,
+						singleGridStyle...,
+					),
+				),
+				grid.ColWidthPerc(33,
+					grid.Widget(driverText,
+						singleGridStyle...,
+					)),
+				grid.ColWidthPerc(33,
+					grid.Widget(alias,
+						singleGridStyle...,
+					)),
+			))
 	}
 	return buttonGrid, nil
 }
 
-// newSines returns a line chart that displays multiple sine series and two buttons.
-// The left button shifts the second series relative to the first series to
-// the left and the right button shifts it to the right.
-func newSines(ctx context.Context) (left, right *button.Button, lc *linechart.LineChart, err error) {
-	var inputs []float64
-	for i := 0; i < 200; i++ {
-		v := math.Sin(float64(i) / 100 * math.Pi)
-		inputs = append(inputs, v)
-	}
-
-	sineLc, err := linechart.New(
-		linechart.AxesCellOpts(cell.FgColor(cell.ColorRed)),
-		linechart.YLabelCellOpts(cell.FgColor(cell.ColorGreen)),
-		linechart.XLabelCellOpts(cell.FgColor(cell.ColorGreen)),
-	)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	step1 := 0
-	secondDist := &distance{v: 100}
-	go Periodic(ctx, RedrawInterval/3, func() error {
-		step1 = (step1 + 1) % len(inputs)
-		if err := lc.Series("first", rotateFloats(inputs, step1),
-			linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(33))),
-		); err != nil {
-			return err
-		}
-
-		step2 := (step1 + secondDist.get()) % len(inputs)
-		return lc.Series("second", rotateFloats(inputs, step2), linechart.SeriesCellOpts(cell.FgColor(cell.ColorWhite)))
-	})
-
-	// diff is the difference a single button press adds or removes to the
-	// second series.
-	const diff = 20
-	leftB, err := button.New("(l)eft", func() error {
-		secondDist.add(diff)
-		return nil
-	},
-		button.GlobalKey('l'),
-		button.WidthFor("(r)ight"),
-		button.FillColor(cell.ColorNumber(220)),
-	)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	rightB, err := button.New("(r)ight", func() error {
-		secondDist.add(-diff)
-		return nil
-	},
-		button.GlobalKey('r'),
-		button.FillColor(cell.ColorNumber(196)),
-	)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	return leftB, rightB, sineLc, nil
-}
-
 // setLayout sets the specified layout.
-func setLayout(c *container.Container, w *widgets, lt layoutType) error {
+func setLayout(w *widgets, lt layoutType) error {
 	gridOpts, err := gridLayout(w, lt)
 	if err != nil {
 		return err
 	}
-	return c.Update(rootID, gridOpts...)
+	return globalContainer.Update(rootID, gridOpts...)
 }
 
-func refreshPage(c *container.Container, w *widgets) error {
-	gridOpts, err := gridLayout(w, layoutAll)
+func refreshPage(w *widgets) error {
+	gridOpts, err := gridLayout(w, mainDashboard)
 	if err != nil {
 		return err
 	}
-	return c.Update(rootID, gridOpts...)
-}
-
-// layoutButtons are buttons that change the layout.
-type layoutButtons struct {
-	allB  *button.Button
-	textB *button.Button
-	spB   *button.Button
-	lcB   *button.Button
-}
-
-// newLayoutButtons returns buttons that dynamically switch the layouts.
-func newLayoutButtons(c *container.Container, w *widgets) (*layoutButtons, error) {
-	opts := []button.Option{
-		button.WidthFor("sparklines"),
-		button.FillColor(cell.ColorNumber(220)),
-		button.Height(1),
-	}
-
-	allB, err := button.New("all", func() error {
-		return setLayout(c, w, layoutAll)
-	}, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	textB, err := button.New("text", func() error {
-		return setLayout(c, w, layoutText)
-	}, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	spB, err := button.New("sparklines", func() error {
-		return setLayout(c, w, layoutSparkLines)
-	}, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	lcB, err := button.New("linechart", func() error {
-		return setLayout(c, w, layoutLineChart)
-	}, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &layoutButtons{
-		allB:  allB,
-		textB: textB,
-		spB:   spB,
-		lcB:   lcB,
-	}, nil
+	return globalContainer.Update(rootID, gridOpts...)
 }
 
 // rotateFloats returns a new slice with inputs rotated by step.
