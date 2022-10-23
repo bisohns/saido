@@ -32,14 +32,13 @@ import (
 
 // widgets holds the widgets used by this demo.
 type widgets struct {
-	segDist      *segmentdisplay.SegmentDisplay
-	input        *textinput.TextInput
-	rollT        *text.Text
-	spGreen      *sparkline.SparkLine
-	barChart     *barchart.BarChart
-	donut        *donut.Donut
-	hosts        [][]grid.Element
-	goToMainPage *button.Button
+	segDist  *segmentdisplay.SegmentDisplay
+	input    *textinput.TextInput
+	rollT    *text.Text
+	spGreen  *sparkline.SparkLine
+	barChart *barchart.BarChart
+	donut    *donut.Donut
+	hosts    [][]grid.Element
 }
 
 var (
@@ -55,6 +54,7 @@ var (
 	globalCtx        context.Context
 	globalCancel     context.CancelFunc
 	globalTerminal   terminalapi.Terminal
+	globalGoToMain   *button.Button
 )
 
 // getOrSetGlobalLog gets or sets the global log widget
@@ -106,14 +106,13 @@ func newWidgets() (*widgets, error) {
 	}
 
 	paginatedHosts := Paginate(dashboardInfo.Hosts, hostsPerPage)
-	goTo, err := addGoToMain()
+	globalGoToMain, err = addGoToMain()
 	if err != nil {
 		return nil, err
 	}
 	constantWidgets := &widgets{
-		segDist:      sd,
-		rollT:        rollT,
-		goToMainPage: goTo,
+		segDist: sd,
+		rollT:   rollT,
 	}
 	hosts, err := newHostButtons(paginatedHosts, dashboardInfo.Metrics, constantWidgets)
 	if err != nil {
@@ -121,13 +120,12 @@ func newWidgets() (*widgets, error) {
 	}
 
 	return &widgets{
-		segDist:      constantWidgets.segDist,
-		rollT:        constantWidgets.rollT,
-		spGreen:      spGreen,
-		barChart:     bc,
-		donut:        don,
-		hosts:        hosts,
-		goToMainPage: goTo,
+		segDist:  constantWidgets.segDist,
+		rollT:    constantWidgets.rollT,
+		spGreen:  spGreen,
+		barChart: bc,
+		donut:    don,
+		hosts:    hosts,
 	}, nil
 }
 
@@ -192,7 +190,7 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 				),
 			),
 			grid.RowHeightPerc(10,
-				grid.Widget(w.goToMainPage,
+				grid.Widget(globalGoToMain,
 					container.Border(linestyle.Light),
 					container.BorderTitle("Press Esc to quit"),
 				),

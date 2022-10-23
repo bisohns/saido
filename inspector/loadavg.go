@@ -199,9 +199,9 @@ func (i LoadAvgLinux) driverExec() driver.Command {
 }
 
 func (i *LoadAvgLinux) Execute() {
-	nprocOutput, err := (*i.Driver).RunCommand(i.Command)
-	output, err := i.driverExec()(i.FilePath)
-	if err == nil {
+	nprocOutput, nErr := (*i.Driver).RunCommand(i.Command)
+	output, fErr := i.driverExec()(i.FilePath)
+	if nErr == nil && fErr == nil {
 		finalOutput := fmt.Sprintf("%s%s", output, nprocOutput)
 		i.Parse(finalOutput)
 	}

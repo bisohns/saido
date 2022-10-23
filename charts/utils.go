@@ -2,6 +2,7 @@ package charts
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/bisohns/saido/config"
@@ -16,7 +17,9 @@ func Periodic(ctx context.Context, interval time.Duration, fn func() error) {
 		select {
 		case <-ticker.C:
 			if err := fn(); err != nil {
-				panic(err)
+				//FIXME: Best possible way to handle the
+				// Update function failure (a retry mechanism)?
+				fmt.Println(err)
 			}
 		case <-ctx.Done():
 			return
