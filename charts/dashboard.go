@@ -178,6 +178,40 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 			),
 		)
 	case hostMetric:
+		metricButtons := []grid.Element{}
+		metricButtonColSize := int(70 / len(inspectorWidgets[currentHost]))
+		for metric := range inspectorWidgets[currentHost] {
+			// leave out current Metric from buttons
+			if metric != currentMetric {
+				metricButton, err := button.NewFromChunks(buttonChunks(metric), func() error {
+					currentMetric = metric
+					globalLogFunc(fmt.Sprintf("View %s - %s", currentHost, currentMetric))
+					setLayout(w, hostMetric)
+					return nil
+				},
+					buttonStyles...,
+				)
+				if err != nil {
+					return nil, err
+				}
+				metricButtons = append(metricButtons,
+					grid.ColWidthPerc(metricButtonColSize,
+						grid.Widget(metricButton,
+							container.Border(linestyle.Light),
+						),
+					),
+				)
+			}
+		}
+
+		optionBar := append([]grid.Element{
+			grid.ColWidthPerc(30,
+				grid.Widget(globalGoToMain,
+					container.Border(linestyle.Light),
+				),
+			),
+		}, metricButtons...)
+
 		headerWidget, err := newSegmentDisplay(currentHost)
 		if err != nil {
 			return nil, err
@@ -190,10 +224,7 @@ func gridLayout(w *widgets, lt layoutType) ([]container.Option, error) {
 				),
 			),
 			grid.RowHeightPerc(10,
-				grid.Widget(globalGoToMain,
-					container.Border(linestyle.Light),
-					container.BorderTitle("Press Esc to quit"),
-				),
+				optionBar...,
 			),
 		}
 
