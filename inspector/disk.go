@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -58,7 +59,7 @@ For Darwin it looks something like
 */
 func (i *DF) Parse(output string) {
 	var values []DFMetrics
-	log.Debug("Parsing ouput string in DF inspector")
+	log.Debug("Parsing output string in DF inspector")
 	lines := strings.Split(output, "\n")
 	for index, line := range lines {
 		// skip title line
@@ -114,11 +115,13 @@ func (i DF) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *DF) Execute() {
+func (i *DF) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // DFWin: parse `wmic logicaldisk` to satisfy Inspector interface
@@ -142,7 +145,7 @@ IMANI,C:,3,191980253184,,288303964160,OS
 */
 func (i *DFWin) Parse(output string) {
 	var values []DFMetrics
-	log.Debug("Parsing ouput string in DF inspector")
+	log.Debug("Parsing output string in DF inspector")
 	lineChar := "\r"
 	output = strings.TrimPrefix(output, lineChar)
 	output = strings.TrimSuffix(output, lineChar)
@@ -197,11 +200,13 @@ func (i DFWin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *DFWin) Execute() {
+func (i *DFWin) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // NewDF : Initialize a new DF instance

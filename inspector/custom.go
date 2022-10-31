@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -22,7 +23,7 @@ type Custom struct {
 
 // Parse : run custom parsing on output of the command
 func (i *Custom) Parse(output string) {
-	log.Debug("Parsing ouput string in Custom inspector")
+	log.Debug("Parsing output string in Custom inspector")
 	i.Values = i.createMetric(output)
 }
 
@@ -44,11 +45,13 @@ func (i Custom) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *Custom) Execute() {
+func (i *Custom) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // NewCustom : Initialize a new Custom instance

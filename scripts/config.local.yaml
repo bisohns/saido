@@ -7,5 +7,6 @@ hosts:
 
 metrics:
 - memory
-- cpu
+- tcp
+poll-interval: 30
 

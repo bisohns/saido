@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -60,7 +61,7 @@ type MemInfoWin struct {
 }
 
 func memInfoParseOutput(output, rawByteSize, displayByteSize string) *MemInfoMetrics {
-	log.Debug("Parsing ouput string in meminfo inspector")
+	log.Debug("Parsing output string in meminfo inspector")
 	memTotal := getMatching("MemTotal", output)
 	memFree := getMatching("MemFree", output)
 	cached := getMatching("Cached", output)
@@ -112,7 +113,7 @@ Cached:          1567652 kB
 
 */
 func (i *MemInfoLinux) Parse(output string) {
-	log.Debug("Parsing ouput string in MemInfoLinux inspector")
+	log.Debug("Parsing output string in MemInfoLinux inspector")
 	i.Values = memInfoParseOutput(output, i.RawByteSize, i.DisplayByteSize)
 }
 
@@ -128,11 +129,13 @@ func (i MemInfoLinux) driverExec() driver.Command {
 	return (*i.Driver).ReadFile
 }
 
-func (i *MemInfoLinux) Execute() {
+func (i *MemInfoLinux) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.FilePath)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // Parse : parsing meminfo for Darwin command
@@ -182,8 +185,11 @@ func (i MemInfoDarwin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *MemInfoDarwin) Execute() {
+func (i *MemInfoDarwin) Execute() ([]byte, error) {
 	physMemOutput, err := i.driverExec()(i.PhysMemCommand)
+	if err != nil {
+		return []byte(""), err
+	}
 	swapOutput, err := i.driverExec()(i.SwapCommand)
 
 	if err == nil {
@@ -191,7 +197,9 @@ func (i *MemInfoDarwin) Execute() {
 		swapOutput = strings.TrimSuffix(swapOutput, "\n")
 		output := fmt.Sprintf("%s\n%s", physMemOutput, swapOutput)
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // Parse : run custom parsing on output of the command
@@ -204,7 +212,7 @@ Virtual Memory: In Use:    14,061 MB
 5120         12288
 */
 func (i *MemInfoWin) Parse(output string) {
-	log.Debug("Parsing ouput string in MemInfoWin inspector")
+	log.Debug("Parsing output string in MemInfoWin inspector")
 	var cachesize, totalMem, freeMem, totalVirt, freeVirt int64
 	output = strings.ReplaceAll(output, ",", "")
 	output = strings.ReplaceAll(output, "MB", "")
@@ -257,8 +265,11 @@ func (i MemInfoWin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *MemInfoWin) Execute() {
+func (i *MemInfoWin) Execute() ([]byte, error) {
 	memOutput, err := i.driverExec()(i.MemCommand)
+	if err != nil {
+		return []byte(""), err
+	}
 	cacheOutput, err := i.driverExec()(i.CacheCommand)
 	if err == nil {
 		cacheOutput = strings.ReplaceAll(cacheOutput, "\r", "")
@@ -268,7 +279,9 @@ func (i *MemInfoWin) Execute() {
 		cache := cacheOutputCols[1]
 		output := fmt.Sprintf("%s\n%s", memOutput, cache)
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // NewMemInfoLinux : Initialize a new MemInfoLinux instance

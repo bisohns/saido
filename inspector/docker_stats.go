@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
@@ -45,7 +46,7 @@ func (i *DockerStats) Parse(output string) {
 	} else {
 		splitChars = "\n"
 	}
-	log.Debug("Parsing ouput string in DockerStats inspector")
+	log.Debug("Parsing output string in DockerStats inspector")
 	lines := strings.Split(output, splitChars)
 	for index, line := range lines {
 		// skip title line
@@ -108,11 +109,13 @@ func (i DockerStats) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *DockerStats) Execute() {
+func (i *DockerStats) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // NewDockerStats : Initialize a new DockerStats instance

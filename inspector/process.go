@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -61,11 +62,13 @@ func (i Process) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *Process) Execute() {
+func (i *Process) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // Parse : run custom parsing on output of the command
@@ -207,11 +210,13 @@ func (i ProcessWin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *ProcessWin) Execute() {
+func (i *ProcessWin) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // NewProcess : Initialize a new Process instance

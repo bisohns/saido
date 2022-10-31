@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -40,7 +41,7 @@ type LoadAvgWin struct {
 
 func loadavgParseOutput(output string) *LoadAvgMetrics {
 	var err error
-	log.Debug("Parsing ouput string in LoadAvg inspector")
+	log.Debug("Parsing output string in LoadAvg inspector")
 	columns := strings.Fields(output)
 	Load1M, err := strconv.ParseFloat(columns[0], 64)
 	Load5M, err := strconv.ParseFloat(columns[1], 64)
@@ -77,10 +78,13 @@ func (i *LoadAvgDarwin) Parse(output string) {
 	i.Values = loadavgParseOutput(output)
 }
 
-func (i *LoadAvgDarwin) Execute() {
+func (i *LoadAvgDarwin) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
+	} else {
+		return []byte(""), err
 	}
 }
 
@@ -104,10 +108,13 @@ func (i LoadAvgLinux) driverExec() driver.Command {
 	return (*i.Driver).ReadFile
 }
 
-func (i *LoadAvgLinux) Execute() {
+func (i *LoadAvgLinux) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.FilePath)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
+	} else {
+		return []byte(""), err
 	}
 }
 
@@ -134,10 +141,13 @@ func (i LoadAvgWin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *LoadAvgWin) Execute() {
+func (i *LoadAvgWin) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
+	} else {
+		return []byte(""), err
 	}
 }
 

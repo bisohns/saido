@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 
@@ -23,7 +24,7 @@ type ResponseTime struct {
 
 // Parse : run custom parsing on output of the command
 func (i *ResponseTime) Parse(output string) {
-	log.Debug("Parsing ouput string in ResponseTime inspector")
+	log.Debug("Parsing output string in ResponseTime inspector")
 	strconv, err := strconv.ParseFloat(output, 64)
 	if err != nil {
 		log.Fatal(err)
@@ -42,11 +43,13 @@ func (i ResponseTime) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *ResponseTime) Execute() {
+func (i *ResponseTime) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.Command)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // NewResponseTime : Initialize a new ResponseTime instance
