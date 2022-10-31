@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bisohns/saido/config"
@@ -85,6 +86,45 @@ type Hosts struct {
 	Start   chan bool
 }
 
+func (hosts *Hosts) sendMetric(host config.Host, client *Client) {
+	if hosts.Drivers[host.Address] == nil {
+		hostDriver := host.Connection.ToDriver()
+		hosts.Drivers[host.Address] = &hostDriver
+	}
+	for _, metric := range config.GetDashboardInfoConfig(hosts.Config).Metrics {
+		initializedMetric, err := inspector.Init(metric, hosts.Drivers[host.Address])
+		data, err := initializedMetric.Execute()
+		if err == nil {
+			var unmarsh interface{}
+			json.Unmarshal(data, &unmarsh)
+			message := &FullMessage{
+				Message: Message{
+					Host: host.Address,
+					Name: metric,
+					Data: unmarsh,
+				},
+				Error: false,
+			}
+			client.Send <- message
+		} else {
+			// check for error 127 which means command was not found
+			var errorContent string
+			if !strings.Contains(fmt.Sprintf("%s", err), "127") {
+				errorContent = fmt.Sprintf("Could not retrieve metric %s from driver %s with error %s, resetting connection...", metric, host.Address, err)
+			} else {
+				errorContent = fmt.Sprintf("Command %s not found on driver %s", metric, host.Address)
+			}
+			log.Error(errorContent)
+			hosts.Drivers[host.Address] = nil
+			message := &FullMessage{
+				Message: errorContent,
+				Error:   true,
+			}
+			client.Send <- message
+		}
+	}
+}
+
 func (hosts *Hosts) Run() {
 	dashboardInfo := config.GetDashboardInfoConfig(hosts.Config)
 	log.Debug("In Running")
@@ -93,37 +133,7 @@ func (hosts *Hosts) Run() {
 		case client := <-hosts.Client:
 			for {
 				for _, host := range dashboardInfo.Hosts {
-					for _, metric := range dashboardInfo.Metrics {
-						if hosts.Drivers[host.Address] == nil {
-							hostDriver := host.Connection.ToDriver()
-							hosts.Drivers[host.Address] = &hostDriver
-						}
-						initializedMetric, err := inspector.Init(metric, hosts.Drivers[host.Address])
-						log.Debugf("%#v, %#v, %#v", metric, client, hosts.Drivers[host.Address])
-						data, err := initializedMetric.Execute()
-						if err == nil {
-							var unmarsh interface{}
-							json.Unmarshal(data, &unmarsh)
-							message := &FullMessage{
-								Message: Message{
-									Host: host.Address,
-									Name: metric,
-									Data: unmarsh,
-								},
-								Error: false,
-							}
-							client.Send <- message
-						} else {
-							errorContent := fmt.Sprintf("Could not retrieve metric %s from driver %s with error %s, resetting connection...", metric, host.Address, err)
-							log.Error(errorContent)
-							hosts.Drivers[host.Address] = nil
-							message := &FullMessage{
-								Message: errorContent,
-								Error:   true,
-							}
-							client.Send <- message
-						}
-					}
+					go hosts.sendMetric(host, client)
 				}
 				log.Infof("Delaying for %d seconds", dashboardInfo.PollInterval)
 				time.Sleep(time.Duration(dashboardInfo.PollInterval) * time.Second)
