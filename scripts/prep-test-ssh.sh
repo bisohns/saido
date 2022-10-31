@@ -22,4 +22,6 @@ hosts:
 metrics:
 - memory
 - disk
+- tcp
+- docker
 EOF
