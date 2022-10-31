@@ -22,6 +22,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bisohns/saido/config"
@@ -81,18 +82,31 @@ type Hosts struct {
 	Config *config.Config
 	// Connections : hostname mapped to connection instances to reuse
 	// across metrics
+	mu      sync.Mutex
 	Drivers map[string]*driver.Driver
 	Client  chan *Client
 	Start   chan bool
 }
 
+func (hosts *Hosts) getDriver(address string) *driver.Driver {
+	hosts.mu.Lock()
+	defer hosts.mu.Unlock()
+	return hosts.Drivers[address]
+}
+
+func (hosts *Hosts) resetDriver(host config.Host) {
+	hosts.mu.Lock()
+	defer hosts.mu.Unlock()
+	hostDriver := host.Connection.ToDriver()
+	hosts.Drivers[host.Address] = &hostDriver
+}
+
 func (hosts *Hosts) sendMetric(host config.Host, client *Client) {
-	if hosts.Drivers[host.Address] == nil {
-		hostDriver := host.Connection.ToDriver()
-		hosts.Drivers[host.Address] = &hostDriver
+	if hosts.getDriver(host.Address) == nil {
+		hosts.resetDriver(host)
 	}
 	for _, metric := range config.GetDashboardInfoConfig(hosts.Config).Metrics {
-		initializedMetric, err := inspector.Init(metric, hosts.Drivers[host.Address])
+		initializedMetric, err := inspector.Init(metric, hosts.getDriver(host.Address))
 		data, err := initializedMetric.Execute()
 		if err == nil {
 			var unmarsh interface{}
@@ -115,7 +129,7 @@ func (hosts *Hosts) sendMetric(host config.Host, client *Client) {
 				errorContent = fmt.Sprintf("Command %s not found on driver %s", metric, host.Address)
 			}
 			log.Error(errorContent)
-			hosts.Drivers[host.Address] = nil
+			hosts.resetDriver(host)
 			message := &FullMessage{
 				Message: errorContent,
 				Error:   true,
@@ -166,7 +180,7 @@ func newHosts(cfg *config.Config) *Hosts {
 	return hosts
 }
 
-func SetHostHandler(w http.ResponseWriter, r *http.Request) {
+func setHostHandler(w http.ResponseWriter, r *http.Request) {
 	b, _ := json.Marshal("Hello World")
 	w.Write(b)
 }
@@ -179,7 +193,7 @@ var apiCmd = &cobra.Command{
 		//    server.HandleFunc("/set-hosts", SetHostHandler)
 		// FIXME: set up cfg using set-hosts endpoint
 		hosts := newHosts(cfg)
-		server.HandleFunc("/set-hosts", SetHostHandler)
+		server.HandleFunc("/set-hosts", setHostHandler)
 		server.Handle("/metrics", hosts)
 		log.Info("listening on :", port)
 		_, err := strconv.Atoi(port)
