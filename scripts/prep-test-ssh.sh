@@ -21,5 +21,7 @@ hosts:
         private_key_path: "$SSH_KEY_PATH/${SSH_KEY_NAME}"
 metrics:
 - memory
-- cpu
+- disk
+- tcp
+- docker
 EOF

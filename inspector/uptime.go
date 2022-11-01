@@ -1,6 +1,7 @@
 package inspector
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -50,7 +51,7 @@ type UptimeWindows struct {
 func (i *UptimeLinux) Parse(output string) {
 	fmt.Print(output)
 	var err error
-	log.Debug("Parsing ouput string in Uptime inspector")
+	log.Debug("Parsing output string in Uptime inspector")
 	columns := strings.Fields(output)
 	Up, err := strconv.ParseFloat(columns[0], 64)
 	Idle, err := strconv.ParseFloat(columns[1], 64)
@@ -76,11 +77,13 @@ func (i UptimeLinux) driverExec() driver.Command {
 	return (*i.Driver).ReadFile
 }
 
-func (i *UptimeLinux) Execute() {
+func (i *UptimeLinux) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.FilePath)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // Parse : Parsing output of uptime commands on darwin
@@ -91,7 +94,7 @@ func (i *UptimeLinux) Execute() {
 */
 func (i *UptimeDarwin) Parse(output string) {
 	fmt.Print(output)
-	log.Debug("Parsing ouput string in UptimeDarwin inspector")
+	log.Debug("Parsing output string in UptimeDarwin inspector")
 	output = strings.TrimSuffix(output, ",")
 	lines := strings.Split(output, "\n")
 	unixTime, err := strconv.Atoi(lines[0])
@@ -119,7 +122,7 @@ func (i UptimeDarwin) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *UptimeDarwin) Execute() {
+func (i *UptimeDarwin) Execute() ([]byte, error) {
 	upOutput, err := i.driverExec()(i.UpCommand)
 	idleOutput, err := i.driverExec()(i.IdleCommand)
 	if err == nil {
@@ -129,7 +132,9 @@ func (i *UptimeDarwin) Execute() {
 		idleOutput = strings.TrimSuffix(idleOutput, "%")
 		output := fmt.Sprintf("%s\n%s", upOutput, idleOutput)
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 /* Parse : SystemUpTime on windows
@@ -139,7 +144,7 @@ SystemUpTime
 
 */
 func (i *UptimeWindows) Parse(output string) {
-	log.Debug("Parsing ouput string in UptimeWindows inspector")
+	log.Debug("Parsing output string in UptimeWindows inspector")
 	output = strings.ReplaceAll(output, "\r", "")
 	output = strings.ReplaceAll(output, " ", "")
 	upUnformatted := strings.Split(output, "\n")[1]
@@ -164,11 +169,13 @@ func (i UptimeWindows) driverExec() driver.Command {
 	return (*i.Driver).RunCommand
 }
 
-func (i *UptimeWindows) Execute() {
+func (i *UptimeWindows) Execute() ([]byte, error) {
 	output, err := i.driverExec()(i.UpCommand)
 	if err == nil {
 		i.Parse(output)
+		return json.Marshal(i.Values)
 	}
+	return []byte(""), err
 }
 
 // NewUptime : Initialize a new Uptime instance

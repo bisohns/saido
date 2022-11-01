@@ -3,6 +3,8 @@ module github.com/bisohns/saido
 go 1.14
 
 require (
+	github.com/gorilla/handlers v1.5.1 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/melbahja/goph v1.2.1
 	github.com/mitchellh/mapstructure v1.4.3

@@ -11,7 +11,7 @@ import (
 type Inspector interface {
 	Parse(output string)
 	SetDriver(driver *driver.Driver)
-	Execute()
+	Execute() ([]byte, error)
 	driverExec() driver.Command
 }
 

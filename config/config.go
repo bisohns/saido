@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/bisohns/saido/driver"
 	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 
@@ -11,9 +12,10 @@ import (
 )
 
 type DashboardInfo struct {
-	Hosts   []Host
-	Metrics []string
-	Title   string
+	Hosts        []Host
+	Metrics      []string
+	Title        string
+	PollInterval int
 }
 
 type Connection struct {
@@ -22,6 +24,22 @@ type Connection struct {
 	Password       string `mapstructure:"password"`
 	PrivateKeyPath string `mapstructure:"private_key_path"`
 	Port           int32  `mapstructure:"port"`
+	Host           string
+}
+
+func (conn *Connection) ToDriver() driver.Driver {
+	switch conn.Type {
+	case "ssh":
+		return &driver.SSH{
+			User:            conn.Username,
+			Host:            conn.Host,
+			Port:            int(conn.Port),
+			KeyFile:         conn.PrivateKeyPath,
+			CheckKnownHosts: false,
+		}
+	default:
+		return &driver.Local{}
+	}
 }
 
 type Host struct {
@@ -31,9 +49,10 @@ type Host struct {
 }
 
 type Config struct {
-	Hosts   map[interface{}]interface{} `yaml:"hosts"`
-	Metrics []string                    `yaml:"metrics"`
-	Title   string                      `yaml:"title"`
+	Hosts        map[interface{}]interface{} `yaml:"hosts"`
+	Metrics      []string                    `yaml:"metrics"`
+	Title        string                      `yaml:"title"`
+	PollInterval int                         `yaml:"poll-interval"`
 }
 
 func LoadConfig(configPath string) *Config {
@@ -62,6 +81,7 @@ func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 	for _, host := range dashboardInfo.Hosts {
 		log.Debugf("%s: %v", host.Address, host.Connection)
 	}
+	dashboardInfo.PollInterval = config.PollInterval
 	return dashboardInfo
 }
 
@@ -107,6 +127,7 @@ func parseConfig(name string, host string, group map[interface{}]interface{}, cu
 	}
 
 	if !isParent {
+		currentConn.Host = host
 		newHost := Host{
 			Address:    host,
 			Connection: currentConn,
