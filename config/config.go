@@ -81,6 +81,9 @@ func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 	for _, host := range dashboardInfo.Hosts {
 		log.Debugf("%s: %v", host.Address, host.Connection)
 	}
+	if config.PollInterval < 10 {
+		log.Fatal("Cannot set poll interval below 10 seconds")
+	}
 	dashboardInfo.PollInterval = config.PollInterval
 	return dashboardInfo
 }

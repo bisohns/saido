@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -59,13 +60,13 @@ func (d *Local) RunCommand(command string) (string, error) {
 func (d *Local) GetDetails() SystemDetails {
 	if d.Info == nil {
 		details := &SystemDetails{}
-		details.Name = runtime.GOOS
+		details.Name = strings.Title(runtime.GOOS)
 		switch details.Name {
-		case "windows":
+		case "Windows":
 			details.IsWindows = true
-		case "linux":
+		case "Linux":
 			details.IsLinux = true
-		case "darwin":
+		case "Darwin":
 			details.IsDarwin = true
 		}
 		details.Extra = runtime.GOARCH

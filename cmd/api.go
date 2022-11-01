@@ -56,9 +56,10 @@ type FullMessage struct {
 }
 
 type Message struct {
-	Host string
-	Name string
-	Data interface{}
+	Host     string
+	Name     string
+	Platform string
+	Data     interface{}
 }
 
 type Client struct {
@@ -106,16 +107,18 @@ func (hosts *Hosts) sendMetric(host config.Host, client *Client) {
 		hosts.resetDriver(host)
 	}
 	for _, metric := range config.GetDashboardInfoConfig(hosts.Config).Metrics {
-		initializedMetric, err := inspector.Init(metric, hosts.getDriver(host.Address))
+		driver := hosts.getDriver(host.Address)
+		initializedMetric, err := inspector.Init(metric, driver)
 		data, err := initializedMetric.Execute()
 		if err == nil {
 			var unmarsh interface{}
 			json.Unmarshal(data, &unmarsh)
 			message := &FullMessage{
 				Message: Message{
-					Host: host.Address,
-					Name: metric,
-					Data: unmarsh,
+					Host:     host.Address,
+					Platform: (*driver).GetDetails().Name,
+					Name:     metric,
+					Data:     unmarsh,
 				},
 				Error: false,
 			}
@@ -186,12 +189,12 @@ func setHostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 var apiCmd = &cobra.Command{
-	Use:   "api",
-	Short: "host saido as an API on a PORT env variable, fallback to set argument",
+	Use:   "dashboard",
+	Short: "Run saido dashboard on a PORT env variable, fallback to set argument",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		//    server.HandleFunc("/set-hosts", SetHostHandler)
-		// FIXME: set up cfg using set-hosts endpoint
+		// TODO: set up cfg using set-hosts endpoint
 		hosts := newHosts(cfg)
 		server.HandleFunc("/set-hosts", setHostHandler)
 		server.Handle("/metrics", hosts)
