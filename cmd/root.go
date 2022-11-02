@@ -55,8 +55,6 @@ var rootCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Saido is running ...")
-
-		//    charts.Main(cfg)
 	},
 }
 

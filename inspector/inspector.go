@@ -18,15 +18,16 @@ type Inspector interface {
 type NewInspector func(driver *driver.Driver, custom ...string) (Inspector, error)
 
 var inspectorMap = map[string]NewInspector{
-	`disk`:         NewDF,
-	`docker`:       NewDockerStats,
-	`uptime`:       NewUptime,
-	`responsetime`: NewResponseTime,
-	`memory`:       NewMemInfo,
-	`process`:      NewProcess,
+	`disk`:    NewDF,
+	`docker`:  NewDockerStats,
+	`uptime`:  NewUptime,
+	`memory`:  NewMemInfo,
+	`process`: NewProcess,
+	`loadavg`: NewLoadAvg,
+	`tcp`:     NewTcp,
+	// NOTE: Inactive for now
 	`custom`:       NewCustom,
-	`loadavg`:      NewLoadAvg,
-	`tcp`:          NewTcp,
+	`responsetime`: NewResponseTime,
 }
 
 // Init : initializes the specified inspector using name and driver

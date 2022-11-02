@@ -24,4 +24,5 @@ metrics:
 - disk
 - tcp
 - docker
+poll-interval: 10
 EOF
