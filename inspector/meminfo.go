@@ -138,6 +138,17 @@ func (i *MemInfoLinux) Execute() ([]byte, error) {
 	return []byte(""), err
 }
 
+func parseIntoNewByteSize(input string, displayBytes string) (int, error) {
+	if len(input) < 1 {
+		return 0, nil
+	}
+	unit := string(input[len(input)-1])
+	modified := strings.TrimSuffix(input, unit)
+	unit = fmt.Sprintf("%sB", unit)
+	byteSize := NewByteSize(modified, unit).format("MB")
+	return int(byteSize), nil
+}
+
 // Parse : parsing meminfo for Darwin command
 /*
 7552M 640M
@@ -149,10 +160,11 @@ func (i *MemInfoDarwin) Parse(output string) {
 	swapRaw := rows[1]
 	physMemCols := strings.Fields(physMemRaw)
 	swapCols := strings.Fields(swapRaw)
-	memUsed := strings.TrimSuffix(physMemCols[0], "M")
-	memUnused := strings.TrimSuffix(physMemCols[1], "M")
-	memUsedInt, err := strconv.ParseInt(memUsed, 0, 64)
-	memUnusedInt, err := strconv.ParseInt(memUnused, 0, 64)
+	memUsedInt, err := parseIntoNewByteSize(physMemCols[0], i.DisplayByteSize)
+	if err != nil {
+		panic("Error parsing memory on MemInfoDarwin")
+	}
+	memUnusedInt, err := parseIntoNewByteSize(physMemCols[1], i.DisplayByteSize)
 	if err != nil {
 		panic("Error parsing memory on MemInfoDarwin")
 	}
@@ -163,7 +175,7 @@ func (i *MemInfoDarwin) Parse(output string) {
 	i.Values = createMetric(
 		[]string{
 			memTotal,
-			memUnused,
+			fmt.Sprintf("%d", memUnusedInt),
 			`0`,
 			swapTotal,
 			swapFree,

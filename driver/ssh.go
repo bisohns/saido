@@ -111,6 +111,9 @@ func (d *SSH) GetDetails() SystemDetails {
 				if strings.Contains(strings.ToLower(windowsName), "windows") {
 					uname = "Windows"
 				}
+			} else {
+				//FIXME: Fix issue with establishing connection on SSH
+				panic(fmt.Sprintf("Could not find platform details for %s: %s", d.Host, err))
 			}
 		}
 		details := &SystemDetails{}
