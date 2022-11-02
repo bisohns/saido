@@ -16,181 +16,27 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
-	"sync"
-	"time"
 
-	"github.com/bisohns/saido/config"
-	"github.com/bisohns/saido/driver"
-	"github.com/bisohns/saido/inspector"
+	"github.com/bisohns/saido/client"
 	"github.com/gorilla/handlers"
-	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-const (
-	socketBufferSize  = 1042
-	messageBufferSize = 256
-)
-
 var (
-	port     string
-	server   = http.NewServeMux()
-	upgrader = &websocket.Upgrader{
-		ReadBufferSize:  socketBufferSize,
-		WriteBufferSize: socketBufferSize,
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		}}
+	port   string
+	server = http.NewServeMux()
 )
-
-type FullMessage struct {
-	Error   bool
-	Message interface{}
-}
-
-type Message struct {
-	Host     string
-	Name     string
-	Platform string
-	Data     interface{}
-}
-
-type Client struct {
-	Socket *websocket.Conn
-	Send   chan *FullMessage
-}
-
-// Write to websocket
-func (client *Client) Write() {
-	defer client.Socket.Close()
-	var err error
-	for msg := range client.Send {
-		err = client.Socket.WriteJSON(msg)
-		if err != nil {
-			log.Error("Error inside client write ", err)
-		}
-	}
-}
-
-type Hosts struct {
-	Info *config.DashboardInfo
-	// Connections : hostname mapped to connection instances to reuse
-	// across metrics
-	mu      sync.Mutex
-	Drivers map[string]*driver.Driver
-	// ReadOnlyHosts : restrict pinging every other server except these
-	ReadOnlyHosts []string
-	Client        chan *Client
-	Start         chan bool
-}
-
-func (hosts *Hosts) getDriver(address string) *driver.Driver {
-	hosts.mu.Lock()
-	defer hosts.mu.Unlock()
-	return hosts.Drivers[address]
-}
-
-func (hosts *Hosts) resetDriver(host config.Host) {
-	hosts.mu.Lock()
-	defer hosts.mu.Unlock()
-	hostDriver := host.Connection.ToDriver()
-	hosts.Drivers[host.Address] = &hostDriver
-}
-
-func (hosts *Hosts) sendMetric(host config.Host, client *Client) {
-	if hosts.getDriver(host.Address) == nil {
-		hosts.resetDriver(host)
-	}
-	for _, metric := range hosts.Info.Metrics {
-		driver := hosts.getDriver(host.Address)
-		initializedMetric, err := inspector.Init(metric, driver)
-		data, err := initializedMetric.Execute()
-		if err == nil {
-			var unmarsh interface{}
-			json.Unmarshal(data, &unmarsh)
-			message := &FullMessage{
-				Message: Message{
-					Host:     host.Address,
-					Platform: (*driver).GetDetails().Name,
-					Name:     metric,
-					Data:     unmarsh,
-				},
-				Error: false,
-			}
-			client.Send <- message
-		} else {
-			// check for error 127 which means command was not found
-			var errorContent string
-			if !strings.Contains(fmt.Sprintf("%s", err), "127") {
-				errorContent = fmt.Sprintf("Could not retrieve metric %s from driver %s with error %s, resetting connection...", metric, host.Address, err)
-			} else {
-				errorContent = fmt.Sprintf("Command %s not found on driver %s", metric, host.Address)
-			}
-			log.Error(errorContent)
-			hosts.resetDriver(host)
-			message := &FullMessage{
-				Message: errorContent,
-				Error:   true,
-			}
-			client.Send <- message
-		}
-	}
-}
-
-func (hosts *Hosts) Run() {
-	log.Debug("In Running")
-	for {
-		select {
-		case client := <-hosts.Client:
-			for {
-				for _, host := range hosts.Info.Hosts {
-					go hosts.sendMetric(host, client)
-				}
-				log.Infof("Delaying for %d seconds", hosts.Info.PollInterval)
-				time.Sleep(time.Duration(hosts.Info.PollInterval) * time.Second)
-			}
-		}
-	}
-
-}
-
-func (hosts *Hosts) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	socket, err := upgrader.Upgrade(w, req, nil)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	client := &Client{
-		Socket: socket,
-		Send:   make(chan *FullMessage, messageBufferSize),
-	}
-	hosts.Client <- client
-	client.Write()
-}
-
-func newHosts(cfg *config.Config) *Hosts {
-	dashboardInfo := config.GetDashboardInfoConfig(cfg)
-	hosts := &Hosts{
-		Info:    dashboardInfo,
-		Drivers: make(map[string]*driver.Driver),
-		Client:  make(chan *Client),
-	}
-	return hosts
-}
 
 var apiCmd = &cobra.Command{
 	Use:   "dashboard",
 	Short: "Run saido dashboard on a PORT env variable, fallback to set argument",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		hosts := newHosts(cfg)
+		hosts := client.NewHostsController(cfg)
 		server.Handle("/metrics", hosts)
 		log.Info("listening on :", port)
 		_, err := strconv.Atoi(port)

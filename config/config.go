@@ -18,6 +18,26 @@ type DashboardInfo struct {
 	PollInterval int
 }
 
+type HostList = []string
+
+func Contains(hostList HostList, host Host) bool {
+	for _, compare := range hostList {
+		if host.Address == compare {
+			return true
+		}
+	}
+	return false
+}
+
+// GetAllHostAddresses : returns list of all hosts in the dashboard
+func (dashboardInfo *DashboardInfo) GetAllHostAddresses() (addresses HostList) {
+	addresses = []string{}
+	for _, host := range dashboardInfo.Hosts {
+		addresses = append(addresses, host.Address)
+	}
+	return
+}
+
 type Connection struct {
 	Type           string `mapstructure:"type"`
 	Username       string `mapstructure:"username"`
