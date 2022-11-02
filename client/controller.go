@@ -31,8 +31,11 @@ type HostsController struct {
 	Drivers map[string]*driver.Driver
 	// ReadOnlyHosts : restrict pinging every other server except these
 	ReadOnlyHosts []string
-	Client        chan *Client
-	Received      chan *ReceiveMessage
+	// ClientConnected : shows that a client is connected
+	ClientConnected bool
+	Client          chan *Client
+	Received        chan *ReceiveMessage
+	StopPolling     chan bool
 }
 
 func (hosts *HostsController) getDriver(address string) *driver.Driver {
@@ -46,6 +49,18 @@ func (hosts *HostsController) resetDriver(host config.Host) {
 	defer hosts.mu.Unlock()
 	hostDriver := host.Connection.ToDriver()
 	hosts.Drivers[host.Address] = &hostDriver
+}
+
+func (hosts *HostsController) clientConnected() bool {
+	hosts.mu.Lock()
+	defer hosts.mu.Unlock()
+	return hosts.ClientConnected
+}
+
+func (hosts *HostsController) setClientConnected(connected bool) {
+	hosts.mu.Lock()
+	defer hosts.mu.Unlock()
+	hosts.ClientConnected = connected
 }
 
 func (hosts *HostsController) setReadOnlyHost(hostlist config.HostList) {
@@ -97,7 +112,7 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 func (hosts *HostsController) Poll(client *Client) {
 	for {
 		for _, host := range hosts.Info.Hosts {
-			if config.Contains(hosts.ReadOnlyHosts, host) {
+			if config.Contains(hosts.ReadOnlyHosts, host) && hosts.clientConnected() {
 				go hosts.sendMetric(host, client)
 			}
 		}
@@ -117,6 +132,8 @@ func (hosts *HostsController) Run() {
 			} else {
 				hosts.setReadOnlyHost([]string{received.FilterBy})
 			}
+		case poll := <-hosts.StopPolling:
+			hosts.setClientConnected(!poll)
 		}
 	}
 
@@ -129,11 +146,13 @@ func (hosts *HostsController) ServeHTTP(w http.ResponseWriter, req *http.Request
 		return
 	}
 	client := &Client{
-		Socket:   socket,
-		Send:     make(chan *SendMessage, messageBufferSize),
-		Received: hosts.Received,
+		Socket:          socket,
+		Send:            make(chan *SendMessage, messageBufferSize),
+		Received:        hosts.Received,
+		StopHostPolling: hosts.StopPolling,
 	}
 	hosts.Client <- client
+	hosts.StopPolling <- false
 	go client.Write()
 	client.Read()
 }
@@ -142,11 +161,13 @@ func (hosts *HostsController) ServeHTTP(w http.ResponseWriter, req *http.Request
 func NewHostsController(cfg *config.Config) *HostsController {
 	dashboardInfo := config.GetDashboardInfoConfig(cfg)
 	hosts := &HostsController{
-		Info:          dashboardInfo,
-		Drivers:       make(map[string]*driver.Driver),
-		ReadOnlyHosts: dashboardInfo.GetAllHostAddresses(),
-		Client:        make(chan *Client),
-		Received:      make(chan *ReceiveMessage),
+		Info:            dashboardInfo,
+		Drivers:         make(map[string]*driver.Driver),
+		ReadOnlyHosts:   dashboardInfo.GetAllHostAddresses(),
+		Client:          make(chan *Client),
+		Received:        make(chan *ReceiveMessage),
+		StopPolling:     make(chan bool),
+		ClientConnected: true,
 	}
 	return hosts
 }

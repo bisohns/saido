@@ -6,9 +6,10 @@ import (
 )
 
 type Client struct {
-	Socket   *websocket.Conn
-	Send     chan *SendMessage
-	Received chan *ReceiveMessage
+	Socket          *websocket.Conn
+	Send            chan *SendMessage
+	Received        chan *ReceiveMessage
+	StopHostPolling chan bool
 }
 
 // Write to websocket
@@ -19,6 +20,9 @@ func (client *Client) Write() {
 		err = client.Socket.WriteJSON(msg)
 		if err != nil {
 			log.Error("Error inside client write ", err)
+			// most likely socket connection has been closed so
+			// just return
+			return
 		}
 	}
 }
@@ -31,6 +35,8 @@ func (client *Client) Read() {
 		err := client.Socket.ReadJSON(&message)
 		if err != nil {
 			log.Errorf("While reading from client: %s", err)
+			client.StopHostPolling <- true
+			return
 		} else {
 			client.Received <- message
 		}
