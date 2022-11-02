@@ -80,13 +80,15 @@ func (client *Client) Write() {
 }
 
 type Hosts struct {
-	Config *config.Config
+	Info *config.DashboardInfo
 	// Connections : hostname mapped to connection instances to reuse
 	// across metrics
 	mu      sync.Mutex
 	Drivers map[string]*driver.Driver
-	Client  chan *Client
-	Start   chan bool
+	// ReadOnlyHosts : restrict pinging every other server except these
+	ReadOnlyHosts []string
+	Client        chan *Client
+	Start         chan bool
 }
 
 func (hosts *Hosts) getDriver(address string) *driver.Driver {
@@ -106,7 +108,7 @@ func (hosts *Hosts) sendMetric(host config.Host, client *Client) {
 	if hosts.getDriver(host.Address) == nil {
 		hosts.resetDriver(host)
 	}
-	for _, metric := range config.GetDashboardInfoConfig(hosts.Config).Metrics {
+	for _, metric := range hosts.Info.Metrics {
 		driver := hosts.getDriver(host.Address)
 		initializedMetric, err := inspector.Init(metric, driver)
 		data, err := initializedMetric.Execute()
@@ -143,17 +145,16 @@ func (hosts *Hosts) sendMetric(host config.Host, client *Client) {
 }
 
 func (hosts *Hosts) Run() {
-	dashboardInfo := config.GetDashboardInfoConfig(hosts.Config)
 	log.Debug("In Running")
 	for {
 		select {
 		case client := <-hosts.Client:
 			for {
-				for _, host := range dashboardInfo.Hosts {
+				for _, host := range hosts.Info.Hosts {
 					go hosts.sendMetric(host, client)
 				}
-				log.Infof("Delaying for %d seconds", dashboardInfo.PollInterval)
-				time.Sleep(time.Duration(dashboardInfo.PollInterval) * time.Second)
+				log.Infof("Delaying for %d seconds", hosts.Info.PollInterval)
+				time.Sleep(time.Duration(hosts.Info.PollInterval) * time.Second)
 			}
 		}
 	}
@@ -175,17 +176,13 @@ func (hosts *Hosts) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func newHosts(cfg *config.Config) *Hosts {
+	dashboardInfo := config.GetDashboardInfoConfig(cfg)
 	hosts := &Hosts{
-		Config:  cfg,
+		Info:    dashboardInfo,
 		Drivers: make(map[string]*driver.Driver),
 		Client:  make(chan *Client),
 	}
 	return hosts
-}
-
-func setHostHandler(w http.ResponseWriter, r *http.Request) {
-	b, _ := json.Marshal("Hello World")
-	w.Write(b)
 }
 
 var apiCmd = &cobra.Command{
@@ -193,10 +190,7 @@ var apiCmd = &cobra.Command{
 	Short: "Run saido dashboard on a PORT env variable, fallback to set argument",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		//    server.HandleFunc("/set-hosts", SetHostHandler)
-		// TODO: set up cfg using set-hosts endpoint
 		hosts := newHosts(cfg)
-		server.HandleFunc("/set-hosts", setHostHandler)
 		server.Handle("/metrics", hosts)
 		log.Info("listening on :", port)
 		_, err := strconv.Atoi(port)
