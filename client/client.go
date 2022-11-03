@@ -20,9 +20,10 @@ func (client *Client) Write() {
 		err = client.Socket.WriteJSON(msg)
 		if err != nil {
 			log.Error("Error inside client write ", err)
-			// most likely socket connection has been closed so
-			// just return
-			return
+			// check socket connection has been closed and end writer
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				return
+			}
 		}
 	}
 }
