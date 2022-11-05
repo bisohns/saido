@@ -89,7 +89,9 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 				},
 				Error: false,
 			}
-			client.Send <- message
+			if config.Contains(hosts.ReadOnlyHosts, host) {
+				client.Send <- message
+			}
 		} else {
 			// check for error 127 which means command was not found
 			var errorContent string
@@ -112,7 +114,10 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 func (hosts *HostsController) Poll(client *Client) {
 	for {
 		for _, host := range hosts.Info.Hosts {
-			if config.Contains(hosts.ReadOnlyHosts, host) && hosts.clientConnected() {
+			if !hosts.clientConnected() {
+				return
+			}
+			if config.Contains(hosts.ReadOnlyHosts, host) {
 				go hosts.sendMetric(host, client)
 			}
 		}
