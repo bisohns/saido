@@ -129,7 +129,7 @@ func (i *TcpLinux) Parse(output string) {
 			portString := address[len(address)-1]
 			port, err := strconv.Atoi(portString)
 			if err != nil {
-				log.Fatal("Could not parse port number in TcpLinux")
+				log.Fatalf("Could not parse port number in TcpLinux %s", err.Error())
 			}
 			ports[port] = status
 		}
