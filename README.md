@@ -38,7 +38,7 @@ cd web
 yarn install
 
 # Run websocket server and serve frontend
-go run main.go api
+go run main.go dashboard --config config-test.yaml
 ```
 
 ## Deployment
