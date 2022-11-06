@@ -4,6 +4,7 @@ package inspector
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -38,7 +39,9 @@ type TcpWin struct {
 	Values  TcpMetrics
 }
 
-/* Parse : parsing the following kind of output
+/*
+	Parse : parsing the following kind of output
+
 Active Internet connections (including servers)
 Proto Recv-Q Send-Q  Local Address          Foreign Address        (state)
 tcp4       0      0  127.0.0.1.53300        127.0.0.1.59972        ESTABLISHED
@@ -103,10 +106,9 @@ CLOSE-WAIT  1         0            127.0.0.1:54638         127.0.0.1:45481
 Parse for output (netstat)
 Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
 tcp        0      0 172.17.0.2:2222         172.17.0.1:51874        ESTABLISHED 2104/sshd.pam: ci-d
-
-
 */
 func (i *TcpLinux) Parse(output string) {
+	fmt.Println(output)
 	ports := make(map[int]string)
 	lines := strings.Split(output, "\n")
 	for index, line := range lines {
@@ -162,17 +164,18 @@ func (i *TcpLinux) Execute() ([]byte, error) {
 	return []byte(""), err
 }
 
-/* Parse for output
+/*
+	Parse for output
 
 Active Connections
 
-  Proto  Local Address          Foreign Address        State
-  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:445            0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:5040           0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:5700           0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:6646           0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:49664          0.0.0.0:0              LISTENING
+	Proto  Local Address          Foreign Address        State
+	TCP    0.0.0.0:135            0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:445            0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:5040           0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:5700           0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:6646           0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:49664          0.0.0.0:0              LISTENING
 */
 func (i *TcpWin) Parse(output string) {
 	ports := make(map[int]string)

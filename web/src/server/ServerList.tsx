@@ -28,6 +28,7 @@ export default function ServerList() {
     {}
   );
 
+  console.log("server", servers);
   const { readyState } = useWebSocket(wssMetricsBaseURL, {
     onOpen: () => console.log("WebSocket connection opened."),
     onClose: () => console.log("WebSocket connection closed."),
