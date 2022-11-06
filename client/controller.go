@@ -106,6 +106,7 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 				Message: ErrorMessage{
 					Error: errorContent,
 					Host:  host.Address,
+					Name:  metric,
 				},
 				Error: true,
 			}

@@ -8,6 +8,7 @@ type SendMessage struct {
 type ErrorMessage struct {
 	Host  string
 	Error string
+	Name  string
 }
 
 type Message struct {
