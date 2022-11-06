@@ -5,6 +5,12 @@ type SendMessage struct {
 	Message interface{}
 }
 
+type ErrorMessage struct {
+	Host  string
+	Error string
+	Name  string
+}
+
 type Message struct {
 	Host     string
 	Name     string

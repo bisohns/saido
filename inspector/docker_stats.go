@@ -126,7 +126,8 @@ func NewDockerStats(driver *driver.Driver, _ ...string) (Inspector, error) {
 		return nil, errors.New("Cannot use LoadAvgDarwin on drivers outside (linux, darwin, windows)")
 	}
 	dockerstats = &DockerStats{
-		Command: `docker stats --no-stream`,
+		Command:         `docker stats --no-stream`,
+		DisplayByteSize: `MB`,
 	}
 	dockerstats.SetDriver(driver)
 	return dockerstats, nil

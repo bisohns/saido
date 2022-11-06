@@ -222,7 +222,7 @@ func NewDF(driver *driver.Driver, _ ...string) (Inspector, error) {
 			// always reported in posix standard of 1K-blocks
 			Command:         `df -a -k`,
 			RawByteSize:     `KB`,
-			DisplayByteSize: `GB`,
+			DisplayByteSize: `MB`,
 		}
 	} else {
 		df = &DFWin{
@@ -230,7 +230,7 @@ func NewDF(driver *driver.Driver, _ ...string) (Inspector, error) {
 			// issues that arise on windows
 			Command:         `wmic logicaldisk list brief /format:csv`,
 			RawByteSize:     `B`,
-			DisplayByteSize: `GB`,
+			DisplayByteSize: `MB`,
 		}
 	}
 	df.SetDriver(driver)

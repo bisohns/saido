@@ -103,8 +103,12 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 			log.Error(errorContent)
 			hosts.resetDriver(host)
 			message := &SendMessage{
-				Message: errorContent,
-				Error:   true,
+				Message: ErrorMessage{
+					Error: errorContent,
+					Host:  host.Address,
+					Name:  metric,
+				},
+				Error: true,
 			}
 			client.Send <- message
 		}
