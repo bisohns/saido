@@ -2,6 +2,7 @@ import React from "react";
 import { Typography } from "@mui/material";
 import clsx from "clsx";
 import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
+import ThemeConfig from "../ThemeConfig";
 
 interface ErrorContentType {
   title: string;
@@ -20,6 +21,7 @@ function ErrorContent(props: ErrorContentType): JSX.Element {
 
   return (
     <div
+      style={{ color: ThemeConfig.palette.error.main }}
       className={clsx(
         "p-1 d-flex text-danger justify-content-center align-items-center flex-column w-100",
         className

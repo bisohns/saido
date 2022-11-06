@@ -12,7 +12,7 @@ const router = createBrowserRouter([
     element: <ServerList />,
   },
   {
-    path: "/:id",
+    path: "/:host",
     element: <ServerDetail />,
   },
 ]);

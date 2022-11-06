@@ -6,6 +6,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
+import { Link } from "react-router-dom";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -62,6 +63,7 @@ export default function AppHeader() {
           >
             Saido
           </Typography>
+
           <Search>
             <SearchIconWrapper>
               <SearchIcon />

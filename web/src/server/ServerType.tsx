@@ -1,4 +1,4 @@
-export interface ServerResponse {
+export interface ServerResponseType {
   Error: boolean;
   Message: {
     Host: string;
@@ -13,4 +13,12 @@ export interface ServerResponse {
     Platform: string;
     Data: Object;
   };
+}
+
+export interface ServerGroupedByHostResponseType {
+  [Host: string]: ServerResponseType[];
+}
+
+export interface ServerGroupedByNameResponseType {
+  [Name: string]: ServerResponseType[];
 }
