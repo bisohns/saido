@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 import useDataRef from "hooks/useDataRef";
 import LoadingIndicator from "./LoadingIndicator";
 import ErrorContent from "common/ErrorContent";

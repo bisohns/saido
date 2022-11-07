@@ -29,7 +29,7 @@ export default function ServerList() {
   );
 
   console.log("server", servers);
-  const { readyState } = useWebSocket(wssMetricsBaseURL, {
+  const { sendJsonMessage, readyState } = useWebSocket(wssMetricsBaseURL, {
     onOpen: () => console.log("WebSocket connection opened."),
     onClose: () => console.log("WebSocket connection closed."),
     shouldReconnect: (closeEvent) => true,
@@ -39,6 +39,8 @@ export default function ServerList() {
     },
   });
 
+  sendJsonMessage({ FilterBy: "" });
+
   const connectionStatus: string = {
     [ReadyState.CONNECTING]: "Connecting",
     [ReadyState.OPEN]: "Open",
@@ -46,6 +48,8 @@ export default function ServerList() {
     [ReadyState.CLOSED]: "Closed",
     [ReadyState.UNINSTANTIATED]: "Uninstantiated",
   }[readyState];
+
+  //   console.log("serversGroupedByHost", serversGroupedByHost);
 
   return (
     <Container>

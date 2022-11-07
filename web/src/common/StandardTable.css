@@ -1,0 +1,81 @@
+/* .StandardTable [data-sticky-td] {
+    position: sticky;
+  } */
+
+.StandardTable {
+  max-height: calc(100vh - 280px);
+  overflow: auto;
+  position: relative;
+  width: 100%;
+  background-color: inherit;
+}
+
+.StandardTable__row {
+  @apply border-b border-solid border-gray-200;
+  /* width: 100%; */
+}
+
+.StandardTable__row:last-child {
+  border-bottom: 0;
+}
+
+.StandardTable__row:last-child .StandardTable__cell {
+  /* border-bottom: 0; */
+}
+
+.StandardTable__cell {
+  @apply px-2 py-2 overflow-hidden flex items-center;
+  /* border-bottom: 1px solid theme("colors.primary.main"); */
+  min-width: 0;
+}
+
+.StandardTable__cell:first-child {
+  @apply pl-4;
+}
+
+.StandardTable__cell:last-child {
+  @apply pr-4;
+}
+
+[data-sticky-td] {
+  /* @apply bg-primary-shade4; */
+}
+
+.StandardTable__header {
+  @apply rounded-xl font-bold;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.StandardTable__header__row {
+  @apply bg-secondary-light text-secondary-contrastText h-12;
+}
+
+.StandardTable__header__row__cell {
+}
+
+.StandardTable__body {
+}
+
+.StandardTable__body__row {
+}
+
+.StandardTable__body__row__cell {
+}
+
+.StandardTable__pagination {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
+  background-color: inherit;
+}
+
+.StandardTable__pagination__item {
+  background-color: inherit;
+  /* border-top: 1px solid theme("colors.secondary.main"); */
+}

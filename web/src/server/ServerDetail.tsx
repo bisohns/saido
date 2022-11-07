@@ -36,6 +36,7 @@ export default function ServerDetail() {
     shouldReconnect: (closeEvent) => true,
     onMessage: (event: WebSocketEventMap["message"]) => {
       const newMessage: ServerResponseType = JSON.parse(event.data);
+      if (newMessage.Error) return;
       setServers((prev) => prev.concat(newMessage));
     },
   });
@@ -85,11 +86,11 @@ export default function ServerDetail() {
         <>
           {Object.keys(serversGroupedByName)?.map(
             (serverName: string, index: number) => (
-              <div>
+              <div key={index}>
                 {serverName === "memory" && (
                   <Pie
                     data={memoryToPieChartData(
-                      serversGroupedByName[serverName]?.[0]
+                      serversGroupedByName[serverName]?.slice(-1)[0]
                     )}
                   />
                 )}

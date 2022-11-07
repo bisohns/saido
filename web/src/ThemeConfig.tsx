@@ -18,6 +18,7 @@ export const theme: any = customizeComponents({
     },
     secondary: {
       light: "#74CAFF",
+      // main: "#1890FF",
       main: "#1890FF",
       dark: "#0C53B7",
       contrastText: "#FFFFFF",
