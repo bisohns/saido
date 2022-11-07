@@ -7,30 +7,11 @@ import {
   ServerGroupedByNameResponseType,
   ServerResponseType,
 } from "./ServerType";
-import { Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import PageHeader from "common/PageHeader";
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-ChartJS.register(ArcElement, Tooltip, Legend);
-
 const wssMetricsBaseURL = `${process.env.REACT_APP_WS_BASE_URL}/metrics`;
-
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
 
 export default function ServerDetail() {
   const { host } = useParams<{ host: string }>();
@@ -38,7 +19,7 @@ export default function ServerDetail() {
 
   const [servers, setServers] = useState<ServerResponseType[]>([]);
 
-  const serversGroupedByName: ServerGroupedByNameResponseType = servers.reduce(
+  const servicesGroupedByName: ServerGroupedByNameResponseType = servers.reduce(
     (group: any, server) => {
       const { Message } = server;
       const { Name } = Message;
@@ -70,7 +51,7 @@ export default function ServerDetail() {
     [ReadyState.UNINSTANTIATED]: "Uninstantiated",
   }[readyState];
 
-  console.log(serversGroupedByName);
+  console.log(servicesGroupedByName);
 
   const handleChangeTabIndex = (
     event: React.SyntheticEvent,
@@ -98,14 +79,14 @@ export default function ServerDetail() {
             variant="scrollable"
             scrollButtons="auto"
           >
-            {Object.keys(serversGroupedByName)?.map(
+            {Object.keys(servicesGroupedByName)?.map(
               (serverName: string, index: number) => (
-                <Tab label={serverName} {...a11yProps(index)} key={index} />
+                <Tab label={serverName} key={index} />
               )
             )}
           </Tabs>
 
-          {Object.keys(serversGroupedByName)?.map(
+          {Object.keys(servicesGroupedByName)?.map(
             (serverName: string, index: number) => (
               <div key={index}>{index === tabIndex && <>{serverName}</>}</div>
             )
