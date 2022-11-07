@@ -9,13 +9,32 @@ import {
 } from "./ServerType";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import PageHeader from "common/PageHeader";
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const wssMetricsBaseURL = `${process.env.REACT_APP_WS_BASE_URL}/metrics`;
 
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
+  };
+}
+
 export default function ServerDetail() {
   const { host } = useParams<{ host: string }>();
+  const [tabIndex, setTabIndex] = React.useState<number>(0);
 
   const [servers, setServers] = useState<ServerResponseType[]>([]);
 
@@ -53,48 +72,42 @@ export default function ServerDetail() {
 
   console.log(serversGroupedByName);
 
-  const memoryToPieChartData = (serverResponse: ServerResponseType) => {
-    const { Message } = serverResponse;
-    const { Data, Name } = Message;
-
-    let labels = [];
-    let data = [];
-
-    for (const [key, value] of Object.entries(Data)) {
-      labels.push(key);
-      data.push(value);
-    }
-    return {
-      labels,
-      datasets: [
-        {
-          label: Name,
-          data,
-          backgroundColor: "#494788",
-          borderWidth: 1,
-        },
-      ],
-    };
+  const handleChangeTabIndex = (
+    event: React.SyntheticEvent,
+    newValue: number
+  ) => {
+    setTabIndex(newValue);
   };
 
   return (
     <Container>
+      <PageHeader
+        title={`${host}`}
+        breadcrumbs={[{ name: "Servers", to: "/" }, { name: `${host}` }]}
+      ></PageHeader>
+
       <LoadingContent
         loading={connectionStatus === "Connecting"}
         error={connectionStatus === "Closed"}
       >
         <>
+          <Tabs
+            value={tabIndex}
+            onChange={handleChangeTabIndex}
+            aria-label={`${host} Tab`}
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            {Object.keys(serversGroupedByName)?.map(
+              (serverName: string, index: number) => (
+                <Tab label={serverName} {...a11yProps(index)} key={index} />
+              )
+            )}
+          </Tabs>
+
           {Object.keys(serversGroupedByName)?.map(
             (serverName: string, index: number) => (
-              <div key={index}>
-                {serverName === "memory" && (
-                  <Pie
-                    data={memoryToPieChartData(
-                      serversGroupedByName[serverName]?.slice(-1)[0]
-                    )}
-                  />
-                )}
-              </div>
+              <div key={index}>{index === tabIndex && <>{serverName}</>}</div>
             )
           )}
         </>

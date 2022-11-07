@@ -1,6 +1,6 @@
 import { Card, CardActionArea, Grid, Typography } from "@mui/material";
 import { Box, Container } from "@mui/system";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { ReactComponent as ServerIcon } from "assets/svg/server.svg";
@@ -39,8 +39,6 @@ export default function ServerList() {
     },
   });
 
-  sendJsonMessage({ FilterBy: "" });
-
   const connectionStatus: string = {
     [ReadyState.CONNECTING]: "Connecting",
     [ReadyState.OPEN]: "Open",
@@ -49,7 +47,9 @@ export default function ServerList() {
     [ReadyState.UNINSTANTIATED]: "Uninstantiated",
   }[readyState];
 
-  //   console.log("serversGroupedByHost", serversGroupedByHost);
+  useEffect(() => {
+    sendJsonMessage({ FilterBy: "" });
+  }, []);
 
   return (
     <Container>
