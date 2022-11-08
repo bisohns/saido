@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/bisohns/saido/driver"
+	"github.com/bisohns/saido/inspector"
 	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 
@@ -102,7 +103,12 @@ func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 
 	dashboardInfo.Hosts = parseConfig("root", "", config.Hosts, &Connection{})
 	for metric, customCommand := range config.Metrics {
-		metrics[fmt.Sprintf("%v", metric)] = fmt.Sprintf("%v", customCommand)
+		metric := fmt.Sprintf("%v", metric)
+		if inspector.Valid(metric) {
+			metrics[metric] = fmt.Sprintf("%v", customCommand)
+		} else {
+			log.Fatalf("Found invalid metric %v", metric)
+		}
 	}
 	dashboardInfo.Metrics = metrics
 	for _, host := range dashboardInfo.Hosts {
