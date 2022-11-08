@@ -6,6 +6,8 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import PageHeader from 'common/PageHeader';
 import useSocket from 'hooks/useSocket';
+import ServerDetailServicesTabPanel from './ServerDetailServicesTabPanel';
+import { ServerResponseType, ServerServiceNameType } from './ServerType';
 
 export default function ServerDetail() {
   const { host } = useParams<{ host: string }>();
@@ -48,6 +50,23 @@ export default function ServerDetail() {
               )
             )}
           </Tabs>
+
+          {Object.keys(servicesGroupedByName)?.map(
+            (serverName: string, index: number) => (
+              <div key={index}>
+                {index === tabIndex && (
+                  <ServerDetailServicesTabPanel
+                    serverName={serverName as ServerServiceNameType}
+                    serverData={
+                      servicesGroupedByName[
+                        serverName as ServerServiceNameType
+                      ]?.at(-1) as ServerResponseType
+                    } // get the last object of service
+                  />
+                )}
+              </div>
+            )
+          )}
         </>
       </LoadingContent>
     </Container>
