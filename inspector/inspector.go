@@ -25,8 +25,8 @@ var inspectorMap = map[string]NewInspector{
 	`process`: NewProcess,
 	`loadavg`: NewLoadAvg,
 	`tcp`:     NewTcp,
+	`custom`:  NewCustom,
 	// NOTE: Inactive for now
-	`custom`:       NewCustom,
 	`responsetime`: NewResponseTime,
 }
 

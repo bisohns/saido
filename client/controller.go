@@ -73,9 +73,9 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 	if hosts.getDriver(host.Address) == nil {
 		hosts.resetDriver(host)
 	}
-	for _, metric := range hosts.Info.Metrics {
+	for metric, custom := range hosts.Info.Metrics {
 		driver := hosts.getDriver(host.Address)
-		initializedMetric, err := inspector.Init(metric, driver)
+		initializedMetric, err := inspector.Init(metric, driver, custom)
 		data, err := initializedMetric.Execute()
 		if err == nil {
 			var unmarsh interface{}

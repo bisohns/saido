@@ -24,6 +24,8 @@ type SSH struct {
 	KeyFile string
 	// Pass key for key file
 	KeyPass string
+	// Password based login
+	Password string
 	// Check known hosts (only disable for tests
 	CheckKnownHosts bool
 	// set environmental vars for server e.g []string{"DEBUG=1", "FAKE=echo"}
@@ -40,13 +42,18 @@ func (d *SSH) Client() (*goph.Client, error) {
 	if d.SessionClient == nil {
 		var err error
 		var client *goph.Client
+		var auth goph.Auth
 		var callback ssh.HostKeyCallback
 		if d.Port != 0 {
 			port = d.Port
 		}
-		auth, err := goph.Key(d.KeyFile, d.KeyPass)
-		if err != nil {
-			return nil, err
+		if d.Password != "" {
+			auth = goph.Password(d.Password)
+		} else {
+			auth, err = goph.Key(d.KeyFile, d.KeyPass)
+			if err != nil {
+				return nil, err
+			}
 		}
 		if d.CheckKnownHosts {
 			callback, err = goph.DefaultKnownHosts()

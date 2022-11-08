@@ -13,7 +13,7 @@ import (
 
 type DashboardInfo struct {
 	Hosts        []Host
-	Metrics      []string
+	Metrics      map[string]string
 	Title        string
 	PollInterval int
 }
@@ -39,12 +39,13 @@ func (dashboardInfo *DashboardInfo) GetAllHostAddresses() (addresses HostList) {
 }
 
 type Connection struct {
-	Type           string `mapstructure:"type"`
-	Username       string `mapstructure:"username"`
-	Password       string `mapstructure:"password"`
-	PrivateKeyPath string `mapstructure:"private_key_path"`
-	Port           int32  `mapstructure:"port"`
-	Host           string
+	Type                 string `mapstructure:"type"`
+	Username             string `mapstructure:"username"`
+	Password             string `mapstructure:"password"`
+	PrivateKeyPath       string `mapstructure:"private_key_path"`
+	PrivateKeyPassPhrase string `mapstructure:"private_key_passphrase"`
+	Port                 int32  `mapstructure:"port"`
+	Host                 string
 }
 
 func (conn *Connection) ToDriver() driver.Driver {
@@ -55,6 +56,8 @@ func (conn *Connection) ToDriver() driver.Driver {
 			Host:            conn.Host,
 			Port:            int(conn.Port),
 			KeyFile:         conn.PrivateKeyPath,
+			KeyPass:         conn.PrivateKeyPassPhrase,
+			Password:        conn.Password,
 			CheckKnownHosts: false,
 		}
 	default:
@@ -70,7 +73,7 @@ type Host struct {
 
 type Config struct {
 	Hosts        map[interface{}]interface{} `yaml:"hosts"`
-	Metrics      []string                    `yaml:"metrics"`
+	Metrics      map[interface{}]interface{} `yaml:"metrics"`
 	Title        string                      `yaml:"title"`
 	PollInterval int                         `yaml:"poll-interval"`
 }
@@ -95,9 +98,13 @@ func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 	if config.Title != "" {
 		dashboardInfo.Title = config.Title
 	}
+	metrics := make(map[string]string)
 
 	dashboardInfo.Hosts = parseConfig("root", "", config.Hosts, &Connection{})
-	dashboardInfo.Metrics = config.Metrics
+	for metric, customCommand := range config.Metrics {
+		metrics[fmt.Sprintf("%v", metric)] = fmt.Sprintf("%v", customCommand)
+	}
+	dashboardInfo.Metrics = metrics
 	for _, host := range dashboardInfo.Hosts {
 		log.Debugf("%s: %v", host.Address, host.Connection)
 	}
@@ -113,6 +120,9 @@ func parseConnection(conn map[interface{}]interface{}) *Connection {
 	mapstructure.Decode(conn, &c)
 	if c.Type == "ssh" && c.Port == 0 {
 		c.Port = 22
+	}
+	if c.Password != "" && c.PrivateKeyPath != "" {
+		log.Fatal("Cannot specify both password login and private key login on same connection")
 	}
 	return &c
 }
