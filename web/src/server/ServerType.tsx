@@ -14,13 +14,13 @@ export type ServerServiceNameType =
   | UptimeData
   | ProcessData;
 
-export interface ServerResponseType {
+export interface ServerResponseType<T = ServerResponseMessageData> {
   Error: boolean;
   Message: {
     Host: string;
     Name: ServerServiceNameType;
     Platform: 'Windows' | 'Linux' | 'Darwin' | 'MacOS';
-    Data: ServerResponseMessageData;
+    Data: T;
   };
 }
 
