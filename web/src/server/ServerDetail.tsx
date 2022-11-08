@@ -6,7 +6,6 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import PageHeader from 'common/PageHeader';
 import useSocket from 'hooks/useSocket';
-import { formatMetric } from 'utils/string';
 
 export default function ServerDetail() {
   const { host } = useParams<{ host: string }>();
