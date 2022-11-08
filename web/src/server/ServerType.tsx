@@ -1,15 +1,17 @@
+export type ServerServiceNameType =
+  | "disk"
+  | "docker"
+  | "uptime"
+  | "memory"
+  | "process"
+  | "loadavg"
+  | "tcp";
+
 export interface ServerResponseType {
   Error: boolean;
   Message: {
     Host: string;
-    Name:
-      | "disk"
-      | "docker"
-      | "uptime"
-      | "memory"
-      | "process"
-      | "loadavg"
-      | "tcp";
+    Name: ServerServiceNameType;
     Platform: string;
     Data: Object;
   };

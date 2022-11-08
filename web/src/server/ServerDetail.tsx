@@ -6,10 +6,12 @@ import LoadingContent from "../common/LoadingContent";
 import {
   ServerGroupedByNameResponseType,
   ServerResponseType,
+  ServerServiceNameType,
 } from "./ServerType";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import PageHeader from "common/PageHeader";
+import ServerDetailServicesTabPanel from "./ServerDetailServicesTabPanel";
 
 const wssMetricsBaseURL = `${process.env.REACT_APP_WS_BASE_URL}/metrics`;
 
@@ -20,7 +22,7 @@ export default function ServerDetail() {
   const [servers, setServers] = useState<ServerResponseType[]>([]);
 
   const servicesGroupedByName: ServerGroupedByNameResponseType = servers.reduce(
-    (group: any, server) => {
+    (group: ServerGroupedByNameResponseType, server: ServerResponseType) => {
       const { Message } = server;
       const { Name } = Message;
       group[Name] = group[Name] ?? [];
@@ -36,7 +38,6 @@ export default function ServerDetail() {
     shouldReconnect: (closeEvent) => true,
     onMessage: (event: WebSocketEventMap["message"]) => {
       const newMessage: ServerResponseType = JSON.parse(event.data);
-      if (newMessage.Error) return;
       setServers((prev) => prev.concat(newMessage));
     },
   });
@@ -88,7 +89,18 @@ export default function ServerDetail() {
 
           {Object.keys(servicesGroupedByName)?.map(
             (serverName: string, index: number) => (
-              <div key={index}>{index === tabIndex && <>{serverName}</>}</div>
+              <div key={index}>
+                {index === tabIndex && (
+                  <ServerDetailServicesTabPanel
+                    serverName={serverName as ServerServiceNameType}
+                    serverData={
+                      servicesGroupedByName[
+                        serverName as ServerServiceNameType
+                      ]?.at(-1) as ServerResponseType
+                    } // get the last object of service
+                  />
+                )}
+              </div>
             )
           )}
         </>
