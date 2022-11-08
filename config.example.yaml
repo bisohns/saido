@@ -1,6 +1,7 @@
 # Ansible inspired Config
 hosts:
   connection:
+    # password logging ssh driver
     type: ssh
     username: root 
     password: somethingSecret
@@ -16,9 +17,11 @@ hosts:
         password: somethingSecret
         port: 2222
     "192.0.1.4":
+      # local driver
       connection: 
         type: local
     eu-west1:
+      # key file logging ssh driver
       connection:
         type: ssh
         private_key_path: /path/to/private/key
@@ -26,8 +29,17 @@ hosts:
       children:
         "192.0.10.3":
         "192.0.10.5":
+    eu-west2:
+      # passworded key file logging ssh driver
+      connection:
+        type: ssh
+        private_key_path: /path/to/private/key
+        private_key_passphrase: "hexadecimal"
+        port: 3333
 
 metrics:
-- memory
-- tcp
+  memory:
+  tcp:
+  # custom command to show uptime
+  custom: "cat /proc/uptime"
 poll-interval: 30

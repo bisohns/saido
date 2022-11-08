@@ -6,7 +6,7 @@ hosts:
         type: local
 
 metrics:
-- memory
-- tcp
+  memory:
+  tcp:
 poll-interval: 30
 

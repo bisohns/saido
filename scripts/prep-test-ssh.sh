@@ -24,9 +24,9 @@ hosts:
         port: 2222
         private_key_path: "$SSH_KEY_PATH/${SSH_KEY_NAME}"
 metrics:
-- memory
-- disk
-- tcp
-- docker
+  memory:
+  disk:
+  tcp:
+  docker:
 poll-interval: 10
 EOF
