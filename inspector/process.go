@@ -3,7 +3,6 @@ package inspector
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -151,7 +150,6 @@ smss.exe                       604 Services                   0      1,080 K
 csrss.exe                      968 Services                   0      4,916 K
 */
 func (i *ProcessWin) Parse(output string) {
-	fmt.Print(output)
 	var values []ProcessMetricsWin
 	lines := strings.Split(output, "\r\n")
 	for index, line := range lines {

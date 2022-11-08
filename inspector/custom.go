@@ -11,7 +11,8 @@ import (
 
 // CustomMetrics : Metrics used by Custom
 type CustomMetrics struct {
-	Output string
+	Output  string
+	Command string
 }
 
 // Custom : Parsing the custom command output for disk monitoring
@@ -29,7 +30,8 @@ func (i *Custom) Parse(output string) {
 
 func (i Custom) createMetric(output string) CustomMetrics {
 	return CustomMetrics{
-		Output: output,
+		Output:  output,
+		Command: i.Command,
 	}
 }
 
@@ -61,8 +63,11 @@ func NewCustom(driver *driver.Driver, custom ...string) (Inspector, error) {
 	if details.IsWeb {
 		return nil, errors.New(fmt.Sprintf("Cannot use Custom(%s) on web", custom))
 	}
+	if len(custom) < 1 {
+		return nil, errors.New("Must specify command for custom")
+	}
 	customInspector = &Custom{
-		Command: custom[0],
+		Command: fmt.Sprintf(`%s`, custom[0]),
 	}
 	customInspector.SetDriver(driver)
 	return customInspector, nil
