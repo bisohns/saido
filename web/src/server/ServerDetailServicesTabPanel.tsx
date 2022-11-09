@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { ServerNameEnum } from "./ServerConstant";
+import ServerDetailServicesTabPanelCustom from "./ServerDetailServicesTabPaneCustom";
 import ServerDetailServicesTabPanelDisk from "./ServerDetailServicesTabPanelDisk";
 import ServerDetailServicesTabPanelDocker from "./ServerDetailServicesTabPanelDocker";
 import ServerDetailServicesTabPanelLoadAvg from "./ServerDetailServicesTabPanelLoadAvg";
@@ -7,7 +8,7 @@ import ServerDetailServicesTabPanelMemory from "./ServerDetailServicesTabPanelMe
 import ServerDetailServicesTabPanelProcess from "./ServerDetailServicesTabPanelProcess";
 import ServerDetailServicesTabPanelTCP from "./ServerDetailServicesTabPanelTCP";
 import ServerDetailServicesTabPanelUptime from "./ServerDetailServicesTabPanelUptime";
-import { DiskData, MemoryData, ServerResponseType, ServerServiceNameType } from "./ServerType";
+import { DiskData, LoadingAvgData, MemoryData, ServerResponseType, ServerServiceNameType } from "./ServerType";
 
 interface ServerDetailServicesTabPanelType {
   serverName: ServerServiceNameType;
@@ -49,7 +50,7 @@ export default function ServerDetailServicesTabPanel(
         content: (
           <ServerDetailServicesTabPanelLoadAvg
             serverName={serverName}
-            serverData={serverData}
+            serverData={serverData as ServerResponseType<LoadingAvgData>}
           />
         ),
       },
@@ -84,6 +85,15 @@ export default function ServerDetailServicesTabPanel(
         title: ServerNameEnum.UPTIME as ServerServiceNameType,
         content: (
           <ServerDetailServicesTabPanelUptime
+            serverName={serverName}
+            serverData={serverData}
+          />
+        ),
+      },
+      {
+        title: ServerNameEnum.CUSTOM as ServerServiceNameType,
+        content: (
+          <ServerDetailServicesTabPanelCustom
             serverName={serverName}
             serverData={serverData}
           />

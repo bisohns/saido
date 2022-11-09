@@ -45,7 +45,7 @@ export default function useSocket(options = {}) {
     shouldReconnect: (closeEvent) => true,
     onMessage: (event: WebSocketEventMap['message']) => {
       const newMessage: ServerResponseType = JSON.parse(event.data);
-      if (newMessage.Error) return;
+      // if (newMessage.Error) return;
       setServers((prev) => prev.concat(newMessage));
     },
     ...options,
