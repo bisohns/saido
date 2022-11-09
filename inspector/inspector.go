@@ -30,6 +30,16 @@ var inspectorMap = map[string]NewInspector{
 	`responsetime`: NewResponseTime,
 }
 
+// Valid : checks if inspector is a valid inspector
+func Valid(name string) bool {
+	for key, _ := range inspectorMap {
+		if name == key {
+			return true
+		}
+	}
+	return false
+}
+
 // Init : initializes the specified inspector using name and driver
 func Init(name string, driver *driver.Driver, custom ...string) (Inspector, error) {
 	val, ok := inspectorMap[name]

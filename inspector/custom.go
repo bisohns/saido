@@ -67,7 +67,7 @@ func NewCustom(driver *driver.Driver, custom ...string) (Inspector, error) {
 		return nil, errors.New("Must specify command for custom")
 	}
 	customInspector = &Custom{
-		Command: fmt.Sprintf(`%s`, custom[0]),
+		Command: custom[0],
 	}
 	customInspector.SetDriver(driver)
 	return customInspector, nil
