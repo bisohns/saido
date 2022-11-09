@@ -10,17 +10,19 @@ interface ServerDetailServicesTabPanelLoadAvgType {
 export default function ServerDetailServicesTabPanelCustom(
   props: ServerDetailServicesTabPanelLoadAvgType
 ) {
-  if (props.serverData.Error) {
+    const { serverData } = props;
+    
+  if (serverData.Error) {
     return (
       <div>
-        <p> {props.serverData.Message.Error}</p>
+        <p> {serverData.Message.Error}</p>
       </div>
     );
   }
 
   return (
     <div>
-      <pre>{props.serverData.Message?.Data?.Output}</pre>
+      <pre>{serverData.Message?.Data?.Output}</pre>
     </div>
   );
 }

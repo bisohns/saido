@@ -1,5 +1,5 @@
-import styled from '@emotion/styled';
 import React from 'react';
+import styled from '@emotion/styled';
 import {
   BarChart,
   Bar,
@@ -9,7 +9,12 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { DiskData, ServerResponseType, ServerServiceNameType } from './ServerType';
+
+import {
+  DiskData,
+  ServerResponseType,
+  ServerServiceNameType,
+} from './ServerType';
 
 interface ServerDetailServicesTabPanelDiskType {
   serverName: ServerServiceNameType;
@@ -23,14 +28,17 @@ const Div = styled.div`
 export default function ServerDetailServicesTabPanelDisk(
   props: ServerDetailServicesTabPanelDiskType
 ) {
-  const { serverData:{ Message:{ Data }}}  = props;
+  const {
+    serverData: {
+      Message: { Data },
+    },
+  } = props;
 
   return (
     <Div>
       {
         /* <ServicesTabPanel /> */
-        // <ResponsiveContainer width='100%' height='100%'>
-        <BarChart width={900} height={500}  data={Data}>
+        <BarChart width={900} height={500} data={Data}>
           <CartesianGrid strokeDasharray='3 3' />
           <XAxis dataKey='FileSystem' />
           <YAxis />
@@ -40,7 +48,6 @@ export default function ServerDetailServicesTabPanelDisk(
           <Bar dataKey='Used' fill='red' />
           <Bar dataKey='Size' fill='green' />
         </BarChart>
-        // </ResponsiveContainer>
       }
     </Div>
   );

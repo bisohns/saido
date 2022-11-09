@@ -1,10 +1,11 @@
-import { Container } from '@mui/material';
 import React from 'react';
+import { Container } from '@mui/material';
 import { useParams } from 'react-router-dom';
-import LoadingContent from '../common/LoadingContent';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+
 import PageHeader from 'common/PageHeader';
+import LoadingContent from '../common/LoadingContent';
 import useSocket from 'hooks/useSocket';
 import ServerDetailServicesTabPanel from './ServerDetailServicesTabPanel';
 import { ServerResponseType, ServerServiceNameType } from './ServerType';
