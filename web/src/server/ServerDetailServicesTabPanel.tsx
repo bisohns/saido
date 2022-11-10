@@ -105,7 +105,7 @@ export default function ServerDetailServicesTabPanel(
   );
 
   const activeServicesTabPanel = servicesTabPanel?.find(
-    (service: servicesTabPanelType) => service.title === serverName
+    (service: servicesTabPanelType) => serverName.startsWith(service.title)
   );
 
   return <div>{activeServicesTabPanel?.content}</div>;

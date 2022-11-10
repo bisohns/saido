@@ -11,7 +11,7 @@ export default function ServerDetailServicesTabPanelCustom(
   props: ServerDetailServicesTabPanelLoadAvgType
 ) {
     const { serverData } = props;
-    
+
   if (serverData.Error) {
     return (
       <div>
@@ -22,7 +22,8 @@ export default function ServerDetailServicesTabPanelCustom(
 
   return (
     <div>
-      <pre>{serverData.Message?.Data?.Output}</pre>
+      <h1>{serverData.Message.Data.Command}</h1>
+      <pre className="text-white bg-black p-4">{serverData.Message?.Data?.Output}</pre>
     </div>
   );
 }
