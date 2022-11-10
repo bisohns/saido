@@ -41,5 +41,6 @@ metrics:
   memory:
   tcp:
   # custom command to show uptime
-  custom: "cat /proc/uptime"
+  custom-uptime: "cat /proc/uptime"
+  custom-dir: 'dir C:\'
 poll-interval: 30

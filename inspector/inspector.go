@@ -3,6 +3,7 @@ package inspector
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/bisohns/saido/driver"
 )
@@ -32,8 +33,8 @@ var inspectorMap = map[string]NewInspector{
 
 // Valid : checks if inspector is a valid inspector
 func Valid(name string) bool {
-	for key, _ := range inspectorMap {
-		if name == key {
+	for key := range inspectorMap {
+		if name == key || strings.HasPrefix(name, "custom") {
 			return true
 		}
 	}
@@ -42,6 +43,9 @@ func Valid(name string) bool {
 
 // Init : initializes the specified inspector using name and driver
 func Init(name string, driver *driver.Driver, custom ...string) (Inspector, error) {
+	if strings.HasPrefix(name, "custom") {
+		name = "custom"
+	}
 	val, ok := inspectorMap[name]
 	if ok {
 		inspector, err := val(driver, custom...)
