@@ -105,7 +105,7 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 			}
 			log.Error(errorContent)
 			//FIXME: what kind of errors do we especially want to reset driver for
-			if _, ok := err.(*driver.SSHError); ok {
+			if _, ok := err.(*driver.SSHConnectError); ok {
 				hosts.resetDriver(host)
 			}
 			message := &SendMessage{
