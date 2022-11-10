@@ -60,7 +60,7 @@ func (d *SSH) String() string {
 // set the goph Client
 func (d *SSH) Client() (*goph.Client, error) {
 	if d.SessionClient == nil {
-		log.Debugf("re-establishing connection with %s ...", d.Host)
+		log.Infof("re-establishing connection with %s ...", d.Host)
 		var err error
 		var client *goph.Client
 		var auth goph.Auth
