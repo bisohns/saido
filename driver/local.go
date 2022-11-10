@@ -41,6 +41,7 @@ func (d *Local) RunCommand(command string) (string, error) {
 	if d.Info.IsLinux || d.Info.IsDarwin {
 		cmd = exec.Command("bash", "-c", command)
 	} else {
+		command = strings.ReplaceAll(command, "\\", "")
 		cmd = exec.Command("cmd", "/C", command)
 	}
 	cmd.Env = os.Environ()
