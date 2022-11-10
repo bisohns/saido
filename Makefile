@@ -31,3 +31,7 @@ else
 upgrade:
 	@echo "Version not set - use syntax \`make upgrade version=0.x.x\`"
 endif
+
+build-frontend:
+	cd web && yarn build && cd ..
+

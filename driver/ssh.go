@@ -9,7 +9,17 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var port = 22
+var (
+	port = 22
+)
+
+type SSHError struct {
+	content string
+}
+
+func (e *SSHError) Error() string {
+	return fmt.Sprintf("SSH Error: %s", e.content)
+}
 
 // SSH : Driver for handling ssh executions
 type SSH struct {
@@ -40,6 +50,7 @@ func (d *SSH) String() string {
 // set the goph Client
 func (d *SSH) Client() (*goph.Client, error) {
 	if d.SessionClient == nil {
+		log.Debugf("re-establishing connection with %s ...", d.Host)
 		var err error
 		var client *goph.Client
 		var auth goph.Auth
@@ -71,7 +82,7 @@ func (d *SSH) Client() (*goph.Client, error) {
 			Timeout:  goph.DefaultTimeout,
 			Callback: callback,
 		})
-		if err != nil {
+		if err == nil {
 			d.SessionClient = client
 		}
 		return client, err
@@ -91,7 +102,7 @@ func (d *SSH) RunCommand(command string) (string, error) {
 	log.Debugf("Running remote command %s", command)
 	client, err := d.Client()
 	if err != nil {
-		return ``, err
+		return ``, &SSHError{content: err.Error()}
 	}
 	if len(d.EnvVars) != 0 {
 		// add env variable to command
