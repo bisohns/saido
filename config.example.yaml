@@ -44,4 +44,4 @@ metrics:
   custom-uptime: "cat /proc/uptime"
   custom-dir: 'dir C:\'
   custom-echo: 'echo $HOME'
-poll-interval: 30
+poll-interval: 10

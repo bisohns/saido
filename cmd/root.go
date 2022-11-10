@@ -26,9 +26,6 @@ import (
 )
 
 var (
-	cfgFile string
-	cfg     *config.Config
-
 	// Verbose : Should display verbose logs
 	verbose       bool
 	dashboardInfo *config.DashboardInfo
@@ -39,22 +36,21 @@ const appName = "saido"
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "saido",
-	Short: "TUI for monitoring specific host metrics",
+	Short: "Tool for monitoring metrics",
 	Long:  ``,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// Log only errors except in Verbose mode
 		if verbose {
 			log.SetLevel(log.DebugLevel)
 		} else {
-			//      log.SetLevel(log.InfoLevel)
-			log.SetLevel(log.DebugLevel)
+			log.SetLevel(log.InfoLevel)
 		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		fmt.Println("\n\nSaido - Bisoncorp (2020) (https://github.com/bisohns/saido)")
+		fmt.Println("\n\nSaido - Bisohns (2020) (https://github.com/bisohns/saido)")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Info("Saido is running ...")
+		log.Info("Run dashboard with the [dashboard] subcommand. Feel free to drop a star at https://github.com/bisohns/saido")
 	},
 }
 
@@ -68,13 +64,5 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to config file")
-
-	cobra.MarkFlagRequired(rootCmd.PersistentFlags(), "config")
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	cfg = config.LoadConfig(cfgFile)
+	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Run saido in verbose mode")
 }

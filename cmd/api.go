@@ -25,6 +25,7 @@ import (
 	"strconv"
 
 	"github.com/bisohns/saido/client"
+	"github.com/bisohns/saido/config"
 	"github.com/gorilla/handlers"
 	"github.com/pkg/browser"
 	log "github.com/sirupsen/logrus"
@@ -36,7 +37,9 @@ var (
 	server = http.NewServeMux()
 
 	//go:embed build/*
-	build embed.FS
+	build   embed.FS
+	cfgFile string
+	cfg     *config.Config
 )
 
 type fsFunc func(name string) (fs.File, error)
@@ -69,6 +72,7 @@ var apiCmd = &cobra.Command{
 	Short: "Run saido dashboard on a PORT env variable, fallback to set argument",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+		cfg = config.LoadConfig(cfgFile)
 		hosts := client.NewHostsController(cfg)
 
 		frontendHandler := EmbedHandler("/", "build")
@@ -93,5 +97,7 @@ var apiCmd = &cobra.Command{
 
 func init() {
 	apiCmd.Flags().StringVarP(&port, "port", "p", "3000", "Port to run application server on")
+	apiCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to config file")
+	cobra.MarkFlagRequired(apiCmd.PersistentFlags(), "config")
 	rootCmd.AddCommand(apiCmd)
 }

@@ -23,6 +23,9 @@ hosts:
         username: ${SSH_USER}
         port: 2222
         private_key_path: "$SSH_KEY_PATH/${SSH_KEY_NAME}"
+    "localhost":
+      connection:
+        type: local
 metrics:
   memory:
   disk:
