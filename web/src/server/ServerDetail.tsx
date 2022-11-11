@@ -45,14 +45,14 @@ export default function ServerDetail() {
             aria-label={`${host} Tab`}
             variant='scrollable'
             scrollButtons='auto'>
-            {Object.keys(servicesGroupedByName)?.map(
+            {Object.keys(servicesGroupedByName)?.sort()?.map(
               (serverName: string, index: number) => (
                 <Tab label={serverName} key={index} />
               )
             )}
           </Tabs>
 
-          {Object.keys(servicesGroupedByName)?.map(
+          {Object.keys(servicesGroupedByName)?.sort()?.map(
             (serverName: string, index: number) => (
               <div key={index}>
                 {index === tabIndex && (
