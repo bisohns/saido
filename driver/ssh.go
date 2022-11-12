@@ -9,7 +9,27 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var port = 22
+var (
+	port = 22
+)
+
+type SSHConnectError struct {
+	content string
+	client  string
+}
+
+func (e *SSHConnectError) Error() string {
+	return fmt.Sprintf("SSH Connect Error on %s: %s", e.client, e.content)
+}
+
+type SSHRunError struct {
+	content string
+	client  string
+}
+
+func (e *SSHRunError) Error() string {
+	return fmt.Sprintf("SSH Run Error on %s: %s", e.client, e.content)
+}
 
 // SSH : Driver for handling ssh executions
 type SSH struct {
@@ -40,6 +60,7 @@ func (d *SSH) String() string {
 // set the goph Client
 func (d *SSH) Client() (*goph.Client, error) {
 	if d.SessionClient == nil {
+		log.Infof("re-establishing connection with %s ...", d.Host)
 		var err error
 		var client *goph.Client
 		var auth goph.Auth
@@ -71,7 +92,7 @@ func (d *SSH) Client() (*goph.Client, error) {
 			Timeout:  goph.DefaultTimeout,
 			Callback: callback,
 		})
-		if err != nil {
+		if err == nil {
 			d.SessionClient = client
 		}
 		return client, err
@@ -91,7 +112,10 @@ func (d *SSH) RunCommand(command string) (string, error) {
 	log.Debugf("Running remote command %s", command)
 	client, err := d.Client()
 	if err != nil {
-		return ``, err
+		return ``, &SSHConnectError{
+			content: err.Error(),
+			client:  d.Host,
+		}
 	}
 	if len(d.EnvVars) != 0 {
 		// add env variable to command
@@ -109,6 +133,7 @@ func (d *SSH) GetDetails() SystemDetails {
 	if d.Info == nil {
 		// TODO: Check for goph specific errors
 		// within RunCommand and only return errors that are not
+		log.Debugf("Checking platform details for %s", d.Host)
 		// goph specific
 		uname, err := d.RunCommand(`uname`)
 		// try windows command
