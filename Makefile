@@ -1,3 +1,4 @@
+version=fake
 # Example:
 #   make
 #   make prep-ci-ssh
@@ -18,7 +19,7 @@ prep-ci-local-windows:
 	cp ".\scripts\config.local.yaml" ".\config-test.yaml"
 	cat config-test.yaml
 
-ifneq($(findstring fake, $(version)), fake)
+ifneq ($(findstring fake, $(version)), fake)
 upgrade:
 	@echo ">>> Recreating version_num.go"
 	@echo 'package cmd\n\nconst Version = "$(version)"' > cmd/version_num.go

@@ -14,3 +14,4 @@ docker-compose.yaml
 ssh-key/ci/
 config-ci.yaml
 config-test.yaml
+tmp/

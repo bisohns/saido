@@ -183,7 +183,7 @@ func NewUptime(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var uptime Inspector
 	details := (*driver).GetDetails()
 	if !(details.IsDarwin || details.IsLinux || details.IsWindows) {
-		return nil, errors.New("Cannot use Uptime on drivers outside (linux, darwin)")
+		return nil, errors.New("Cannot use Uptime on drivers outside (linux, darwin, windows)")
 	}
 	if details.IsLinux {
 		uptime = &UptimeLinux{
