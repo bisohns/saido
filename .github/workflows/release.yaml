@@ -1,7 +1,7 @@
 name: goreleaser
 on:
   push:
-    branches: [main,feature/test-goreleaser]
+    branches: [main]
     tags:
         - 'v*'
 jobs:
