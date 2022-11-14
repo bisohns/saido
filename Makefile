@@ -1,10 +1,8 @@
 version=fake
 ifeq ($(OS),Windows_NT)
 bin=main.exe
-export=set
 else
 bin=main
-export=export
 endif
 # Example:
 #   make
@@ -51,7 +49,7 @@ endif
 
 .PHONY: build-frontend
 build-frontend:
-	cd web && $(export) BUILD_PATH=../cmd/build && CI=false yarn build && cd ..
+	cd web && export BUILD_PATH=../cmd/build && CI=false yarn build && cd ..
 
 .PHONY: serve-backend
 serve-backend:
