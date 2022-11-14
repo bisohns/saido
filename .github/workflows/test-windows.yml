@@ -1,8 +1,8 @@
 on: 
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [ main]
 name: Test-Windows
 jobs:
   test:
@@ -11,7 +11,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version:  '>=1.16'
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Choco Install make
@@ -20,6 +20,11 @@ jobs:
           args: install make
       - name: Setup config script 
         # using locals for Windows because github CI Windows platforms don't have docker
-        run: make prep-ci-local-windows
+        run: | 
+          make prep-ci-local-windows
+          make dependencies
+          make build-frontend
       - name: Test
-        run: go test -v ./...
+        run: | 
+          go mod tidy  
+          go test -v ./...
