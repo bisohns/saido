@@ -22,7 +22,9 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"runtime"
 	"strconv"
+	"strings"
 
 	"github.com/bisohns/saido/client"
 	"github.com/bisohns/saido/config"
@@ -50,13 +52,18 @@ func (f fsFunc) Open(name string) (fs.File, error) {
 
 func EmbedHandler(prefix, root string) http.Handler {
 	handler := fsFunc(func(name string) (fs.File, error) {
+		defaultPath := fmt.Sprintf("%s/index.html", root)
 		assetPath := path.Join(root, name)
+		if runtime.GOOS == "windows" {
+			defaultPath = strings.ReplaceAll(defaultPath, `/`, `\`)
+			assetPath = strings.ReplaceAll(assetPath, `/`, `\`)
+		}
 
 		// If we can't find the asset, return the default index.html
 		// build
 		f, err := build.Open(assetPath)
 		if os.IsNotExist(err) {
-			return build.Open(fmt.Sprintf("%s/index.html", root))
+			return build.Open(defaultPath)
 		}
 
 		// Otherwise assume this is a legitimate request routed
