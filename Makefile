@@ -40,6 +40,7 @@ endif
 dependencies:
 ifeq ($(bin),main.exe)
 	@make prep-ci-local-windows
+	yarn add react-scripts@latest
 else
 	@make prep-ci-local
 endif
@@ -48,7 +49,7 @@ endif
 
 .PHONY: build-frontend
 build-frontend:
-	cd web && yarn build && cd ..
+	cd web && export BUILD_PATH=../cmd/build && CI=false yarn build && cd ..
 
 .PHONY: serve-backend
 serve-backend:
