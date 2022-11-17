@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/bisohns/saido/driver"
-	"github.com/bisohns/saido/inspector"
+	// "github.com/bisohns/saido/driver"
+
 	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 
@@ -49,23 +49,6 @@ type Connection struct {
 	Host                 string
 }
 
-func (conn *Connection) ToDriver() driver.Driver {
-	switch conn.Type {
-	case "ssh":
-		return &driver.SSH{
-			User:            conn.Username,
-			Host:            conn.Host,
-			Port:            int(conn.Port),
-			KeyFile:         conn.PrivateKeyPath,
-			KeyPass:         conn.PrivateKeyPassPhrase,
-			Password:        conn.Password,
-			CheckKnownHosts: false,
-		}
-	default:
-		return &driver.Local{}
-	}
-}
-
 type Host struct {
 	Address    string
 	Alias      string
@@ -104,11 +87,8 @@ func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 	dashboardInfo.Hosts = parseConfig("root", "", config.Hosts, &Connection{})
 	for metric, customCommand := range config.Metrics {
 		metric := fmt.Sprintf("%v", metric)
-		if inspector.Valid(metric) {
-			metrics[metric] = fmt.Sprintf("%v", customCommand)
-		} else {
-			log.Fatalf("Found invalid metric %v", metric)
-		}
+		metrics[metric] = fmt.Sprintf("%v", customCommand)
+
 	}
 	dashboardInfo.Metrics = metrics
 	for _, host := range dashboardInfo.Hosts {

@@ -1,6 +1,6 @@
 on: 
   push:
-    branches: [ main, develop]
+    branches: [ main, develop,feature/test-goreleaser]
   pull_request:
     branches: [ main]
 name: Test-Linux
@@ -17,10 +17,11 @@ jobs:
       - name: Setup SSH server and config
         # run docker ssh container for ssh tests
         run: |
-          make prep-ci-ssh
           make dependencies
           make build-frontend
+          make prep-ci-ssh
       - name: Test
         run: | 
-          go mod tidy  
+          go mod tidy
+          ls /home/runner/work/saido/saido/ssh-key/ci/  
           go test -v ./...

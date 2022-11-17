@@ -47,7 +47,7 @@ func (hosts *HostsController) getDriver(address string) *driver.Driver {
 func (hosts *HostsController) resetDriver(host config.Host) {
 	hosts.mu.Lock()
 	defer hosts.mu.Unlock()
-	hostDriver := host.Connection.ToDriver()
+	hostDriver := driver.ToDriver(*host.Connection)
 	hosts.Drivers[host.Address] = &hostDriver
 }
 
@@ -175,6 +175,12 @@ func (hosts *HostsController) ServeHTTP(w http.ResponseWriter, req *http.Request
 // NewHostsController : initialze host controller with config file
 func NewHostsController(cfg *config.Config) *HostsController {
 	dashboardInfo := config.GetDashboardInfoConfig(cfg)
+	for metric, _ := range dashboardInfo.Metrics {
+		if !inspector.Valid(metric) {
+			log.Fatalf("%s is not a valid metric", metric)
+		}
+	}
+
 	hosts := &HostsController{
 		Info:            dashboardInfo,
 		Drivers:         make(map[string]*driver.Driver),

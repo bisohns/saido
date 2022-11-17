@@ -1,6 +1,6 @@
 on: 
   push:
-    branches: [ main, develop]
+    branches: [ main, develop,feature/test-goreleaser]
   pull_request:
     branches: [ main]
 name: Test-MacOs
