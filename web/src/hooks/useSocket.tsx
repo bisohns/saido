@@ -7,7 +7,9 @@ import {
 } from 'server/ServerType';
 
 const wssMetricsBaseURL = `${process.env.REACT_APP_WS_BASE_URL}/metrics`;
-
+const wssMetricsURL = `${
+  window.location.protocol === 'https:' ? 'wss' : 'ws'
+}://${window.location.host}/metrics`;
 /* 
   This hook is used to connect to the websocket server and send messages to it.
 */
@@ -29,8 +31,9 @@ export default function useSocket(options = {}) {
   const servicesGroupedByName: ServerGroupedByNameResponseType = servers.reduce(
     (group: any, server: any) => {
       const { Message } = server;
-      const { Name } = Message;
+      const { Name,Host } = Message;
       group[Name] = group[Name] ?? [];
+      group[Name].host = Host;
       group[Name].push(server);
       return group;
     },
@@ -40,7 +43,10 @@ export default function useSocket(options = {}) {
   //   Uncomment during debugging
   //   console.log('server', servers);
 
-  const { sendJsonMessage, readyState } = useWebSocket(wssMetricsBaseURL, {
+  let socketUrl =
+    process.env.NODE_ENV === 'production' ? wssMetricsURL : wssMetricsBaseURL;
+
+  const { sendJsonMessage, readyState } = useWebSocket(socketUrl, {
     onOpen: () => console.log('WebSocket connection opened.'),
     onClose: () => console.log('WebSocket connection closed.'),
     shouldReconnect: (closeEvent) => true,
