@@ -60,20 +60,24 @@ export default function ServerDetail({
 
           {Object.keys(servicesGroupedByName)
             ?.sort()
-            ?.map((serverName: string, index: number) => (
-              <div key={index}>
-                {index === tabIndex && (
-                  <ServerDetailServicesTabPanel
-                    serverName={serverName as ServerServiceNameType}
-                    serverData={
-                      servicesGroupedByName[
-                        serverName as ServerServiceNameType
-                      ]?.at(-1) as ServerResponseType
-                    } // get the last object of service
-                  />
-                )}
-              </div>
-            ))}
+            ?.map((serverName: string, index: number) => {
+              if (host !== servicesGroupedByName[serverName].host) return null;
+
+              return (
+                <div key={index}>
+                  {index === tabIndex && (
+                    <ServerDetailServicesTabPanel
+                      serverName={serverName as ServerServiceNameType}
+                      serverData={
+                        servicesGroupedByName[
+                          serverName as ServerServiceNameType
+                        ]?.at(-1) as ServerResponseType
+                      } // get the last object of service
+                    />
+                  )}
+                </div>
+              );
+            })}
         </>
       </LoadingContent>
     </Container>
