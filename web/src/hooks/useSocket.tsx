@@ -32,9 +32,8 @@ export default function useSocket(options = {}) {
     (group: any, server: any) => {
       const { Message } = server;
       const { Name,Host } = Message;
-      group[Name] = group[Name] ?? [];
-      group[Name].host = Host;
-      group[Name].push(server);
+      group[Name] = group[Name] ?? { data: [], Host };
+      group[Name].data.push(server);
       return group;
     },
     {}

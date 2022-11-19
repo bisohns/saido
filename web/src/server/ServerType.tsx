@@ -59,5 +59,9 @@ export interface ServerGroupedByHostResponseType {
 }
 
 export interface ServerGroupedByNameResponseType {
-  [Name: string]: ServerResponseType[];
+  [Name: string]: {
+    data:ServerResponseType[];
+    Host:string;
+  }
+
 }

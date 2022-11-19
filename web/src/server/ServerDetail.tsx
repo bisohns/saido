@@ -61,7 +61,7 @@ export default function ServerDetail({
           {Object.keys(servicesGroupedByName)
             ?.sort()
             ?.map((serverName: string, index: number) => {
-              if (host !== servicesGroupedByName[serverName].host) return null;
+              if (host !== servicesGroupedByName[serverName].Host) return null;
 
               return (
                 <div key={index}>
@@ -71,7 +71,7 @@ export default function ServerDetail({
                       serverData={
                         servicesGroupedByName[
                           serverName as ServerServiceNameType
-                        ]?.at(-1) as ServerResponseType
+                        ]?.data?.at(-1) as ServerResponseType
                       } // get the last object of service
                     />
                   )}
