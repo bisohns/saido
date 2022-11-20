@@ -74,8 +74,8 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 		hosts.resetDriver(host)
 	}
 	for metric, custom := range hosts.Info.Metrics {
-		driver := hosts.getDriver(host.Address)
-		initializedMetric, err := inspector.Init(metric, driver, custom)
+		inspectorDriver := hosts.getDriver(host.Address)
+		initializedMetric, err := inspector.Init(metric, inspectorDriver, custom)
 		if err != nil {
 			log.Error(err)
 		}
@@ -86,7 +86,7 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 			message := &SendMessage{
 				Message: Message{
 					Host:     host.Address,
-					Platform: (*driver).GetDetails().Name,
+					Platform: (*inspectorDriver).GetDetails().Name,
 					Name:     metric,
 					Data:     unmarsh,
 				},
@@ -99,12 +99,15 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 			// check for error 127 which means command was not found
 			var errorContent string
 			if !strings.Contains(fmt.Sprintf("%s", err), "127") {
-				errorContent = fmt.Sprintf("Could not retrieve metric %s from driver %s with error %s, resetting connection...", metric, host.Address, err)
+				errorContent = fmt.Sprintf("Could not retrieve metric %s from driver %s with error %s", metric, host.Address, err)
 			} else {
 				errorContent = fmt.Sprintf("Command %s not found on driver %s", metric, host.Address)
 			}
-			log.Error(errorContent)
-			hosts.resetDriver(host)
+			log.Debug(errorContent)
+			//FIXME: what kind of errors do we especially want to reset driver for
+			if _, ok := err.(*driver.SSHConnectError); ok {
+				hosts.resetDriver(host)
+			}
 			message := &SendMessage{
 				Message: ErrorMessage{
 					Error: errorContent,
@@ -128,7 +131,7 @@ func (hosts *HostsController) Poll(client *Client) {
 				go hosts.sendMetric(host, client)
 			}
 		}
-		log.Infof("Delaying for %d seconds", hosts.Info.PollInterval)
+		log.Debugf("Delaying for %d seconds", hosts.Info.PollInterval)
 		time.Sleep(time.Duration(hosts.Info.PollInterval) * time.Second)
 	}
 }

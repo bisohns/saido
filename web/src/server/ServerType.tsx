@@ -8,11 +8,12 @@ export type ServerServiceNameType =
   | "tcp";
 
   export type ServerResponseMessageData =
-  | Array<DiskData>
-  | MemoryData
-  | DockerData
-  | UptimeData
-  | ProcessData;
+    | Array<DiskData>
+    | MemoryData
+    | DockerData
+    | UptimeData
+    | ProcessData
+    | LoadingAvgData;
 
 export interface ServerResponseType<T = ServerResponseMessageData> {
   Error: boolean;
@@ -41,6 +42,12 @@ export interface DiskData {
   VolumeName: string;
 }
 
+export interface LoadingAvgData {
+  Load1M:number;
+  Load5M:number;
+  Load15M:number;
+}
+
 export interface DockerData {}
 
 export interface UptimeData {}
@@ -52,5 +59,9 @@ export interface ServerGroupedByHostResponseType {
 }
 
 export interface ServerGroupedByNameResponseType {
-  [Name: string]: ServerResponseType[];
+  [Name: string]: {
+    data:ServerResponseType[];
+    Host:string;
+  }
+
 }

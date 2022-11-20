@@ -4,7 +4,6 @@ package inspector
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -64,7 +63,8 @@ func (i *TcpDarwin) Parse(output string) {
 			portString := address[len(address)-1]
 			port, err := strconv.Atoi(portString)
 			if err != nil {
-				log.Fatal("Could not parse port number in TcpDarwin")
+				log.Error("Could not parse port number in TcpDarwin")
+				continue
 			}
 			ports[port] = status
 
@@ -108,7 +108,6 @@ Proto Recv-Q Send-Q Local Address           Foreign Address         State       
 tcp        0      0 172.17.0.2:2222         172.17.0.1:51874        ESTABLISHED 2104/sshd.pam: ci-d
 */
 func (i *TcpLinux) Parse(output string) {
-	fmt.Println(output)
 	ports := make(map[int]string)
 	lines := strings.Split(output, "\n")
 	for index, line := range lines {
@@ -193,7 +192,8 @@ func (i *TcpWin) Parse(output string) {
 			portString := address[len(address)-1]
 			port, err := strconv.Atoi(portString)
 			if err != nil {
-				log.Fatal("Could not parse port number in TcpWin")
+				log.Error("Could not parse port number in TcpWin")
+				continue
 			}
 			ports[port] = status
 

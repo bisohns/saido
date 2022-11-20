@@ -7,12 +7,15 @@ import {
 } from 'server/ServerType';
 
 const wssMetricsBaseURL = `${process.env.REACT_APP_WS_BASE_URL}/metrics`;
-
+const wssMetricsURL = `${
+  window.location.protocol === 'https:' ? 'wss' : 'ws'
+}://${window.location.host}/metrics`;
 /* 
   This hook is used to connect to the websocket server and send messages to it.
 */
 export default function useSocket(options = {}) {
   const [servers, setServers] = useState<ServerResponseType[]>([]);
+  const [updateCount, setUpdateCount] = useState<number>(0);
 
   const serversGroupedByHost: ServerGroupedByHostResponseType = servers.reduce(
     (group: any, server) => {
@@ -26,26 +29,30 @@ export default function useSocket(options = {}) {
   );
 
   const servicesGroupedByName: ServerGroupedByNameResponseType = servers.reduce(
-    (group: any, server:any) => {
+    (group: any, server: any) => {
       const { Message } = server;
-      const { Name } = Message;
-      group[Name] = group[Name] ?? [];
-      group[Name].push(server)
+      const { Name,Host } = Message;
+      group[Name] = group[Name] ?? { data: [], Host };
+      group[Name].data.push(server);
       return group;
     },
     {}
   );
 
-//   Uncomment during debugging
-//   console.log('server', servers);
+  //   Uncomment during debugging
+  //   console.log('server', servers);
 
-  const { sendJsonMessage, readyState } = useWebSocket(wssMetricsBaseURL, {
+  let socketUrl =
+    process.env.NODE_ENV === 'production' ? wssMetricsURL : wssMetricsBaseURL;
+
+  const { sendJsonMessage, readyState } = useWebSocket(socketUrl, {
     onOpen: () => console.log('WebSocket connection opened.'),
     onClose: () => console.log('WebSocket connection closed.'),
     shouldReconnect: (closeEvent) => true,
     onMessage: (event: WebSocketEventMap['message']) => {
       const newMessage: ServerResponseType = JSON.parse(event.data);
-      if (newMessage.Error) return;
+      // if (newMessage.Error) return;
+      setUpdateCount((updateCount) => updateCount + 1);
       setServers((prev) => prev.concat(newMessage));
     },
     ...options,
@@ -65,5 +72,6 @@ export default function useSocket(options = {}) {
     servers,
     serversGroupedByHost,
     servicesGroupedByName,
+    updateCount,
   };
 }

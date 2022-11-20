@@ -15,3 +15,6 @@ ssh-key/ci/
 config-ci.yaml
 config-test.yaml
 tmp/
+cmd/build/
+*-packr.go
+.air.toml

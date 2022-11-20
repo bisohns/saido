@@ -6,4 +6,5 @@ export const ServerNameEnum = {
   PROCESS: "process",
   LOAD_AVG: "loadavg",
   TCP: "tcp",
+  CUSTOM:'custom'
 };

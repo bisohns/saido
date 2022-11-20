@@ -6,12 +6,16 @@ import { ReactComponent as ServerIcon } from 'assets/svg/server.svg';
 import LoadingContent from 'common/LoadingContent';
 import ThemeConfig from 'ThemeConfig';
 import useSocket from 'hooks/useSocket';
+import { ServerGroupedByHostResponseType } from './ServerType';
 
-export default function ServerList() {
+export default function ServerList({
+  serversGroupedByHost,
+}: {
+  serversGroupedByHost: ServerGroupedByHostResponseType;
+}) {
   const navigate = useNavigate();
 
-  const { connectionStatus, sendJsonMessage, serversGroupedByHost } =
-    useSocket();
+  const { connectionStatus, sendJsonMessage } = useSocket();
 
   useEffect(() => {
     sendJsonMessage({ FilterBy: '' });
