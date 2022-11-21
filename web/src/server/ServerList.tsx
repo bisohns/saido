@@ -10,12 +10,15 @@ import { ServerGroupedByHostResponseType } from './ServerType';
 
 export default function ServerList({
   serversGroupedByHost,
+  connectionStatus,
+  sendJsonMessage
 }: {
   serversGroupedByHost: ServerGroupedByHostResponseType;
+  connectionStatus: string;
+  sendJsonMessage:(arg0: any)=>void;
 }) {
   const navigate = useNavigate();
 
-  const { connectionStatus, sendJsonMessage } = useSocket();
 
   useEffect(() => {
     sendJsonMessage({ FilterBy: '' });
