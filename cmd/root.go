@@ -40,11 +40,6 @@ var rootCmd = &cobra.Command{
 	Long:  ``,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// Log only errors except in Verbose mode
-		if verbose {
-			log.SetLevel(log.DebugLevel)
-		} else {
-			log.SetLevel(log.InfoLevel)
-		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		fmt.Println("\n\nSaido - Bisohns (2020) (https://github.com/bisohns/saido)")
@@ -61,8 +56,4 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-}
-
-func init() {
-	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Run saido in verbose mode")
 }

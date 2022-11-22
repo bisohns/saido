@@ -73,6 +73,11 @@ var apiCmd = &cobra.Command{
 	Short: "Run saido dashboard on a PORT env variable, fallback to set argument",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+		if verbose {
+			log.SetLevel(log.DebugLevel)
+		} else {
+			log.SetLevel(log.InfoLevel)
+		}
 		cfg = config.LoadConfig(cfgFile)
 		hosts := client.NewHostsController(cfg)
 
@@ -98,6 +103,7 @@ var apiCmd = &cobra.Command{
 
 func init() {
 	apiCmd.Flags().StringVarP(&port, "port", "p", "3000", "Port to run application server on")
+	apiCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Run saido in verbose mode")
 	apiCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to config file")
 	cobra.MarkFlagRequired(apiCmd.PersistentFlags(), "config")
 	rootCmd.AddCommand(apiCmd)
