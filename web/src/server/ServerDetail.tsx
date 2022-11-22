@@ -16,13 +16,16 @@ import {
 
 export default function ServerDetail({
   servicesGroupedByName,
+  connectionStatus,
+  sendJsonMessage
 }: {
   servicesGroupedByName: ServerGroupedByNameResponseType;
+  connectionStatus: string;
+  sendJsonMessage:(arg0: any)=>void;
 }) {
   const { host } = useParams<{ host: string }>();
 
   const [tabIndex, setTabIndex] = React.useState<number>(0);
-  const { connectionStatus, sendJsonMessage } = useSocket();
   sendJsonMessage({ FilterBy: host });
 
   const handleChangeTabIndex = (

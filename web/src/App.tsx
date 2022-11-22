@@ -8,7 +8,7 @@ import AppHeader from './AppHeader';
 import useSocket from 'hooks/useSocket';
 
 function App() {
-  const { servicesGroupedByName, serversGroupedByHost, updateCount } =
+  const { servicesGroupedByName, serversGroupedByHost, updateCount ,connectionStatus,sendJsonMessage} =
     useSocket();
 
   const [servicesGroupByName, setServicesGroupByName] = React.useState<any>({});
@@ -26,11 +26,11 @@ function App() {
   const router = createBrowserRouter([
     {
       path: '/',
-      element: <ServerList serversGroupedByHost={servicesGroupByHost} />,
+      element: <ServerList serversGroupedByHost={servicesGroupByHost}  connectionStatus={connectionStatus} sendJsonMessage={sendJsonMessage}/>,
     },
     {
       path: '/:host',
-      element: <ServerDetail servicesGroupedByName={servicesGroupByName} />,
+      element: <ServerDetail servicesGroupedByName={servicesGroupByName} connectionStatus={connectionStatus} sendJsonMessage={sendJsonMessage} />,
     },
   ]);
 
