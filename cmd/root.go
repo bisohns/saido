@@ -17,21 +17,31 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"strconv"
 
+	"github.com/bisohns/saido/client"
+	"github.com/bisohns/saido/config"
+	"github.com/gorilla/handlers"
+	"github.com/pkg/browser"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
-	"github.com/bisohns/saido/config"
-)
-
-var (
-	// Verbose : Should display verbose logs
-	verbose       bool
-	dashboardInfo *config.DashboardInfo
 )
 
 const appName = "saido"
+
+var (
+	port   string
+	server = http.NewServeMux()
+	// Verbose : Should display verbose logs
+	verbose bool
+	// open browser
+	browserFlag bool
+
+	cfgFile string
+	cfg     *config.Config
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -45,7 +55,30 @@ var rootCmd = &cobra.Command{
 		fmt.Println("\n\nSaido - Bisohns (2020) (https://github.com/bisohns/saido)")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Info("Run dashboard with the [dashboard] subcommand. Feel free to drop a star at https://github.com/bisohns/saido")
+		if verbose {
+			log.SetLevel(log.DebugLevel)
+		} else {
+			log.SetLevel(log.InfoLevel)
+		}
+		cfg = config.LoadConfig(cfgFile)
+		hosts := client.NewHostsController(cfg)
+
+		server.Handle("/metrics", hosts)
+		log.Info("listening on :", port)
+		_, err := strconv.Atoi(port)
+		if err != nil {
+			log.Fatal(err)
+		}
+		go hosts.Run()
+		loggedRouters := handlers.LoggingHandler(os.Stdout, server)
+		// Trigger browser open
+		url := fmt.Sprintf("http://localhost:%s", port)
+		if browserFlag {
+			browser.OpenURL(url)
+		}
+		if err := http.ListenAndServe(":"+port, loggedRouters); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -56,4 +89,12 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func init() {
+	rootCmd.Flags().StringVarP(&port, "port", "p", "3000", "Port to run application server on")
+	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Run saido in verbose mode")
+	rootCmd.Flags().BoolVarP(&browserFlag, "open-browser", "b", false, "Prompt open browser")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to config file")
+	cobra.MarkFlagRequired(rootCmd.PersistentFlags(), "config")
 }

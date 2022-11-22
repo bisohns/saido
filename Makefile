@@ -53,8 +53,11 @@ endif
 build-frontend:
 	cd web && export BUILD_PATH=../cmd/build && CI=false yarn build && cd ..
 
-.PHONY: serve-backend
-serve-backend:
-	air --build.cmd "go build -o ./tmp/$(bin) ." --build.bin "$(build_bin)" --build.exclude_dir "assets,docs,tmp,web,scripts,ssh-key,.github,.git" --build.include_ext "go,yaml,html,js" --build.exclude_file "config.example.yaml" --build.args_bin "dashboard,--config,config-test.yaml,--verbose" --build.stop_on_error true --misc.clean_on_exit true --log.time true
+.PHONY: dev-backend
+dev-backend:
+	air --build.cmd "go build -o ./tmp/$(bin) ." --build.bin "$(build_bin)" --build.exclude_dir "assets,docs,tmp,web,scripts,ssh-key,.github,.git" --build.include_ext "go,yaml,html,js" --build.exclude_file "config.example.yaml" --build.args_bin "--config,config-test.yaml,--verbose" --build.stop_on_error true --misc.clean_on_exit true --log.time true
 
-app: build-frontend serve-backend
+prod-monolith:
+	go build -tags prod -o ./tmp/$(bin) . && $(build_bin) --config config-test.yaml -b
+
+app: build-frontend prod-monolith
