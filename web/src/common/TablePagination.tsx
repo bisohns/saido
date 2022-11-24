@@ -1,53 +1,65 @@
-import { IconButton, Icon } from "@mui/material";
+import { Icon, IconButton } from "@mui/material";
 import clsx from "clsx";
-import "./TablePagination.css";
+// import "./Pagination.css";
 
 /**
  *
  * @param {TablePaginationProps} props
  */
-function TablePagination(props: { instance: any; className: string }) {
-  const { instance, className, ...rest } = props;
-  const { state, rows } = instance;
+function Pagination(props: any) {
+  const { instance, className, classes, ...rest } = props;
+
   return (
-    <div className={clsx("TablePagination", className)} {...rest}>
-      <span className="text-paragraph mr-4">
-        {state.pageSize * state.pageIndex + 1} -{" "}
-        {state.pageSize * (state.pageIndex + 1)} of{" "}
-        {instance.manualPagination ? instance.dataCount || 0 : rows.length}
+    <div className={clsx("Pagination", className, classes?.root)} {...rest}>
+      <span className={clsx("Pagination__info", classes?.info)}>
+        {instance.getState().pagination?.pageSize *
+          instance.getState().pagination?.pageIndex +
+          1}{" "}
+        -{" "}
+        {instance.getState().pagination?.pageSize *
+          (instance.getState().pagination?.pageIndex + 1)}{" "}
+        of{" "}
+        {instance.options.manualPagination
+          ? (instance.options?.pageCount || 0) *
+              instance.getState().pagination.pageSize -
+            (instance.getState().pagination.pageSize -
+              instance.getPrePaginationRowModel().rows.length)
+          : instance.getPrePaginationRowModel().rows.length}
       </span>
       <IconButton
         color="inherit"
         size="small"
-        onClick={() => instance.gotoPage(0)}
-        disabled={!instance.canPreviousPage}
+        onClick={() => instance.setPageIndex(0)}
+        disabled={!instance.getCanPreviousPage()}
       >
         <Icon>first_page</Icon>
       </IconButton>
       <IconButton
         color="inherit"
         size="small"
-        onClick={instance.previousPage}
-        disabled={!instance.canPreviousPage}
+        onClick={() => instance.previousPage()}
+        disabled={!instance.getCanPreviousPage()}
       >
         <Icon>navigate_before</Icon>
       </IconButton>
-      <div className="rounded w-8 h-8 flex justify-center items-center">
-        <h5 className="">{state.pageIndex + 1}</h5>
+      <div className={clsx("Pagination__page", classes?.page)}>
+        <h5 className={clsx("Pagination__pageText", classes?.pageText)}>
+          {instance.getState()?.pagination?.pageIndex + 1}
+        </h5>
       </div>
       <IconButton
         color="inherit"
         size="small"
-        onClick={instance.nextPage}
-        disabled={!instance.canNextPage}
+        onClick={() => instance.nextPage()}
+        disabled={!instance.getCanNextPage()}
       >
         <Icon>navigate_next</Icon>
       </IconButton>
       <IconButton
         color="inherit"
         size="small"
-        onClick={() => instance.gotoPage(instance.pageOptions.length - 1)}
-        disabled={!instance.canNextPage}
+        onClick={() => instance.setPageIndex(instance.getPageCount() - 1)}
+        disabled={!instance.getCanNextPage()}
       >
         <Icon>last_page</Icon>
       </IconButton>
@@ -55,8 +67,10 @@ function TablePagination(props: { instance: any; className: string }) {
   );
 }
 
-export default TablePagination;
+export default Pagination;
 
 /**
- * @typedef {{instance: import("react-table").TableInstance} & import("react").ComponentPropsWithoutRef<'div'>} TablePaginationProps
+ * @typedef {{
+ * instance: import("@tanstack/react-table").Table<any>
+ * } & import("react").ComponentPropsWithoutRef<'div'>} TablePaginationProps
  */
