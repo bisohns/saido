@@ -9,6 +9,8 @@ builds:
       - linux
       - windows
       - darwin
+    flags:
+      - -tags=prod
 archives:
   - replacements:
       darwin: Darwin

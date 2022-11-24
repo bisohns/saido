@@ -19,7 +19,7 @@ For personal usage, install latest from [Github Releases](https://github.com/bis
 
 ```bash
 # binary is downloaded and named as saido
-saido dashboard --config config.yaml --port 3000
+saido --config config.yaml --port 3000 --verbose
 ```
 
 
