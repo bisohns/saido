@@ -11,15 +11,15 @@ export const theme: any = customizeComponents({
       black: "#000000",
     },
     primary: {
-      light: "#9ac5f2",
-      main: "#1a4879",
-      dark: "#1f436c",
-      //   contrastText: "3379c6",
+      light: "#9ac4f241",
+      main: "#588dc5",
+      dark: "#61a3ef8e",
+      contrastText: "#FFFFFF",
     },
     secondary: {
       light: "#74CAFF",
       // main: "#1890FF",
-      main: "#1890FF",
+      main: "#9cc1e7",
       dark: "#0C53B7",
       contrastText: "#FFFFFF",
     },
@@ -115,6 +115,31 @@ export const theme: any = customizeComponents({
         PaperProps: {
           style: {
             borderRadius: 10,
+          },
+        },
+      },
+    },
+    MuiTabs: {
+      defaultProps: {
+        variant: "scrollable",
+        scrollButtons: "auto",
+        allowScrollButtonsMobile: true,
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          padding: 3,
+          minWidth: 10,
+          marginRight: 30,
+        },
+      },
+      defaultProps: {
+        sx: {
+          typography: {
+            fontSize: 14,
+            textTransform: "capitalize",
+            fontWeight: 550,
           },
         },
       },

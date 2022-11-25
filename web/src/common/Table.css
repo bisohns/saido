@@ -2,6 +2,7 @@
   min-height: 300px;
   max-height: calc(100vh - 250px);
   overflow: auto;
+  border: 2px solid #9ac4f215
 }
 .Table {
   
@@ -42,7 +43,7 @@
 .Table__table__header__row,
 .Table__table__body__row,
 .Table__table__footer__row {
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid #9ac4f215;
 }
 
 .Table__table__header__row--relative,
@@ -64,7 +65,8 @@
 .Table__table__body__row__cell,
 .Table__table__footer__row__cell {
   position: relative;
-  background-color: white;
+  background-color: black;
+  color: rgba(255, 255, 255, 0.713);
   padding: 8px;
   /* height: 48px; */
   text-align: left;

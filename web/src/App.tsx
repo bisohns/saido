@@ -1,15 +1,20 @@
-import React from 'react';
+import React from "react";
 
-import AppThemeProvider from './AppThemeProvider';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import ServerList from './server/ServerList';
-import ServerDetail from './server/ServerDetail';
-import AppHeader from './AppHeader';
-import useSocket from 'hooks/useSocket';
+import AppThemeProvider from "./AppThemeProvider";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ServerList from "./server/ServerList";
+import ServerDetail from "./server/ServerDetail";
+import useSocket from "hooks/useSocket";
+import ThemeConfig from "ThemeConfig";
 
 function App() {
-  const { servicesGroupedByName, serversGroupedByHost, updateCount ,connectionStatus,sendJsonMessage} =
-    useSocket();
+  const {
+    servicesGroupedByName,
+    serversGroupedByHost,
+    updateCount,
+    connectionStatus,
+    sendJsonMessage,
+  } = useSocket();
 
   const [servicesGroupByName, setServicesGroupByName] = React.useState<any>({});
 
@@ -25,21 +30,37 @@ function App() {
 
   const router = createBrowserRouter([
     {
-      path: '/',
-      element: <ServerList serversGroupedByHost={servicesGroupByHost}  connectionStatus={connectionStatus} sendJsonMessage={sendJsonMessage}/>,
+      path: "/",
+      element: (
+        <ServerList
+          serversGroupedByHost={servicesGroupByHost}
+          connectionStatus={connectionStatus}
+          sendJsonMessage={sendJsonMessage}
+        />
+      ),
     },
     {
-      path: '/:host',
-      element: <ServerDetail servicesGroupedByName={servicesGroupByName} connectionStatus={connectionStatus} sendJsonMessage={sendJsonMessage} />,
+      path: "/:host",
+      element: (
+        <ServerDetail
+          servicesGroupedByName={servicesGroupByName}
+          connectionStatus={connectionStatus}
+          sendJsonMessage={sendJsonMessage}
+        />
+      ),
     },
   ]);
 
   return (
     <AppThemeProvider>
-      <>
-        <AppHeader />
+      <div
+        style={{
+          background: `${ThemeConfig.palette.common.black}`,
+          minHeight: "100vh",
+        }}
+      >
         <RouterProvider router={router} />
-      </>
+      </div>
     </AppThemeProvider>
   );
 }

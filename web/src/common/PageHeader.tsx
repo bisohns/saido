@@ -50,6 +50,7 @@ function PageHeader(props: PageHeaderType) {
         {beforeTitle}
         <Typography
           variant="h5"
+          color="primary"
           className={clsx("PageHeader__title", classes?.title)}
         >
           {title}

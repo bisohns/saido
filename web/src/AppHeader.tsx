@@ -6,15 +6,19 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
+import { Link } from "react-router-dom";
+
+import Logo from "assets/img/saido-trans.png";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  backgroundColor: alpha(theme.palette.common.white, 0.1),
   "&:hover": {
     backgroundColor: alpha(theme.palette.common.white, 0.25),
   },
   marginLeft: 0,
+  color: theme.palette.common.white,
   width: "100%",
   [theme.breakpoints.up("sm")]: {
     marginLeft: theme.spacing(1),
@@ -25,6 +29,7 @@ const Search = styled("div")(({ theme }) => ({
 const SearchIconWrapper = styled("div")(({ theme }) => ({
   padding: theme.spacing(0, 2),
   height: "100%",
+  color: theme.palette.primary.light,
   position: "absolute",
   pointerEvents: "none",
   display: "flex",
@@ -52,16 +57,13 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function AppHeader() {
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
+      <AppBar position="static" color="transparent">
         <Toolbar>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{ flexGrow: 1, display: { xs: "none", sm: "block" } }}
-          >
-            Saido
-          </Typography>
+          <Box sx={{ flexGrow: 1, display: { xs: "none", sm: "block" } }}>
+            <Link to={"/"}>
+              <img style={{ maxWidth: "120px" }} src={Logo} alt="Saido" />
+            </Link>
+          </Box>
 
           <Search>
             <SearchIconWrapper>

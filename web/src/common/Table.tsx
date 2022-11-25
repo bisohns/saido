@@ -413,7 +413,7 @@ function renderBody(instance: TanTable<any>, props: TableProps) {
   const Body = props.Body || isDefault ? "tbody" : "div";
   const BodyProps = props.BodyProps?.(instance, props);
   const { rows } = instance.getRowModel();
-  console.log("rows.length", rows);
+
   const { virtualItems: virtualRows, totalSize } = props.virtualizationInstance;
   const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
   const paddingBottom =
