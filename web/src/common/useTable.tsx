@@ -1,9 +1,4 @@
-import {
-  useReactTable,
-  getPaginationRowModel,
-  TableOptions,
-  getCoreRowModel,
-} from "@tanstack/react-table";
+import { useReactTable, TableOptions } from "@tanstack/react-table";
 
 /**
  *
@@ -12,15 +7,9 @@ import {
  */
 function useTable(options: TableOptions<any>) {
   return useReactTable({
-    // getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     debugTable: true,
     ...options,
     data: options.data || [],
-    // defaultColumn: {
-    //   // cell: (info) => <Typography>{info.getValue()}</Typography>,
-    //   ...options?.defaultColumn,
-    // },
   });
 }
 

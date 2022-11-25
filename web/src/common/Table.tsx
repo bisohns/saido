@@ -9,12 +9,12 @@ import {
 import clsx from "clsx";
 import TablePagination from "./TablePagination";
 import "./Table.css";
-import { ReactNode } from "react";
+import React, { ReactNode, Ref } from "react";
 
 interface TableProps {
   variant: "default" | "absolute" | "relative";
   instance: TanTable<any>;
-  classes: {
+  classes?: {
     [P in
       | "root"
       | "row"
@@ -33,6 +33,8 @@ interface TableProps {
       | "footer"]: string;
   };
   flexRender: Function;
+  virtualizationInstance: any;
+  virtualization: boolean;
   onReload: () => void;
   Root: any;
   RootProps: (instance: TanTable<any>, props: TableProps) => any;
@@ -139,9 +141,13 @@ interface TableProps {
  *
  * @param {TableProps} props
  */
-function Table(props: any) {
-  return props.renderRoot(props.instance, props);
-}
+const Table = React.forwardRef((props: any, ref: Ref<HTMLDivElement>) => {
+  return (
+    <div ref={ref} className="Table__container">
+      {props.renderRoot(props.instance, props)}
+    </div>
+  );
+});
 
 /**
  * @type {TableProps}
@@ -149,7 +155,8 @@ function Table(props: any) {
 Table.defaultProps = {
   header: true,
   footer: false,
-  pagination: true,
+  pagination: false,
+  virtualization: false,
   flexRender,
   renderRoot,
   renderTable,
@@ -405,6 +412,14 @@ function renderBody(instance: TanTable<any>, props: TableProps) {
   // const isRelative = props.variant === "relative";
   const Body = props.Body || isDefault ? "tbody" : "div";
   const BodyProps = props.BodyProps?.(instance, props);
+  const { rows } = instance.getRowModel();
+  console.log("rows.length", rows);
+  const { virtualItems: virtualRows, totalSize } = props.virtualizationInstance;
+  const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
+  const paddingBottom =
+    virtualRows.length > 0
+      ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0)
+      : 0;
 
   return (
     <Body
@@ -417,10 +432,32 @@ function renderBody(instance: TanTable<any>, props: TableProps) {
         ),
       }}
     >
-      {BodyProps?.children ||
-        instance
-          .getPaginationRowModel()
-          .rows.map((bodyRow) => props.renderBodyRow(bodyRow, instance, props))}
+      <>
+        {props.virtualization ? (
+          <>
+            {paddingTop > 0 && (
+              <tr>
+                <td style={{ height: `${paddingTop}px` }} />
+              </tr>
+            )}
+            {virtualRows.map((virtualRow: any) =>
+              props.renderBodyRow(rows[virtualRow.index], instance, props)
+            )}
+            {paddingBottom > 0 && (
+              <tr>
+                <td style={{ height: `${paddingBottom}px` }} />
+              </tr>
+            )}
+          </>
+        ) : (
+          BodyProps?.children ||
+          instance
+            .getPaginationRowModel()
+            .rows.map((bodyRow) =>
+              props.renderBodyRow(bodyRow, instance, props)
+            )
+        )}
+      </>
     </Body>
   );
 }

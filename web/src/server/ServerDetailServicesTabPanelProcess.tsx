@@ -1,4 +1,5 @@
 import { getCoreRowModel } from "@tanstack/react-table";
+import { useVirtual } from "react-virtual";
 import Table from "common/Table";
 import useTable from "common/useTable";
 import React from "react";
@@ -19,37 +20,33 @@ export default function ServerDetailServicesTabPanelProcess(
   props: ServerDetailServicesTabPanelProcessType
 ) {
   const tableInstance = useTable({
-    getCoreRowModel: getCoreRowModel(),
-    initialState: { pagination: { pageSize: 30 } },
-    columns,
     data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
   });
+
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const { rows } = tableInstance.getRowModel();
+
+  const rowVirtualizer = useVirtual({
+    parentRef: tableContainerRef,
+    size: rows.length,
+    overscan: 10,
+  });
+
   return (
-    <div>
-      <Table instance={tableInstance} />
-    </div>
+    <Table
+      ref={tableContainerRef}
+      variant="default"
+      virtualization
+      instance={tableInstance}
+      virtualizationInstance={rowVirtualizer}
+    />
   );
 }
 
 const columns = [
-  // {
-  //   header: "Name",
-  //   footer: (props) => props.column.id,
-  //   columns: [
-  //     {
-  //       accessorKey: "firstname",
-  //       cell: (info) => info.getValue(),
-  //       footer: (props) => props.column.id
-  //     },
-  //     {
-  //       accessorFn: (row) => row.lastName,
-  //       id: "lastname",
-  //       cell: (info) => info.getValue(),
-  //       header: () => <span>Last Name</span>,
-  //       footer: (props) => props.column.id
-  //     }
-  //   ]
-  // },
   {
     header: "First Name",
     accessorKey: "firstname",
@@ -68,7 +65,7 @@ const columns = [
   },
 ];
 
-const data = Array(100).fill({
+const data = Array(1000).fill({
   firstname: "Joseph",
   lastname: "Edache",
   message: "Hello",
