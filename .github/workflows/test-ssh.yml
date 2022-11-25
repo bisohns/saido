@@ -23,5 +23,4 @@ jobs:
       - name: Test
         run: | 
           go mod tidy
-          ls /home/runner/work/saido/saido/ssh-key/ci/  
           go test -v ./...
