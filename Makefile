@@ -40,7 +40,7 @@ endif
 dependencies:
 ifeq ($(bin),main.exe)
 	@make prep-ci-local-windows
-	yarn add react-scripts@latest
+	cd web && yarn add react-scripts@latest
 else
 	@make prep-ci-local
 endif
