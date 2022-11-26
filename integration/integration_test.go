@@ -35,11 +35,18 @@ func NewSSHForTest() driver.Driver {
 	yamlPath := fmt.Sprintf("%s/%s", workingDir, "config-test.yaml")
 	conf := config.LoadConfig(yamlPath)
 	dashboardInfo := config.GetDashboardInfoConfig(conf)
+	var host config.Host
+	for ind := range dashboardInfo.Hosts {
+		if dashboardInfo.Hosts[ind].Address == "0.0.0.0" {
+			host = dashboardInfo.Hosts[ind]
+		}
+	}
+
 	return &driver.SSH{
-		User:            dashboardInfo.Hosts[0].Connection.Username,
-		Host:            dashboardInfo.Hosts[0].Address,
-		Port:            int(dashboardInfo.Hosts[0].Connection.Port),
-		KeyFile:         dashboardInfo.Hosts[0].Connection.PrivateKeyPath,
+		User:            host.Connection.Username,
+		Host:            host.Address,
+		Port:            int(host.Connection.Port),
+		KeyFile:         host.Connection.PrivateKeyPath,
 		KeyPass:         "",
 		CheckKnownHosts: false,
 	}

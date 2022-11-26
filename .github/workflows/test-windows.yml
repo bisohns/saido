@@ -1,6 +1,6 @@
 on: 
   push:
-    branches: [ main, develop]
+    branches: [ main, develop,feature/test-goreleaser]
   pull_request:
     branches: [ main]
 name: Test-Windows
@@ -14,6 +14,30 @@ jobs:
           go-version:  '>=1.16'
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Cache node modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ./web/node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./web/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Cache go modules
+        id: cache-go-modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-go-modules
+        with:
+          path: ~/go
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
       - name: Choco Install make
         uses: crazy-max/ghaction-chocolatey@v1
         with:
