@@ -4,8 +4,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ReactComponent as ServerIcon } from "assets/svg/server.svg";
 import LoadingContent from "common/LoadingContent";
-import ThemeConfig, { theme } from "ThemeConfig";
-import useSocket from "hooks/useSocket";
+import ThemeConfig from "ThemeConfig";
 import { ServerGroupedByHostResponseType } from "./ServerType";
 import AppHeader from "AppHeader";
 
@@ -35,7 +34,7 @@ export default function ServerList({
           <Grid container spacing={2} my={10}>
             {Object.keys(serversGroupedByHost)?.map(
               (serverHost: string, index: number) => (
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={6} key={index}>
                   <Card
                     key={index}
                     style={{ background: ThemeConfig.palette.primary.light }}
