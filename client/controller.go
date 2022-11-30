@@ -69,24 +69,61 @@ func (hosts *HostsController) setReadOnlyHost(hostlist config.HostList) {
 	hosts.ReadOnlyHosts = hostlist
 }
 
+func (hosts *HostsController) handleError(err error, metric string, host config.Host, client *Client) {
+	var errorContent string
+	if !strings.Contains(fmt.Sprintf("%s", err), "127") {
+		errorContent = fmt.Sprintf("Could not retrieve metric %s from driver %s with error %s", metric, host.Address, err)
+	} else {
+		errorContent = fmt.Sprintf("Command %s not found on driver %s", metric, host.Address)
+	}
+	log.Debug(errorContent)
+	//FIXME: what kind of errors do we especially want to reset driver for
+	if _, ok := err.(*driver.SSHConnectError); ok {
+		hosts.resetDriver(host)
+	}
+	message := &SendMessage{
+		Message: ErrorMessage{
+			Error: errorContent,
+			Host:  host.Address,
+			Name:  metric,
+		},
+		Error: true,
+	}
+	client.Send <- message
+}
+
 func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
+	var (
+		err               error
+		data              []byte
+		initializedMetric inspector.Inspector
+		platformDetails   driver.SystemDetails
+	)
 	if hosts.getDriver(host.Address) == nil {
 		hosts.resetDriver(host)
 	}
 	for metric, custom := range hosts.Info.Metrics {
 		inspectorDriver := hosts.getDriver(host.Address)
-		initializedMetric, err := inspector.Init(metric, inspectorDriver, custom)
+		initializedMetric, err = inspector.Init(metric, inspectorDriver, custom)
 		if err != nil {
 			log.Error(err)
+			hosts.handleError(err, metric, host, client)
+			continue
 		}
-		data, err := initializedMetric.Execute()
+		platformDetails, err = (*inspectorDriver).GetDetails()
+		if err != nil {
+			log.Error(err)
+			hosts.handleError(err, metric, host, client)
+			continue
+		}
+		data, err = initializedMetric.Execute()
 		if err == nil {
 			var unmarsh interface{}
 			json.Unmarshal(data, &unmarsh)
 			message := &SendMessage{
 				Message: Message{
 					Host:     host.Address,
-					Platform: (*inspectorDriver).GetDetails().Name,
+					Platform: platformDetails.Name,
 					Name:     metric,
 					Data:     unmarsh,
 				},
@@ -96,27 +133,7 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 				client.Send <- message
 			}
 		} else {
-			// check for error 127 which means command was not found
-			var errorContent string
-			if !strings.Contains(fmt.Sprintf("%s", err), "127") {
-				errorContent = fmt.Sprintf("Could not retrieve metric %s from driver %s with error %s", metric, host.Address, err)
-			} else {
-				errorContent = fmt.Sprintf("Command %s not found on driver %s", metric, host.Address)
-			}
-			log.Debug(errorContent)
-			//FIXME: what kind of errors do we especially want to reset driver for
-			if _, ok := err.(*driver.SSHConnectError); ok {
-				hosts.resetDriver(host)
-			}
-			message := &SendMessage{
-				Message: ErrorMessage{
-					Error: errorContent,
-					Host:  host.Address,
-					Name:  metric,
-				},
-				Error: true,
-			}
-			client.Send <- message
+			hosts.handleError(err, metric, host, client)
 		}
 	}
 }

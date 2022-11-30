@@ -27,8 +27,8 @@ func TestWebRunCommand(t *testing.T) {
 
 func TestWebSystemDetails(t *testing.T) {
 	d := NewWebForTest()
-	details := d.GetDetails()
-	if !details.IsWeb {
+	details, err := d.GetDetails()
+	if err != nil || !details.IsWeb {
 		t.Errorf("Expected web driver for web test got %s", details.Name)
 	}
 }

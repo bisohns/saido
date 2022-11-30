@@ -40,7 +40,7 @@ redis2     0.07%     2.746 MB / 64 MB      4.29%     1.266 KB / 648 B    12.4 MB
 func (i *DockerStats) Parse(output string) {
 	var values []DockerStatsMetrics
 	var splitChars string
-	details := (*i.Driver).GetDetails()
+	details, _ := (*i.Driver).GetDetails()
 	if details.IsWindows {
 		splitChars = "\r\n"
 	} else {
@@ -121,7 +121,10 @@ func (i *DockerStats) Execute() ([]byte, error) {
 // NewDockerStats : Initialize a new DockerStats instance
 func NewDockerStats(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var dockerstats Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use LoadAvgDarwin on drivers outside (linux, darwin, windows)")
 	}

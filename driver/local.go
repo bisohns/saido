@@ -36,7 +36,10 @@ func (d *Local) RunCommand(command string) (string, error) {
 	var cmd *exec.Cmd
 	log.Debugf("Running command `%s` ", command)
 	if d.Info == nil {
-		d.GetDetails()
+		_, err := d.GetDetails()
+		if err != nil {
+			return ``, err
+		}
 	}
 	if d.Info.IsLinux || d.Info.IsDarwin {
 		cmd = exec.Command("bash", "-c", command)
@@ -58,7 +61,7 @@ func (d *Local) RunCommand(command string) (string, error) {
 	return string(out), nil
 }
 
-func (d *Local) GetDetails() SystemDetails {
+func (d *Local) GetDetails() (SystemDetails, error) {
 	if d.Info == nil {
 		details := &SystemDetails{}
 		details.Name = strings.Title(runtime.GOOS)
@@ -73,5 +76,5 @@ func (d *Local) GetDetails() SystemDetails {
 		details.Extra = runtime.GOARCH
 		d.Info = details
 	}
-	return *d.Info
+	return *d.Info, nil
 }
