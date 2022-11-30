@@ -52,6 +52,10 @@ export interface DockerData {}
 
 export interface UptimeData {}
 
+export interface TCPData {
+  Ports: Record<number,string>;
+}
+
 export interface ProcessData {
   Pid: number;
   Memory: number;

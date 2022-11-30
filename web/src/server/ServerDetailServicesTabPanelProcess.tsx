@@ -1,9 +1,9 @@
-import { getCoreRowModel } from "@tanstack/react-table";
-import { useVirtual } from "react-virtual";
-import Table from "common/Table";
-import useTable from "common/useTable";
-import React from "react";
-import { ProcessData, ServerResponseType } from "./ServerType";
+import { getCoreRowModel } from '@tanstack/react-table';
+import { useVirtual } from 'react-virtual';
+import Table from 'common/Table';
+import useTable from 'common/useTable';
+import React from 'react';
+import { ProcessData, ServerResponseType } from './ServerType';
 
 interface ServerDetailServicesTabPanelProcessType {
   serverName:
@@ -20,9 +20,13 @@ interface ServerDetailServicesTabPanelProcessType {
 export default function ServerDetailServicesTabPanelProcess(
   props: ServerDetailServicesTabPanelProcessType
 ) {
-  console.log(props);
+  const {
+    serverData: {
+      Message: { Data: data },
+    },
+  } = props;
   const tableInstance = useTable({
-    data:props.serverData.Message.Data,
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -40,7 +44,7 @@ export default function ServerDetailServicesTabPanelProcess(
   return (
     <Table
       ref={tableContainerRef}
-      variant="default"
+      variant='default'
       virtualization
       instance={tableInstance}
       virtualizationInstance={rowVirtualizer}
@@ -66,4 +70,3 @@ const columns = [
     accessorKey: 'Pid',
   },
 ];
-
