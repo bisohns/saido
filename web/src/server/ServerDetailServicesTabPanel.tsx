@@ -9,7 +9,7 @@ import ServerDetailServicesTabPanelMemory from "./ServerDetailServicesTabPanelMe
 import ServerDetailServicesTabPanelProcess from "./ServerDetailServicesTabPanelProcess";
 import ServerDetailServicesTabPanelTCP from "./ServerDetailServicesTabPanelTCP";
 import ServerDetailServicesTabPanelUptime from "./ServerDetailServicesTabPanelUptime";
-import { DiskData, LoadingAvgData, MemoryData, ServerResponseType, ServerServiceNameType } from "./ServerType";
+import { DiskData, LoadingAvgData, MemoryData, ProcessData, ServerResponseType, ServerServiceNameType } from "./ServerType";
 
 interface ServerDetailServicesTabPanelType {
   serverName: ServerServiceNameType;
@@ -69,7 +69,7 @@ export default function ServerDetailServicesTabPanel(
         content: (
           <ServerDetailServicesTabPanelProcess
             serverName={serverName}
-            serverData={serverData}
+            serverData={serverData as ServerResponseType<Array<ProcessData>>}
           />
         ),
       },

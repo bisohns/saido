@@ -3,24 +3,26 @@ import { useVirtual } from "react-virtual";
 import Table from "common/Table";
 import useTable from "common/useTable";
 import React from "react";
+import { ProcessData, ServerResponseType } from "./ServerType";
 
 interface ServerDetailServicesTabPanelProcessType {
   serverName:
-    | "disk"
-    | "docker"
-    | "uptime"
-    | "memory"
-    | "process"
-    | "loadavg"
-    | "tcp";
-  serverData: Object | [];
+    | 'disk'
+    | 'docker'
+    | 'uptime'
+    | 'memory'
+    | 'process'
+    | 'loadavg'
+    | 'tcp';
+  serverData: ServerResponseType<ProcessData[]>;
 }
 
 export default function ServerDetailServicesTabPanelProcess(
   props: ServerDetailServicesTabPanelProcessType
 ) {
+  console.log(props);
   const tableInstance = useTable({
-    data,
+    data:props.serverData.Message.Data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -48,26 +50,20 @@ export default function ServerDetailServicesTabPanelProcess(
 
 const columns = [
   {
-    header: "First Name",
-    accessorKey: "firstname",
+    header: 'Command',
+    accessorKey: 'Command',
   },
   {
-    header: "Last Name",
-    accessorKey: "lastname",
+    header: 'SessionName',
+    accessorKey: 'SessionName',
   },
   {
-    header: "Message",
-    accessorKey: "message",
+    header: 'Memory',
+    accessorKey: 'Memory',
   },
   {
-    header: "Created on",
-    accessorKey: "created_at",
+    header: 'Pid',
+    accessorKey: 'Pid',
   },
 ];
 
-const data = Array(1000).fill({
-  firstname: "Joseph",
-  lastname: "Edache",
-  message: "Hello",
-  created_at: Date.now(),
-});
