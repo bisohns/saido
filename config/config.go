@@ -116,7 +116,7 @@ func parseConnection(conn map[interface{}]interface{}) *Connection {
 func parseConfig(name string, host string, group map[interface{}]interface{}, currentConnection *Connection) []Host {
 	currentConn := currentConnection
 	allHosts := []Host{}
-	log.Infof("Loading config for %s and host: %s with Connection: %+v", name, host, currentConn)
+	log.Debugf("Loading config for %s and host: %s with Connection: %+v", name, host, currentConn)
 	isParent := false // Set to true for groups that contain just children data i.e children
 	if conn, ok := group["connection"]; ok {
 		v, ok := conn.(map[interface{}]interface{})
