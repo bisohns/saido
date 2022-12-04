@@ -92,7 +92,7 @@ func (hosts *HostsController) handleError(err error, metric string, host config.
 	client.Send <- message
 }
 
-func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
+func (hosts *HostsController) sendMetric(host config.Host, metrics map[string]string, client *Client) {
 	var (
 		err               error
 		data              []byte
@@ -102,7 +102,7 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 	if hosts.getDriver(host.Address) == nil {
 		hosts.resetDriver(host)
 	}
-	for metric, custom := range hosts.Info.Metrics {
+	for metric, custom := range metrics {
 		inspectorDriver := hosts.getDriver(host.Address)
 		initializedMetric, err = inspector.Init(metric, inspectorDriver, custom)
 		if err != nil {
@@ -145,7 +145,10 @@ func (hosts *HostsController) Poll(client *Client) {
 				return
 			}
 			if config.Contains(hosts.ReadOnlyHosts, host) {
-				go hosts.sendMetric(host, client)
+				// TODO: Decide if we want an override or a merge
+				// For now we use a merge
+				metrics := config.MergeMetrics(hosts.Info.Metrics, host.Metrics)
+				go hosts.sendMetric(host, metrics, client)
 			}
 		}
 		log.Debugf("Delaying for %d seconds", hosts.Info.PollInterval)
@@ -192,9 +195,16 @@ func (hosts *HostsController) ServeHTTP(w http.ResponseWriter, req *http.Request
 // NewHostsController : initialze host controller with config file
 func NewHostsController(cfg *config.Config) *HostsController {
 	dashboardInfo := config.GetDashboardInfoConfig(cfg)
-	for metric, _ := range dashboardInfo.Metrics {
+	for metric := range dashboardInfo.Metrics {
 		if !inspector.Valid(metric) {
 			log.Fatalf("%s is not a valid metric", metric)
+		}
+	}
+	for _, host := range dashboardInfo.Hosts {
+		for metric := range host.Metrics {
+			if !inspector.Valid(metric) {
+				log.Fatalf("%s is not a valid metric", metric)
+			}
 		}
 	}
 

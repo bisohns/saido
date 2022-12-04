@@ -86,8 +86,13 @@ func (i DockerStats) createMetric(
 	cpu float64,
 	memory float64,
 	pid int) DockerStatsMetrics {
+	// Usually measured in KiB so we remove 3 characters
 	lastMem := len(columns[0]) - 3
 	lastLim := len(columns[1]) - 3
+	if lastMem <= 0 || lastLim <= 0 {
+		lastMem = len(columns[0]) - 1
+		lastLim = len(columns[1]) - 1
+	}
 	memusageSize := columns[0][lastMem:]
 	limitSize := columns[1][lastLim:]
 	return DockerStatsMetrics{

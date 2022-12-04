@@ -12,14 +12,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type HostList = []string
+type Metrics = map[string]string
+
 type DashboardInfo struct {
 	Hosts        []Host
-	Metrics      map[string]string
+	Metrics      Metrics
 	Title        string
 	PollInterval int
 }
-
-type HostList = []string
 
 func Contains(hostList HostList, host Host) bool {
 	for _, compare := range hostList {
@@ -28,6 +29,17 @@ func Contains(hostList HostList, host Host) bool {
 		}
 	}
 	return false
+}
+
+func MergeMetrics(a, b Metrics) (metrics Metrics) {
+	metrics = Metrics{}
+	inputs := [2]Metrics{a, b}
+	for _, metric := range inputs {
+		for k, v := range metric {
+			metrics[k] = v
+		}
+	}
+	return
 }
 
 // GetAllHostAddresses : returns list of all hosts in the dashboard
@@ -53,6 +65,8 @@ type Host struct {
 	Address    string
 	Alias      string
 	Connection *Connection
+	// Metrics : extend global metrics with single metrics
+	Metrics Metrics
 }
 
 type Config struct {
@@ -75,6 +89,15 @@ func LoadConfig(configPath string) *Config {
 	return config
 }
 
+func coerceMetrics(rawMetrics map[interface{}]interface{}) map[string]string {
+	metrics := make(map[string]string)
+	for metric, customCommand := range rawMetrics {
+		metric := fmt.Sprintf("%v", metric)
+		metrics[metric] = fmt.Sprintf("%v", customCommand)
+	}
+	return metrics
+}
+
 func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 	dashboardInfo := &DashboardInfo{
 		Title: "Saido",
@@ -82,15 +105,9 @@ func GetDashboardInfoConfig(config *Config) *DashboardInfo {
 	if config.Title != "" {
 		dashboardInfo.Title = config.Title
 	}
-	metrics := make(map[string]string)
 
 	dashboardInfo.Hosts = parseConfig("root", "", config.Hosts, &Connection{})
-	for metric, customCommand := range config.Metrics {
-		metric := fmt.Sprintf("%v", metric)
-		metrics[metric] = fmt.Sprintf("%v", customCommand)
-
-	}
-	dashboardInfo.Metrics = metrics
+	dashboardInfo.Metrics = coerceMetrics(config.Metrics)
 	for _, host := range dashboardInfo.Hosts {
 		log.Debugf("%s: %v", host.Address, host.Connection)
 	}
@@ -121,7 +138,7 @@ func parseConfig(name string, host string, group map[interface{}]interface{}, cu
 	if conn, ok := group["connection"]; ok {
 		v, ok := conn.(map[interface{}]interface{})
 		if !ok {
-			log.Errorf("Failed to parse connection for %s", name)
+			log.Fatalf("Failed to parse connection for %s", name)
 		}
 
 		currentConn = parseConnection(v)
@@ -147,12 +164,21 @@ func parseConfig(name string, host string, group map[interface{}]interface{}, cu
 
 	if !isParent {
 		currentConn.Host = host
+
 		newHost := Host{
 			Address:    host,
 			Connection: currentConn,
 		}
 		if alias, ok := group["alias"]; ok {
 			newHost.Alias = alias.(string)
+		}
+		if metrics, ok := group["metrics"]; ok {
+			rawMetrics, ok := metrics.(map[interface{}]interface{})
+			if !ok {
+				log.Fatalf("Failed to parse metrics for %s", name)
+			}
+			individualMetrics := coerceMetrics(rawMetrics)
+			newHost.Metrics = individualMetrics
 		}
 
 		allHosts = append(allHosts, newHost)
