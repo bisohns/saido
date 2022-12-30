@@ -1,19 +1,16 @@
-import { getCoreRowModel } from '@tanstack/react-table';
-import { useVirtual } from 'react-virtual';
-import Table from 'common/Table';
-import useTable from 'common/useTable';
-import React from 'react';
-import { ProcessData, ServerResponseType } from './ServerType';
+import { getCoreRowModel } from "@tanstack/react-table";
+import { useVirtual } from "react-virtual";
+import Table from "common/Table";
+import useTable from "common/useTable";
+import React from "react";
+import {
+  ProcessData,
+  ServerResponseType,
+  ServerServiceNameType,
+} from "./ServerType";
 
 interface ServerDetailServicesTabPanelProcessType {
-  serverName:
-    | 'disk'
-    | 'docker'
-    | 'uptime'
-    | 'memory'
-    | 'process'
-    | 'loadavg'
-    | 'tcp';
+  serverName: ServerServiceNameType;
   serverData: ServerResponseType<ProcessData[]>;
 }
 
@@ -44,7 +41,7 @@ export default function ServerDetailServicesTabPanelProcess(
   return (
     <Table
       ref={tableContainerRef}
-      variant='default'
+      variant="default"
       virtualization
       instance={tableInstance}
       virtualizationInstance={rowVirtualizer}
@@ -54,19 +51,19 @@ export default function ServerDetailServicesTabPanelProcess(
 
 const columns = [
   {
-    header: 'Command',
-    accessorKey: 'Command',
+    header: "SessionName",
+    accessorKey: "SessionName",
   },
   {
-    header: 'SessionName',
-    accessorKey: 'SessionName',
+    header: "Memory",
+    accessorKey: "Memory",
   },
   {
-    header: 'Memory',
-    accessorKey: 'Memory',
+    header: "Pid",
+    accessorKey: "Pid",
   },
   {
-    header: 'Pid',
-    accessorKey: 'Pid',
+    header: "Command",
+    accessorKey: "Command",
   },
 ];
