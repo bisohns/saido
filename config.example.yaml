@@ -16,6 +16,8 @@ hosts:
         username: root 
         password: somethingSecret
         port: 2222
+      metrics:
+        process:
     "192.0.1.4":
       # local driver
       connection: 

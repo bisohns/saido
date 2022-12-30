@@ -58,7 +58,7 @@ func loadavgParseOutput(output string) *LoadAvgMetrics {
 }
 
 func (i *LoadAvgDarwin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsDarwin {
 		panic("Cannot use LoadAvgDarwin on drivers outside (darwin)")
 	}
@@ -97,7 +97,7 @@ func (i *LoadAvgLinux) Parse(output string) {
 }
 
 func (i *LoadAvgLinux) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsLinux {
 		panic("Cannot use LoadAvg on drivers outside (linux)")
 	}
@@ -130,7 +130,7 @@ func (i *LoadAvgWin) Parse(output string) {
 }
 
 func (i *LoadAvgWin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsWindows {
 		panic("Cannot use LoadAvgWin on drivers outside (windows)")
 	}
@@ -154,7 +154,10 @@ func (i *LoadAvgWin) Execute() ([]byte, error) {
 // NewLoadAvg : Initialize a new LoadAvg instance
 func NewLoadAvg(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var loadavg Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use LoadAvg on drivers outside (linux, darwin)")
 	}

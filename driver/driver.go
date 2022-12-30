@@ -26,7 +26,7 @@ type Driver interface {
 	ReadFile(path string) (string, error)
 	RunCommand(command string) (string, error)
 	// shows the driver details, not sure if we should be showing OS name
-	GetDetails() SystemDetails
+	GetDetails() (SystemDetails, error)
 }
 
 func ToDriver(conn config.Connection) Driver {

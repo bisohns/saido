@@ -129,7 +129,7 @@ func (d *SSH) RunCommand(command string) (string, error) {
 	return string(out), nil
 }
 
-func (d *SSH) GetDetails() SystemDetails {
+func (d *SSH) GetDetails() (SystemDetails, error) {
 	if d.Info == nil {
 		// TODO: Check for goph specific errors
 		// within RunCommand and only return errors that are not
@@ -145,7 +145,8 @@ func (d *SSH) GetDetails() SystemDetails {
 				}
 			} else {
 				//FIXME: Fix issue with establishing connection on SSH
-				panic(fmt.Sprintf("Could not find platform details for %s: %s", d.Host, err))
+				log.Errorf("Could not find platform details for %s: %s", d.Host, err)
+				return SystemDetails{}, err
 			}
 		}
 		details := &SystemDetails{}
@@ -160,5 +161,5 @@ func (d *SSH) GetDetails() SystemDetails {
 		}
 		d.Info = details
 	}
-	return *d.Info
+	return *d.Info, nil
 }

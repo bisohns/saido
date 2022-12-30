@@ -69,24 +69,61 @@ func (hosts *HostsController) setReadOnlyHost(hostlist config.HostList) {
 	hosts.ReadOnlyHosts = hostlist
 }
 
-func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
+func (hosts *HostsController) handleError(err error, metric string, host config.Host, client *Client) {
+	var errorContent string
+	if !strings.Contains(fmt.Sprintf("%s", err), "127") {
+		errorContent = fmt.Sprintf("Could not retrieve metric %s from driver %s with error %s", metric, host.Address, err)
+	} else {
+		errorContent = fmt.Sprintf("Command %s not found on driver %s", metric, host.Address)
+	}
+	log.Debug(errorContent)
+	//FIXME: what kind of errors do we especially want to reset driver for
+	if _, ok := err.(*driver.SSHConnectError); ok {
+		hosts.resetDriver(host)
+	}
+	message := &SendMessage{
+		Message: ErrorMessage{
+			Error: errorContent,
+			Host:  host.Address,
+			Name:  metric,
+		},
+		Error: true,
+	}
+	client.Send <- message
+}
+
+func (hosts *HostsController) sendMetric(host config.Host, metrics map[string]string, client *Client) {
+	var (
+		err               error
+		data              []byte
+		initializedMetric inspector.Inspector
+		platformDetails   driver.SystemDetails
+	)
 	if hosts.getDriver(host.Address) == nil {
 		hosts.resetDriver(host)
 	}
-	for metric, custom := range hosts.Info.Metrics {
+	for metric, custom := range metrics {
 		inspectorDriver := hosts.getDriver(host.Address)
-		initializedMetric, err := inspector.Init(metric, inspectorDriver, custom)
+		initializedMetric, err = inspector.Init(metric, inspectorDriver, custom)
 		if err != nil {
 			log.Error(err)
+			hosts.handleError(err, metric, host, client)
+			continue
 		}
-		data, err := initializedMetric.Execute()
+		platformDetails, err = (*inspectorDriver).GetDetails()
+		if err != nil {
+			log.Error(err)
+			hosts.handleError(err, metric, host, client)
+			continue
+		}
+		data, err = initializedMetric.Execute()
 		if err == nil {
 			var unmarsh interface{}
 			json.Unmarshal(data, &unmarsh)
 			message := &SendMessage{
 				Message: Message{
 					Host:     host.Address,
-					Platform: (*inspectorDriver).GetDetails().Name,
+					Platform: platformDetails.Name,
 					Name:     metric,
 					Data:     unmarsh,
 				},
@@ -96,27 +133,7 @@ func (hosts *HostsController) sendMetric(host config.Host, client *Client) {
 				client.Send <- message
 			}
 		} else {
-			// check for error 127 which means command was not found
-			var errorContent string
-			if !strings.Contains(fmt.Sprintf("%s", err), "127") {
-				errorContent = fmt.Sprintf("Could not retrieve metric %s from driver %s with error %s", metric, host.Address, err)
-			} else {
-				errorContent = fmt.Sprintf("Command %s not found on driver %s", metric, host.Address)
-			}
-			log.Debug(errorContent)
-			//FIXME: what kind of errors do we especially want to reset driver for
-			if _, ok := err.(*driver.SSHConnectError); ok {
-				hosts.resetDriver(host)
-			}
-			message := &SendMessage{
-				Message: ErrorMessage{
-					Error: errorContent,
-					Host:  host.Address,
-					Name:  metric,
-				},
-				Error: true,
-			}
-			client.Send <- message
+			hosts.handleError(err, metric, host, client)
 		}
 	}
 }
@@ -128,7 +145,10 @@ func (hosts *HostsController) Poll(client *Client) {
 				return
 			}
 			if config.Contains(hosts.ReadOnlyHosts, host) {
-				go hosts.sendMetric(host, client)
+				// TODO: Decide if we want an override or a merge
+				// For now we use a merge
+				metrics := config.MergeMetrics(hosts.Info.Metrics, host.Metrics)
+				go hosts.sendMetric(host, metrics, client)
 			}
 		}
 		log.Debugf("Delaying for %d seconds", hosts.Info.PollInterval)
@@ -175,9 +195,16 @@ func (hosts *HostsController) ServeHTTP(w http.ResponseWriter, req *http.Request
 // NewHostsController : initialze host controller with config file
 func NewHostsController(cfg *config.Config) *HostsController {
 	dashboardInfo := config.GetDashboardInfoConfig(cfg)
-	for metric, _ := range dashboardInfo.Metrics {
+	for metric := range dashboardInfo.Metrics {
 		if !inspector.Valid(metric) {
 			log.Fatalf("%s is not a valid metric", metric)
+		}
+	}
+	for _, host := range dashboardInfo.Hosts {
+		for metric := range host.Metrics {
+			if !inspector.Valid(metric) {
+				log.Fatalf("%s is not a valid metric", metric)
+			}
 		}
 	}
 

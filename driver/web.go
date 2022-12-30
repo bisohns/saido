@@ -62,7 +62,7 @@ func (d *Web) RunCommand(command string) (string, error) {
 	return ``, errors.New("Cannot read file on web driver")
 }
 
-func (d *Web) GetDetails() SystemDetails {
+func (d *Web) GetDetails() (SystemDetails, error) {
 	if d.Info == nil {
 		details := &SystemDetails{
 			Name:  "web",
@@ -71,5 +71,5 @@ func (d *Web) GetDetails() SystemDetails {
 		}
 		d.Info = details
 	}
-	return *d.Info
+	return *d.Info, nil
 }

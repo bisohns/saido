@@ -74,7 +74,7 @@ func (i *TcpDarwin) Parse(output string) {
 }
 
 func (i *TcpDarwin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsDarwin {
 		panic("Cannot use TcpDarwin on drivers outside (darwin)")
 	}
@@ -140,7 +140,7 @@ func (i *TcpLinux) Parse(output string) {
 }
 
 func (i *TcpLinux) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsLinux {
 		panic("Cannot use TcpLinux on drivers outside (linux)")
 	}
@@ -203,7 +203,7 @@ func (i *TcpWin) Parse(output string) {
 }
 
 func (i *TcpWin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsWindows {
 		panic("Cannot use TcpWin on drivers outside (windows)")
 	}
@@ -226,7 +226,10 @@ func (i *TcpWin) Execute() ([]byte, error) {
 // NewTcp: Initialize a new Tcp instance
 func NewTcp(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var tcp Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use Tcp on drivers outside (linux, darwin, windows)")
 	}

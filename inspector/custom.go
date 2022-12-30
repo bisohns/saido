@@ -36,7 +36,7 @@ func (i Custom) createMetric(output string) CustomMetrics {
 }
 
 func (i *Custom) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if details.IsWeb {
 		panic(fmt.Sprintf("Cannot use Custom(%s) on web", i.Command))
 	}
@@ -59,7 +59,10 @@ func (i *Custom) Execute() ([]byte, error) {
 // NewCustom : Initialize a new Custom instance
 func NewCustom(driver *driver.Driver, custom ...string) (Inspector, error) {
 	var customInspector Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if details.IsWeb {
 		return nil, errors.New(fmt.Sprintf("Cannot use Custom(%s) on web", custom))
 	}

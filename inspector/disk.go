@@ -212,7 +212,10 @@ func (i *DFWin) Execute() ([]byte, error) {
 // NewDF : Initialize a new DF instance
 func NewDF(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var df Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use 'df' command on drivers outside (linux, darwin, windows)")
 	}
