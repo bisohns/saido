@@ -24,7 +24,6 @@ export default function ServerDetail({
   setJsonMessage: (arg0: any) => void;
 }) {
   const { host } = useParams<{ host: string }>();
-  console.log("servicesGroupedByName", servicesGroupedByName);
 
   const [tabIndex, setTabIndex] = React.useState<number>(0);
 

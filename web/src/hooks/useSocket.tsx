@@ -43,8 +43,8 @@ export default function useSocket(options = {}) {
     process.env.NODE_ENV === "production" ? wssMetricsURL : wssMetricsBaseURL;
 
   const { sendJsonMessage, readyState } = useWebSocket(socketUrl, {
-    onOpen: () => console.log("WebSocket connection opened."),
-    onClose: () => console.log("WebSocket connection closed."),
+    onOpen: () => console.info("WebSocket connection opened."),
+    onClose: () => console.info("WebSocket connection closed."),
     shouldReconnect: (closeEvent) => true,
     onMessage: (event: WebSocketEventMap["message"]) => {
       const newMessage: ServerResponseType = JSON.parse(event.data);
@@ -65,8 +65,6 @@ export default function useSocket(options = {}) {
       sendJsonMessage(jsonMessage);
     }
   }, [jsonMessage]);
-
-  console.log("servers", servers);
 
   const connectionStatus: string = {
     [ReadyState.CONNECTING]: "Connecting",
