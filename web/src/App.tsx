@@ -11,31 +11,18 @@ function App() {
   const {
     servicesGroupedByName,
     serversGroupedByHost,
-    updateCount,
     connectionStatus,
-    sendJsonMessage,
+    setJsonMessage,
   } = useSocket();
-
-  const [servicesGroupByName, setServicesGroupByName] = React.useState<any>({});
-
-  const [servicesGroupByHost, setServicesGroupByHost] = React.useState<any>({});
-
-  React.useEffect(() => {
-    setServicesGroupByName(servicesGroupedByName);
-  }, [updateCount]);
-
-  React.useEffect(() => {
-    setServicesGroupByHost(serversGroupedByHost);
-  }, [updateCount]);
 
   const router = createBrowserRouter([
     {
       path: "/",
       element: (
         <ServerList
-          serversGroupedByHost={servicesGroupByHost}
+          serversGroupedByHost={serversGroupedByHost}
           connectionStatus={connectionStatus}
-          sendJsonMessage={sendJsonMessage}
+          setJsonMessage={setJsonMessage}
         />
       ),
     },
@@ -43,9 +30,9 @@ function App() {
       path: "/:host",
       element: (
         <ServerDetail
-          servicesGroupedByName={servicesGroupByName}
+          servicesGroupedByName={servicesGroupedByName}
           connectionStatus={connectionStatus}
-          sendJsonMessage={sendJsonMessage}
+          setJsonMessage={setJsonMessage}
         />
       ),
     },

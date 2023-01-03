@@ -11,16 +11,16 @@ import AppHeader from "AppHeader";
 export default function ServerList({
   serversGroupedByHost,
   connectionStatus,
-  sendJsonMessage,
+  setJsonMessage,
 }: {
   serversGroupedByHost: ServerGroupedByHostResponseType;
   connectionStatus: string;
-  sendJsonMessage: (arg0: any) => void;
+  setJsonMessage: (arg0: any) => void;
 }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    sendJsonMessage({ FilterBy: "" });
+    setJsonMessage({ FilterBy: "" });
   }, []);
 
   return (

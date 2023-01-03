@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Container } from "@mui/material";
 import { useParams } from "react-router-dom";
 import Tabs from "@mui/material/Tabs";
@@ -6,7 +6,6 @@ import Tab from "@mui/material/Tab";
 
 import PageHeader from "common/PageHeader";
 import LoadingContent from "../common/LoadingContent";
-import useSocket from "hooks/useSocket";
 import ServerDetailServicesTabPanel from "./ServerDetailServicesTabPanel";
 import {
   ServerGroupedByNameResponseType,
@@ -18,16 +17,20 @@ import AppHeader from "AppHeader";
 export default function ServerDetail({
   servicesGroupedByName,
   connectionStatus,
-  sendJsonMessage,
+  setJsonMessage,
 }: {
   servicesGroupedByName: ServerGroupedByNameResponseType;
   connectionStatus: string;
-  sendJsonMessage: (arg0: any) => void;
+  setJsonMessage: (arg0: any) => void;
 }) {
   const { host } = useParams<{ host: string }>();
+  console.log("servicesGroupedByName", servicesGroupedByName);
 
   const [tabIndex, setTabIndex] = React.useState<number>(0);
-  sendJsonMessage({ FilterBy: host });
+
+  useEffect(() => {
+    setJsonMessage({ FilterBy: host });
+  }, [host]);
 
   const handleChangeTabIndex = (
     event: React.SyntheticEvent,

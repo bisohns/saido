@@ -9,7 +9,15 @@ import ServerDetailServicesTabPanelMemory from "./ServerDetailServicesTabPanelMe
 import ServerDetailServicesTabPanelProcess from "./ServerDetailServicesTabPanelProcess";
 import ServerDetailServicesTabPanelTCP from "./ServerDetailServicesTabPanelTCP";
 import ServerDetailServicesTabPanelUptime from "./ServerDetailServicesTabPanelUptime";
-import { DiskData, LoadingAvgData, MemoryData, ProcessData, ServerResponseType, ServerServiceNameType, TCPData } from "./ServerType";
+import {
+  DiskData,
+  LoadingAvgData,
+  MemoryData,
+  ProcessData,
+  ServerResponseType,
+  ServerServiceNameType,
+  TCPData,
+} from "./ServerType";
 
 interface ServerDetailServicesTabPanelType {
   serverName: ServerServiceNameType;
@@ -108,5 +116,15 @@ export default function ServerDetailServicesTabPanel(
     (service: servicesTabPanelType) => serverName.startsWith(service.title)
   );
 
-  return <div>{activeServicesTabPanel?.content}</div>;
+  return (
+    <div>
+      {serverData?.Error ? (
+        <div style={{ textAlign: "center", color: "red" }}>
+          {serverData?.Message?.Error}
+        </div>
+      ) : (
+        activeServicesTabPanel?.content
+      )}
+    </div>
+  );
 }

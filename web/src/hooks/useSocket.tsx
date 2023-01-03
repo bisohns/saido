@@ -1,77 +1,86 @@
-import { useState } from 'react';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
+import { useEffect, useState } from "react";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 import {
   ServerGroupedByHostResponseType,
   ServerGroupedByNameResponseType,
+  ServerResponseByHostType,
   ServerResponseType,
-} from 'server/ServerType';
+} from "server/ServerType";
 
 const wssMetricsBaseURL = `${process.env.REACT_APP_WS_BASE_URL}/metrics`;
 const wssMetricsURL = `${
-  window.location.protocol === 'https:' ? 'wss' : 'ws'
+  window.location.protocol === "https:" ? "wss" : "ws"
 }://${window.location.host}/metrics`;
 /* 
   This hook is used to connect to the websocket server and send messages to it.
 */
 export default function useSocket(options = {}) {
-  const [servers, setServers] = useState<ServerResponseType[]>([]);
-  const [updateCount, setUpdateCount] = useState<number>(0);
+  const [servers, setServers] = useState<ServerResponseByHostType>({});
+  const [jsonMessage, setJsonMessage] = useState<{ [key: string]: string }>();
 
-  const serversGroupedByHost: ServerGroupedByHostResponseType = servers.reduce(
-    (group: any, server) => {
+  let serversHost: Array<ServerResponseType> =
+    servers[jsonMessage?.FilterBy as any] || [];
+
+  const serversGroupedByHost: ServerGroupedByHostResponseType =
+    serversHost.reduce((group: any, server) => {
       const { Message } = server;
       const { Host } = Message;
       group[Host] = group[Host] ?? [];
       group[Host].push(server);
       return group;
-    },
-    {}
-  );
+    }, {});
 
-  const servicesGroupedByName: ServerGroupedByNameResponseType = servers.reduce(
-    (group: any, server: any) => {
+  const servicesGroupedByName: ServerGroupedByNameResponseType =
+    serversHost.reduce((group: any, server: any) => {
       const { Message } = server;
-      const { Name,Host } = Message;
+      const { Name, Host } = Message;
       group[Name] = group[Name] ?? { data: [], Host };
       group[Name].data.push(server);
       return group;
-    },
-    {}
-  );
-
-  //   Uncomment during debugging
-  //   console.log('server', servers);
+    }, {});
 
   let socketUrl =
-    process.env.NODE_ENV === 'production' ? wssMetricsURL : wssMetricsBaseURL;
+    process.env.NODE_ENV === "production" ? wssMetricsURL : wssMetricsBaseURL;
 
   const { sendJsonMessage, readyState } = useWebSocket(socketUrl, {
-    onOpen: () => console.log('WebSocket connection opened.'),
-    onClose: () => console.log('WebSocket connection closed.'),
+    onOpen: () => console.log("WebSocket connection opened."),
+    onClose: () => console.log("WebSocket connection closed."),
     shouldReconnect: (closeEvent) => true,
-    onMessage: (event: WebSocketEventMap['message']) => {
+    onMessage: (event: WebSocketEventMap["message"]) => {
       const newMessage: ServerResponseType = JSON.parse(event.data);
-      // if (newMessage.Error) return;
-      setUpdateCount((updateCount) => updateCount + 1);
-      setServers((prev) => prev.concat(newMessage));
+      if (jsonMessage) {
+        setServers({
+          ...servers,
+          [jsonMessage?.FilterBy as string]: servers[
+            jsonMessage?.FilterBy as string
+          ]?.concat(newMessage) || [newMessage],
+        });
+      }
     },
     ...options,
   });
 
+  useEffect(() => {
+    if (jsonMessage) {
+      sendJsonMessage(jsonMessage);
+    }
+  }, [jsonMessage]);
+
+  console.log("servers", servers);
+
   const connectionStatus: string = {
-    [ReadyState.CONNECTING]: 'Connecting',
-    [ReadyState.OPEN]: 'Open',
-    [ReadyState.CLOSING]: 'Closing',
-    [ReadyState.CLOSED]: 'Closed',
-    [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
+    [ReadyState.CONNECTING]: "Connecting",
+    [ReadyState.OPEN]: "Open",
+    [ReadyState.CLOSING]: "Closing",
+    [ReadyState.CLOSED]: "Closed",
+    [ReadyState.UNINSTANTIATED]: "Uninstantiated",
   }[readyState];
 
   return {
     connectionStatus,
-    sendJsonMessage,
+    setJsonMessage,
     servers,
     serversGroupedByHost,
     servicesGroupedByName,
-    updateCount,
   };
 }

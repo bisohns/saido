@@ -1,11 +1,11 @@
 export type ServerServiceNameType =
-  | 'disk'
-  | 'docker'
-  | 'uptime'
-  | 'memory'
-  | 'process'
-  | 'loadavg'
-  | 'tcp';
+  | "disk"
+  | "docker"
+  | "uptime"
+  | "memory"
+  | "process"
+  | "loadavg"
+  | "tcp";
 
 export type ServerResponseMessageData =
   | Array<DiskData>
@@ -19,10 +19,24 @@ export interface ServerResponseType<T = ServerResponseMessageData> {
   Error: boolean;
   Message: {
     Host: string;
+    Error?: string;
     Name: ServerServiceNameType;
-    Platform: 'Windows' | 'Linux' | 'Darwin' | 'MacOS';
+    Platform: "Windows" | "Linux" | "Darwin" | "MacOS";
     Data: T;
   };
+}
+
+export interface ServerResponseByHostType<T = ServerResponseMessageData> {
+  [host: string]: Array<{
+    Error: boolean;
+    Message: {
+      Host: string;
+      Error?: string;
+      Name: ServerServiceNameType;
+      Platform: "Windows" | "Linux" | "Darwin" | "MacOS";
+      Data: T;
+    };
+  }>;
 }
 
 export interface MemoryData {
@@ -53,7 +67,7 @@ export interface DockerData {}
 export interface UptimeData {}
 
 export interface TCPData {
-  Ports: Record<number,string>;
+  Ports: Record<number, string>;
 }
 
 export interface ProcessData {
