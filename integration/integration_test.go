@@ -88,6 +88,29 @@ func TestMemInfoonSSH(t *testing.T) {
 	}
 }
 
+func TestTemponSSH(t *testing.T) {
+	if SkipNonLinuxOnCI() {
+		return
+	}
+	d := NewSSHForTest()
+	i, _ := inspector.NewTemp(&d)
+	i.Execute()
+	iConcreteLinux, ok := i.(*inspector.TempLinux)
+	if ok {
+		if iConcreteLinux.Values == nil {
+			t.Error("Values did not get set for TempLinux")
+		}
+		fmt.Printf(`%#v`, iConcreteLinux.Values)
+	}
+	iConcreteDarwin, ok := i.(*inspector.TempDarwin)
+	if ok {
+		if iConcreteDarwin.Values == nil {
+			t.Error("Values did not get set for TempDarwin")
+		}
+		fmt.Printf(`%#v`, iConcreteDarwin.Values)
+	}
+}
+
 func TestResponseTimeonWeb(t *testing.T) {
 	d := NewWebForTest()
 	i, _ := inspector.NewResponseTime(&d)

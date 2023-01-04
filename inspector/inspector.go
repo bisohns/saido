@@ -29,7 +29,7 @@ var inspectorMap = map[string]NewInspector{
 	`process`:     NewProcess,
 	`loadavg`:     NewLoadAvg,
 	`tcp`:         NewTcp,
-	`temperature`: NewTemp,
+	`temp`:        NewTemp,
 	CustomCommand: NewCustom,
 	// NOTE: Inactive for now
 	`responsetime`: NewResponseTime,

@@ -93,6 +93,20 @@ func TestDFonLocal(t *testing.T) {
 	}
 }
 
+func TestTemponLocal(t *testing.T) {
+	d := NewLocalForTest()
+	i, _ := inspector.Init(`temp`, &d)
+	i.Execute()
+	iConcrete, ok := i.(*inspector.TempWin)
+	if ok {
+		fmt.Printf("%#v", iConcrete.Values)
+		if iConcrete.Values == nil {
+			t.Error("TempWin not set on Windows")
+		}
+	}
+
+}
+
 func TestTcponLocal(t *testing.T) {
 	d := NewLocalForTest()
 	i, _ := inspector.Init(`tcp`, &d)

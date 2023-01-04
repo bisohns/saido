@@ -28,6 +28,27 @@ func TestDFonLocal(t *testing.T) {
 	fmt.Printf(`%#v`, iConcrete.Values)
 }
 
+func TestTemponLocal(t *testing.T) {
+	d := NewLocalForTest()
+	// can either use NewDF() or get the interface and perform type assertion
+	i, _ := inspector.NewTemp(&d)
+	i.Execute()
+	iConcreteLinux, ok := i.(*inspector.TempLinux)
+	if ok {
+		if iConcreteLinux.Values == nil {
+			t.Error("Values did not get set for TempLinux")
+		}
+		fmt.Printf(`%#v`, iConcreteLinux.Values)
+	}
+	iConcreteDarwin, ok := i.(*inspector.TempDarwin)
+	if ok {
+		if iConcreteDarwin.Values == nil {
+			t.Error("Values did not get set for TempDarwin")
+		}
+		fmt.Printf(`%#v`, iConcreteDarwin.Values)
+	}
+}
+
 func TestMemInfoonLocal(t *testing.T) {
 	d := NewLocalForTest()
 	i, _ := inspector.NewMemInfo(&d)
