@@ -1,13 +1,13 @@
-import Table from 'common/Table';
-import useTable from 'common/useTable';
-import React, { useMemo } from 'react';
-import { getCoreRowModel } from '@tanstack/react-table';
+import Table from "common/Table";
+import useTable from "common/useTable";
+import React, { useMemo } from "react";
+import { getCoreRowModel } from "@tanstack/react-table";
 import {
   ServerResponseType,
   ServerServiceNameType,
   TCPData,
-} from './ServerType';
-import { useVirtual } from 'react-virtual';
+} from "./ServerType";
+import { useVirtual } from "react-virtual";
 
 interface ServerDetailServicesTabPanelTCPType {
   serverName: ServerServiceNameType;
@@ -55,7 +55,7 @@ export default function ServerDetailServicesTabPanelTCP(
   return (
     <Table
       ref={tableContainerRef}
-      variant='default'
+      variant="default"
       virtualization
       instance={tableInstance}
       virtualizationInstance={rowVirtualizer}
@@ -65,11 +65,11 @@ export default function ServerDetailServicesTabPanelTCP(
 
 const columns = [
   {
-    header: 'Port',
-    accessorKey: 'Port',
+    header: "Port",
+    accessorKey: "Port",
   },
   {
-    header: 'State',
-    accessorKey: 'State',
+    header: "State",
+    accessorKey: "State",
   },
 ];

@@ -11,12 +11,14 @@ import ServerDetailServicesTabPanelTCP from "./ServerDetailServicesTabPanelTCP";
 import ServerDetailServicesTabPanelUptime from "./ServerDetailServicesTabPanelUptime";
 import {
   DiskData,
+  DockerData,
   LoadingAvgData,
   MemoryData,
   ProcessData,
   ServerResponseType,
   ServerServiceNameType,
   TCPData,
+  UptimeData,
 } from "./ServerType";
 
 interface ServerDetailServicesTabPanelType {
@@ -37,6 +39,15 @@ export default function ServerDetailServicesTabPanel(
   const servicesTabPanel: servicesTabPanelType[] = useMemo(
     () => [
       {
+        title: ServerNameEnum.DOCKER as ServerServiceNameType,
+        content: (
+          <ServerDetailServicesTabPanelDocker
+            serverName={serverName}
+            serverData={serverData as ServerResponseType<Array<DockerData>>}
+          />
+        ),
+      },
+      {
         title: ServerNameEnum.DISK as ServerServiceNameType,
         content: (
           <ServerDetailServicesTabPanelDisk
@@ -45,12 +56,13 @@ export default function ServerDetailServicesTabPanel(
           />
         ),
       },
+
       {
-        title: ServerNameEnum.DOCKER as ServerServiceNameType,
+        title: ServerNameEnum.UPTIME as ServerServiceNameType,
         content: (
-          <ServerDetailServicesTabPanelDocker
+          <ServerDetailServicesTabPanelUptime
             serverName={serverName}
-            serverData={serverData}
+            serverData={serverData as ServerResponseType<UptimeData>}
           />
         ),
       },
@@ -90,15 +102,7 @@ export default function ServerDetailServicesTabPanel(
           />
         ),
       },
-      {
-        title: ServerNameEnum.UPTIME as ServerServiceNameType,
-        content: (
-          <ServerDetailServicesTabPanelUptime
-            serverName={serverName}
-            serverData={serverData}
-          />
-        ),
-      },
+
       {
         title: ServerNameEnum.CUSTOM as ServerServiceNameType,
         content: (

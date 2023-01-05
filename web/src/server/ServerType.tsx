@@ -10,10 +10,11 @@ export type ServerServiceNameType =
 export type ServerResponseMessageData =
   | Array<DiskData>
   | MemoryData
-  | DockerData
+  | Array<DockerData>
   | UptimeData
-  | ProcessData
-  | LoadingAvgData;
+  | Array<ProcessData>
+  | LoadingAvgData
+  | TCPData;
 
 export interface ServerResponseType<T = ServerResponseMessageData> {
   Error: boolean;
@@ -62,9 +63,21 @@ export interface LoadingAvgData {
   Load15M: number;
 }
 
-export interface DockerData {}
+export interface DockerData {
+  CPU: 5.52;
+  ContainerID: "ab180d7dd324";
+  ContainerName: "fastmeet-fast-meet-1";
+  Limit: 7851.008;
+  MemPercent: 45.46;
+  MemUsage: 3568.64;
+  Pid: 148;
+}
 
-export interface UptimeData {}
+export interface UptimeData {
+  Idle: number;
+  IdlePercent: number;
+  Up: number;
+}
 
 export interface TCPData {
   Ports: Record<number, string>;
