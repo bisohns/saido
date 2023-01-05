@@ -23,3 +23,9 @@ code {
 .p-4 {
   padding: 1rem;
 }
+
+.layout-grid-auto {
+  display: grid;
+  grid-gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}

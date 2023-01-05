@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import AppThemeProvider from "./AppThemeProvider";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -6,14 +6,15 @@ import ServerList from "./server/ServerList";
 import ServerDetail from "./server/ServerDetail";
 import useSocket from "hooks/useSocket";
 import ThemeConfig from "ThemeConfig";
+import { Box } from "@mui/material";
 
 function App() {
-  const {
-    servicesGroupedByName,
-    serversGroupedByHost,
-    connectionStatus,
-    setJsonMessage,
-  } = useSocket();
+  const { serversGroupedByHost, connectionStatus, setJsonMessage } =
+    useSocket();
+
+  useEffect(() => {
+    document.body.style.backgroundColor = `${ThemeConfig.palette.common.black}`;
+  }, []);
 
   const router = createBrowserRouter([
     {
@@ -42,11 +43,12 @@ function App() {
     <AppThemeProvider>
       <div
         style={{
-          background: `${ThemeConfig.palette.common.black}`,
           minHeight: "100vh",
+          height: "100%",
         }}
       >
         <RouterProvider router={router} />
+        <Box mb={10} />
       </div>
     </AppThemeProvider>
   );
