@@ -1,5 +1,5 @@
-import React from 'react';
-import { ServerServiceNameType } from './ServerType';
+import React from "react";
+import { ServerServiceNameType } from "./ServerType";
 
 interface ServerDetailServicesTabPanelLoadAvgType {
   serverName: ServerServiceNameType;
@@ -10,7 +10,7 @@ interface ServerDetailServicesTabPanelLoadAvgType {
 export default function ServerDetailServicesTabPanelCustom(
   props: ServerDetailServicesTabPanelLoadAvgType
 ) {
-    const { serverData } = props;
+  const { serverData } = props;
 
   if (serverData.Error) {
     return (
@@ -23,7 +23,9 @@ export default function ServerDetailServicesTabPanelCustom(
   return (
     <div>
       <h1>{serverData.Message.Data.Command}</h1>
-      <pre className="text-white bg-black p-4">{serverData.Message?.Data?.Output}</pre>
+      <pre className="text-white bg-black p-4">
+        {serverData.Message?.Data?.Output}
+      </pre>
     </div>
   );
 }

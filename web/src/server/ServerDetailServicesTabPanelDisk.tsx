@@ -1,5 +1,5 @@
-import React from 'react';
-import styled from '@emotion/styled';
+import React from "react";
+import styled from "@emotion/styled";
 import {
   BarChart,
   Bar,
@@ -8,13 +8,14 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-} from 'recharts';
+  ResponsiveContainer,
+} from "recharts";
 
 import {
   DiskData,
   ServerResponseType,
   ServerServiceNameType,
-} from './ServerType';
+} from "./ServerType";
 
 interface ServerDetailServicesTabPanelDiskType {
   serverName: ServerServiceNameType;
@@ -36,19 +37,18 @@ export default function ServerDetailServicesTabPanelDisk(
 
   return (
     <Div>
-      {
-        /* <ServicesTabPanel /> */
-        <BarChart width={900} height={500} data={Data}>
-          <CartesianGrid strokeDasharray='3 3' />
-          <XAxis dataKey='FileSystem' />
+      <ResponsiveContainer width="100%" height={500}>
+        <BarChart data={Data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="FileSystem" />
           <YAxis />
           <Tooltip />
           <Legend />
-          <Bar dataKey='Available' fill='#8884d8' />
-          <Bar dataKey='Used' fill='red' />
-          <Bar dataKey='Size' fill='green' />
+          <Bar dataKey="Available" fill="#8884d8" />
+          <Bar dataKey="Used" fill="red" />
+          <Bar dataKey="Size" fill="green" />
         </BarChart>
-      }
+      </ResponsiveContainer>
     </Div>
   );
 }

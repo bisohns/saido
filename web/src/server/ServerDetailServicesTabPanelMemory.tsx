@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer,
 } from "recharts";
 import {
   MemoryData,
@@ -34,10 +35,8 @@ export default function ServerDetailServicesTabPanelMemory(
   } = props;
   return (
     <Div>
-      {
-        /* <ServicesTabPanel /> */
-        // <ResponsiveContainer width='100%' height='100%'>
-        <BarChart width={900} height={500} data={[Data]}>
+      <ResponsiveContainer width="100%" height={500}>
+        <BarChart data={[Data]}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="FileSystem" />
           <YAxis />
@@ -48,8 +47,7 @@ export default function ServerDetailServicesTabPanelMemory(
           <Bar dataKey="SwapFree" fill="#bc5090" />
           <Bar dataKey="SwapTotal" fill="#ff6361" />
         </BarChart>
-        // </ResponsiveContainer>
-      }
+      </ResponsiveContainer>
     </Div>
   );
 }
