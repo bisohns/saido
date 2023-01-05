@@ -8,24 +8,25 @@ import PageHeader from "common/PageHeader";
 import LoadingContent from "../common/LoadingContent";
 import ServerDetailServicesTabPanel from "./ServerDetailServicesTabPanel";
 import {
-  ServerGroupedByNameResponseType,
+  ServerGroupedByHostResponseType,
   ServerResponseType,
-  ServerServiceNameType,
 } from "./ServerType";
 import AppHeader from "AppHeader";
 
 export default function ServerDetail({
-  servicesGroupedByName,
+  servers,
   connectionStatus,
   setJsonMessage,
 }: {
-  servicesGroupedByName: ServerGroupedByNameResponseType;
+  servers: ServerGroupedByHostResponseType;
   connectionStatus: string;
   setJsonMessage: (arg0: any) => void;
 }) {
   const { host } = useParams<{ host: string }>();
 
   const [tabIndex, setTabIndex] = React.useState<number>(0);
+
+  const services = servers[host as string];
 
   useEffect(() => {
     setJsonMessage({ FilterBy: host });
@@ -59,29 +60,25 @@ export default function ServerDetail({
               variant="scrollable"
               scrollButtons="auto"
             >
-              {Object.keys(servicesGroupedByName)
+              {services
                 ?.sort()
-                ?.map((serverName: string, index: number) => (
-                  <Tab label={serverName} key={index} />
+                ?.map((service: ServerResponseType, index: number) => (
+                  <Tab label={service.Message.Name} key={index} />
                 ))}
             </Tabs>
 
-            {Object.keys(servicesGroupedByName)
+            {services
               ?.sort()
-              ?.map((serverName: string, index: number) => {
-                if (host !== servicesGroupedByName[serverName].Host)
-                  return null;
+              ?.map((service: ServerResponseType, index: number) => {
+                // if (host !== servicesGroupedByName[serverName].Host)
+                //   return null;
 
                 return (
                   <div key={index}>
                     {index === tabIndex && (
                       <ServerDetailServicesTabPanel
-                        serverName={serverName as ServerServiceNameType}
-                        serverData={
-                          servicesGroupedByName[
-                            serverName as ServerServiceNameType
-                          ]?.data?.at(-1) as ServerResponseType
-                        } // get the last object of service
+                        serverName={service.Message.Name}
+                        serverData={service}
                       />
                     )}
                   </div>

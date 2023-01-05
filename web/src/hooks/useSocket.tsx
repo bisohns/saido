@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import {
   ServerGroupedByHostResponseType,
-  ServerGroupedByNameResponseType,
   ServerResponseByHostType,
   ServerResponseType,
 } from "server/ServerType";
@@ -18,44 +17,45 @@ export default function useSocket(options = {}) {
   const [servers, setServers] = useState<ServerResponseByHostType>({});
   const [jsonMessage, setJsonMessage] = useState<{ [key: string]: string }>();
 
-  let serversHost: Array<ServerResponseType> =
-    servers[jsonMessage?.FilterBy as any] || [];
+  const serversGroupedByHost: ServerGroupedByHostResponseType = servers;
 
-  const serversGroupedByHost: ServerGroupedByHostResponseType =
-    serversHost.reduce((group: any, server) => {
-      const { Message } = server;
-      const { Host } = Message;
-      group[Host] = group[Host] ?? [];
-      group[Host].push(server);
-      return group;
-    }, {});
-
-  const servicesGroupedByName: ServerGroupedByNameResponseType =
-    serversHost.reduce((group: any, server: any) => {
-      const { Message } = server;
-      const { Name, Host } = Message;
-      group[Name] = group[Name] ?? { data: [], Host };
-      group[Name].data.push(server);
-      return group;
-    }, {});
+  const servicesGroupedByName: ServerGroupedByHostResponseType = servers;
 
   let socketUrl =
     process.env.NODE_ENV === "production" ? wssMetricsURL : wssMetricsBaseURL;
 
+  // console.log("servers", servers);
   const { sendJsonMessage, readyState } = useWebSocket(socketUrl, {
     onOpen: () => console.info("WebSocket connection opened."),
     onClose: () => console.info("WebSocket connection closed."),
     shouldReconnect: (closeEvent) => true,
     onMessage: (event: WebSocketEventMap["message"]) => {
       const newMessage: ServerResponseType = JSON.parse(event.data);
-      if (jsonMessage) {
-        setServers({
-          ...servers,
-          [jsonMessage?.FilterBy as string]: servers[
-            jsonMessage?.FilterBy as string
-          ]?.concat(newMessage) || [newMessage],
-        });
-      }
+
+      const newMessageGroupedByHost: ServerGroupedByHostResponseType = [
+        newMessage,
+      ].reduce((group: any, server) => {
+        const { Message } = server;
+        const { Host } = Message;
+        const serverHost = servers?.[Host] ?? [];
+
+        const serviceIndex = serverHost.findIndex(
+          (value) => value.Message.Name === server.Message.Name
+        );
+
+        if (serviceIndex > -1) {
+          servers[Host][serviceIndex] = server;
+        } else {
+          group[Host] = [...serverHost, server];
+        }
+
+        return group;
+      }, {});
+
+      setServers({
+        ...servers,
+        ...newMessageGroupedByHost,
+      });
     },
     ...options,
   });

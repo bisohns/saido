@@ -9,11 +9,11 @@ import { ServerGroupedByHostResponseType } from "./ServerType";
 import AppHeader from "AppHeader";
 
 export default function ServerList({
-  serversGroupedByHost,
+  servers,
   connectionStatus,
   setJsonMessage,
 }: {
-  serversGroupedByHost: ServerGroupedByHostResponseType;
+  servers: ServerGroupedByHostResponseType;
   connectionStatus: string;
   setJsonMessage: (arg0: any) => void;
 }) {
@@ -32,51 +32,46 @@ export default function ServerList({
           error={connectionStatus === "Closed"}
         >
           <Grid container spacing={2} my={10}>
-            {Object.keys(serversGroupedByHost)?.map(
-              (serverHost: string, index: number) => (
-                <Grid item xs={12} md={6} key={index}>
-                  <Card
-                    key={index}
-                    style={{ background: ThemeConfig.palette.primary.light }}
-                  >
-                    <CardActionArea onClick={() => navigate(`/${serverHost}`)}>
-                      <Box
-                        display={"flex"}
-                        justifyContent="center"
-                        alignItems="center"
-                        flexDirection="column"
-                        my={5}
+            {Object.keys(servers)?.map((serverHost: string, index: number) => (
+              <Grid item xs={12} md={6} key={index}>
+                <Card
+                  key={index}
+                  style={{ background: ThemeConfig.palette.primary.light }}
+                >
+                  <CardActionArea onClick={() => navigate(`/${serverHost}`)}>
+                    <Box
+                      display={"flex"}
+                      justifyContent="center"
+                      alignItems="center"
+                      flexDirection="column"
+                      my={5}
+                    >
+                      <ServerIcon width={"100px"} />
+                      <Typography
+                        textTransform={"capitalize"}
+                        mb={2}
+                        noWrap
+                        fontWeight={600}
+                        style={{
+                          color: ThemeConfig.palette.common.white,
+                        }}
                       >
-                        <ServerIcon width={"100px"} />
-                        <Typography
-                          textTransform={"capitalize"}
-                          mb={2}
-                          noWrap
-                          fontWeight={600}
-                          style={{
-                            color: ThemeConfig.palette.common.white,
-                          }}
-                        >
-                          <>
-                            {serverHost} -{" "}
-                            <span
-                              style={{
-                                color: ThemeConfig.palette.success.dark,
-                              }}
-                            >
-                              {
-                                serversGroupedByHost[serverHost]?.[0]?.Message
-                                  ?.Platform
-                              }
-                            </span>
-                          </>
-                        </Typography>
-                      </Box>
-                    </CardActionArea>
-                  </Card>
-                </Grid>
-              )
-            )}
+                        <>
+                          {serverHost} -{" "}
+                          <span
+                            style={{
+                              color: ThemeConfig.palette.success.dark,
+                            }}
+                          >
+                            {servers[serverHost]?.[0]?.Message?.Platform}
+                          </span>
+                        </>
+                      </Typography>
+                    </Box>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
         </LoadingContent>
       </Container>

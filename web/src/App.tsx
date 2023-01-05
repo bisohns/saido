@@ -20,7 +20,7 @@ function App() {
       path: "/",
       element: (
         <ServerList
-          serversGroupedByHost={serversGroupedByHost}
+          servers={serversGroupedByHost}
           connectionStatus={connectionStatus}
           setJsonMessage={setJsonMessage}
         />
@@ -30,7 +30,7 @@ function App() {
       path: "/:host",
       element: (
         <ServerDetail
-          servicesGroupedByName={servicesGroupedByName}
+          servers={serversGroupedByHost}
           connectionStatus={connectionStatus}
           setJsonMessage={setJsonMessage}
         />
