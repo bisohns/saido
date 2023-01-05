@@ -101,12 +101,12 @@ func (i *UptimeDarwin) Parse(output string) {
 	switchedOn, err := strconv.Atoi(lines[1])
 	idleTime, err := strconv.ParseFloat(lines[2], 64)
 	if err != nil {
-		panic("Could not parse times in UptimeDarwin")
-	}
-
-	i.Values = &UptimeMetrics{
-		Up:          float64(unixTime - switchedOn),
-		IdlePercent: idleTime,
+		log.Errorf("Could not parse times in UptimeDarwin: %e", err)
+	} else {
+		i.Values = &UptimeMetrics{
+			Up:          float64(unixTime - switchedOn),
+			IdlePercent: idleTime,
+		}
 	}
 }
 
@@ -150,10 +150,11 @@ func (i *UptimeWindows) Parse(output string) {
 	upUnformatted := strings.Split(output, "\n")[1]
 	up, err := strconv.ParseFloat(upUnformatted, 64)
 	if err != nil {
-		panic(err)
-	}
-	i.Values = &UptimeMetrics{
-		Up: up,
+		log.Error("Error parsing windows uptime", err)
+	} else {
+		i.Values = &UptimeMetrics{
+			Up: up,
+		}
 	}
 }
 

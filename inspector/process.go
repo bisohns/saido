@@ -163,15 +163,16 @@ func (i *ProcessWin) Parse(output string) {
 			pidRaw := columns[colLength-5]
 			pid, err := strconv.Atoi(pidRaw)
 			if err != nil {
-				panic("Could not parse pid for row")
-			}
-			if i.TrackPID != 0 && i.TrackPID == pid {
-				value := i.createMetric(columns, pid)
-				values = append(values, value)
-				break
-			} else if i.TrackPID == 0 {
-				value := i.createMetric(columns, pid)
-				values = append(values, value)
+				log.Errorf("Could not parse pid for row: %e", err)
+			} else {
+				if i.TrackPID != 0 && i.TrackPID == pid {
+					value := i.createMetric(columns, pid)
+					values = append(values, value)
+					break
+				} else if i.TrackPID == 0 {
+					value := i.createMetric(columns, pid)
+					values = append(values, value)
+				}
 			}
 		}
 	}

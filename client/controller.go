@@ -104,13 +104,13 @@ func (hosts *HostsController) sendMetric(host config.Host, metrics map[string]st
 	}
 	for metric, custom := range metrics {
 		inspectorDriver := hosts.getDriver(host.Address)
-		initializedMetric, err = inspector.Init(metric, inspectorDriver, custom)
+		platformDetails, err = (*inspectorDriver).GetDetails()
 		if err != nil {
 			log.Error(err)
 			hosts.handleError(err, metric, host, client)
 			continue
 		}
-		platformDetails, err = (*inspectorDriver).GetDetails()
+		initializedMetric, err = inspector.Init(metric, inspectorDriver, custom)
 		if err != nil {
 			log.Error(err)
 			hosts.handleError(err, metric, host, client)

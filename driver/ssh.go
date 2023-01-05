@@ -124,6 +124,13 @@ func (d *SSH) RunCommand(command string) (string, error) {
 	}
 	out, err := client.Run(command)
 	if err != nil {
+		// Connection has to be rebooted cuz EOF
+		if strings.Contains(fmt.Sprintf("%s", err), "EOF") {
+			err = &SSHConnectError{
+				content: err.Error(),
+				client:  d.Host,
+			}
+		}
 		return ``, err
 	}
 	return string(out), nil
