@@ -140,7 +140,7 @@ func (i *MemInfoLinux) Execute() ([]byte, error) {
 
 func parseIntoNewByteSize(input string, displayBytes string) (int, error) {
 	if len(input) < 1 {
-		return 0, nil
+		return 0, errors.New(fmt.Sprintf("could not parse %s into new byte size", input))
 	}
 	unit := string(input[len(input)-1])
 	modified := strings.TrimSuffix(input, unit)
@@ -155,34 +155,37 @@ func parseIntoNewByteSize(input string, displayBytes string) (int, error) {
 5120.00M 1194.00M
 */
 func (i *MemInfoDarwin) Parse(output string) {
+	var (
+		err          error
+		memUnusedInt int
+		memUsedInt   int
+	)
 	rows := strings.Split(output, "\n")
 	physMemRaw := rows[0]
 	swapRaw := rows[1]
 	physMemCols := strings.Fields(physMemRaw)
 	swapCols := strings.Fields(swapRaw)
-	memUsedInt, err := parseIntoNewByteSize(physMemCols[0], i.DisplayByteSize)
+	memUsedInt, err = parseIntoNewByteSize(physMemCols[0], i.DisplayByteSize)
+	memUnusedInt, err = parseIntoNewByteSize(physMemCols[1], i.DisplayByteSize)
 	if err != nil {
-		panic("Error parsing memory on MemInfoDarwin")
+		log.Errorf("Error parsing memory on MemInfoDarwin %e", err)
+	} else {
+		memTotal := fmt.Sprintf("%d", memUsedInt+memUnusedInt)
+		swapTotal := strings.TrimSuffix(swapCols[0], "M")
+		swapFree := strings.TrimSuffix(swapCols[1], "M")
+		//TODO: Figure out where to get cached size
+		i.Values = createMetric(
+			[]string{
+				memTotal,
+				fmt.Sprintf("%d", memUnusedInt),
+				`0`,
+				swapTotal,
+				swapFree,
+			},
+			i.RawByteSize,
+			i.DisplayByteSize,
+		)
 	}
-	memUnusedInt, err := parseIntoNewByteSize(physMemCols[1], i.DisplayByteSize)
-	if err != nil {
-		panic("Error parsing memory on MemInfoDarwin")
-	}
-	memTotal := fmt.Sprintf("%d", memUsedInt+memUnusedInt)
-	swapTotal := strings.TrimSuffix(swapCols[0], "M")
-	swapFree := strings.TrimSuffix(swapCols[1], "M")
-	//TODO: Figure out where to get cached size
-	i.Values = createMetric(
-		[]string{
-			memTotal,
-			fmt.Sprintf("%d", memUnusedInt),
-			`0`,
-			swapTotal,
-			swapFree,
-		},
-		i.RawByteSize,
-		i.DisplayByteSize,
-	)
 }
 
 func (i *MemInfoDarwin) SetDriver(driver *driver.Driver) {
