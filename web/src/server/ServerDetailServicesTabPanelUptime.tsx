@@ -1,6 +1,4 @@
-import React, { useMemo } from "react";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { Pie } from "react-chartjs-2";
+import React from "react";
 import {
   ServerResponseType,
   ServerServiceNameType,
@@ -16,8 +14,6 @@ interface ServerDetailServicesTabPanelUptimeType {
   serverName: ServerServiceNameType;
   serverData: ServerResponseType<UptimeData>;
 }
-
-ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function ServerDetailServicesTabPanelUptime(
   props: ServerDetailServicesTabPanelUptimeType
