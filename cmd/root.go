@@ -60,6 +60,7 @@ var rootCmd = &cobra.Command{
 		} else {
 			log.SetLevel(log.InfoLevel)
 		}
+		fmt.Println(args)
 		cfg = config.LoadConfig(cfgFile)
 		hosts := client.NewHostsController(cfg)
 
@@ -96,5 +97,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Run saido in verbose mode")
 	rootCmd.Flags().BoolVarP(&browserFlag, "open-browser", "b", false, "Prompt open browser")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to config file")
-	cobra.MarkFlagRequired(rootCmd.PersistentFlags(), "config")
+	if len(os.Args) >= 2 && os.Args[1] != "version" || len(os.Args) == 1 {
+		cobra.MarkFlagRequired(rootCmd.PersistentFlags(), "config")
+	}
 }
