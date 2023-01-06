@@ -55,7 +55,7 @@ export default function ServerDetailServicesTabPanelUptime(
 const columns = [
   {
     header: "Idle",
-    accessorFn: (row: UptimeData) => toDaysMinutesSeconds(row.Up),
+    accessorFn: (row: UptimeData) => toDaysMinutesSeconds(row.Idle),
   },
   {
     header: "IdlePercent",
