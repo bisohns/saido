@@ -1,8 +1,8 @@
 on: 
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop,feature/test-goreleaser]
   pull_request:
-    branches: [ main ]
+    branches: [ main]
 name: Test-MacOs
 jobs:
   test:
@@ -11,11 +11,40 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version:  '>=1.16'
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Cache node modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ./web/node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./web/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Cache go modules
+        id: cache-go-modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-go-modules
+        with:
+          path: ~/go
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('./go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
       - name: Setup config script 
         # using locals for mac-OS because github CI mac platforms don't have docker
-        run: make prep-ci-local
+        run: | 
+          make prep-ci-local
+          make dependencies
+          make build-frontend
       - name: Test
-        run: go test -v ./...
+        run: | 
+          go mod tidy  
+          go test -v ./...

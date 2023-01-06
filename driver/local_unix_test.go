@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 package driver
@@ -17,8 +18,8 @@ func TestUnixLocalRunCommand(t *testing.T) {
 
 func TestUnixLocalSystemDetails(t *testing.T) {
 	d := Local{}
-	details := d.GetDetails()
-	if !(details.IsLinux || details.IsDarwin) {
+	details, err := d.GetDetails()
+	if err != nil || !(details.IsLinux || details.IsDarwin) {
 		t.Errorf("Expected Darwin or Linux on unix test, got %s", details.Name)
 	}
 }

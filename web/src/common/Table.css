@@ -1,0 +1,130 @@
+.Table__container {
+  min-height: 300px;
+  max-height: calc(100vh - 250px);
+  overflow: auto;
+  border: 2px solid #9ac4f215
+}
+.Table {
+  
+  width: 100%;
+
+  background: inherit;
+}
+
+.Table__table {
+  min-width: 100%;
+  background: inherit;
+  /* text-indent: 0; */
+  /* border-color: inherit; */
+  border-collapse: collapse;
+}
+
+.Table__table__header {
+  top: 0;
+}
+
+.Table__pagination {
+  justify-content: flex-end;
+  bottom: 0;
+}
+
+.Table__table__header,
+.Table__table__footer {
+  font-weight: bold;
+}
+
+.Table__table__header,
+/* .Table__table__footer, */
+.Table__pagination {
+  position: sticky;
+  z-index: 10;
+}
+
+.Table__table__header__row,
+.Table__table__body__row,
+.Table__table__footer__row {
+  border-bottom: 1px solid #9ac4f215;
+}
+
+.Table__table__header__row--relative,
+.Table__table__body__row--relative,
+.Table__table__footer__row--relative {
+  display: flex;
+  min-width: 100%;
+}
+
+.Table__table__header__row--absolute,
+.Table__table__body__row--absolute,
+.Table__table__footer__row--absolute {
+  display: flex;
+  position: relative;
+  height: 40px;
+}
+
+.Table__table__header__row__cell,
+.Table__table__body__row__cell,
+.Table__table__footer__row__cell {
+  position: relative;
+  background-color: black;
+  color: rgba(255, 255, 255, 0.713);
+  padding: 8px;
+  /* height: 48px; */
+  text-align: left;
+}
+
+.Table__table__header__row__cell--relative,
+.Table__table__body__row__cell--relative,
+.Table__table__footer__row__cell--relative {
+  flex: 1 0 auto;
+}
+
+.Table__table__header__row__cell--absolute,
+.Table__table__body__row__cell--absolute,
+.Table__table__footer__row__cell--absolute {
+  position: absolute;
+  height: 40px;
+}
+
+.Table__loading,
+.Table__empty,
+.Table__error {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.Table__loading,
+.Table__empty,
+.Table__error,
+.Table__pagination {
+  position: sticky;
+  left: 0;
+  right: 0;
+}
+
+.Table__resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+}
+
+.Table__resizer.Table__resizing {
+  background: blue;
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .Table__resizer {
+    opacity: 0;
+  }
+
+  *:hover > .Table__resizer {
+    opacity: 1;
+  }
+}

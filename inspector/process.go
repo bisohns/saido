@@ -50,7 +50,7 @@ type ProcessWin struct {
 }
 
 func (i *Process) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !(details.IsLinux || details.IsDarwin) {
 		panic("Cannot use Process on drivers outside (linux, darwin)")
 	}
@@ -163,15 +163,16 @@ func (i *ProcessWin) Parse(output string) {
 			pidRaw := columns[colLength-5]
 			pid, err := strconv.Atoi(pidRaw)
 			if err != nil {
-				panic("Could not parse pid for row")
-			}
-			if i.TrackPID != 0 && i.TrackPID == pid {
-				value := i.createMetric(columns, pid)
-				values = append(values, value)
-				break
-			} else if i.TrackPID == 0 {
-				value := i.createMetric(columns, pid)
-				values = append(values, value)
+				log.Errorf("Could not parse pid for row: %e", err)
+			} else {
+				if i.TrackPID != 0 && i.TrackPID == pid {
+					value := i.createMetric(columns, pid)
+					values = append(values, value)
+					break
+				} else if i.TrackPID == 0 {
+					value := i.createMetric(columns, pid)
+					values = append(values, value)
+				}
 			}
 		}
 	}
@@ -197,7 +198,7 @@ func (i *ProcessWin) createMetric(columns []string, pid int) ProcessMetricsWin {
 }
 
 func (i *ProcessWin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsWindows {
 		panic("Cannot use ProcessWin on drivers outside (windows)")
 	}
@@ -220,7 +221,10 @@ func (i *ProcessWin) Execute() ([]byte, error) {
 // NewProcess : Initialize a new Process instance
 func NewProcess(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var process Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use Process on drivers outside (linux, darwin, windows)")
 	}

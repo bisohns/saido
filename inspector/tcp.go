@@ -38,7 +38,9 @@ type TcpWin struct {
 	Values  TcpMetrics
 }
 
-/* Parse : parsing the following kind of output
+/*
+	Parse : parsing the following kind of output
+
 Active Internet connections (including servers)
 Proto Recv-Q Send-Q  Local Address          Foreign Address        (state)
 tcp4       0      0  127.0.0.1.53300        127.0.0.1.59972        ESTABLISHED
@@ -61,7 +63,8 @@ func (i *TcpDarwin) Parse(output string) {
 			portString := address[len(address)-1]
 			port, err := strconv.Atoi(portString)
 			if err != nil {
-				log.Fatal("Could not parse port number in TcpDarwin")
+				log.Error("Could not parse port number in TcpDarwin")
+				continue
 			}
 			ports[port] = status
 
@@ -71,7 +74,7 @@ func (i *TcpDarwin) Parse(output string) {
 }
 
 func (i *TcpDarwin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsDarwin {
 		panic("Cannot use TcpDarwin on drivers outside (darwin)")
 	}
@@ -103,8 +106,6 @@ CLOSE-WAIT  1         0            127.0.0.1:54638         127.0.0.1:45481
 Parse for output (netstat)
 Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
 tcp        0      0 172.17.0.2:2222         172.17.0.1:51874        ESTABLISHED 2104/sshd.pam: ci-d
-
-
 */
 func (i *TcpLinux) Parse(output string) {
 	ports := make(map[int]string)
@@ -129,7 +130,7 @@ func (i *TcpLinux) Parse(output string) {
 			portString := address[len(address)-1]
 			port, err := strconv.Atoi(portString)
 			if err != nil {
-				log.Errorf("Could not parse port number in TcpLinux %s", err.Error())
+				log.Debugf("ERROR: Could not parse port number in TcpLinux %s", err.Error())
 				continue
 			}
 			ports[port] = status
@@ -139,7 +140,7 @@ func (i *TcpLinux) Parse(output string) {
 }
 
 func (i *TcpLinux) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsLinux {
 		panic("Cannot use TcpLinux on drivers outside (linux)")
 	}
@@ -163,17 +164,18 @@ func (i *TcpLinux) Execute() ([]byte, error) {
 	return []byte(""), err
 }
 
-/* Parse for output
+/*
+	Parse for output
 
 Active Connections
 
-  Proto  Local Address          Foreign Address        State
-  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:445            0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:5040           0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:5700           0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:6646           0.0.0.0:0              LISTENING
-  TCP    0.0.0.0:49664          0.0.0.0:0              LISTENING
+	Proto  Local Address          Foreign Address        State
+	TCP    0.0.0.0:135            0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:445            0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:5040           0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:5700           0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:6646           0.0.0.0:0              LISTENING
+	TCP    0.0.0.0:49664          0.0.0.0:0              LISTENING
 */
 func (i *TcpWin) Parse(output string) {
 	ports := make(map[int]string)
@@ -190,7 +192,8 @@ func (i *TcpWin) Parse(output string) {
 			portString := address[len(address)-1]
 			port, err := strconv.Atoi(portString)
 			if err != nil {
-				log.Fatal("Could not parse port number in TcpWin")
+				log.Error("Could not parse port number in TcpWin")
+				continue
 			}
 			ports[port] = status
 
@@ -200,7 +203,7 @@ func (i *TcpWin) Parse(output string) {
 }
 
 func (i *TcpWin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsWindows {
 		panic("Cannot use TcpWin on drivers outside (windows)")
 	}
@@ -223,7 +226,10 @@ func (i *TcpWin) Execute() ([]byte, error) {
 // NewTcp: Initialize a new Tcp instance
 func NewTcp(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var tcp Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use Tcp on drivers outside (linux, darwin, windows)")
 	}

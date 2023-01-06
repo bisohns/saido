@@ -55,7 +55,10 @@ func (i *ResponseTime) Execute() ([]byte, error) {
 // NewResponseTime : Initialize a new ResponseTime instance
 func NewResponseTime(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var responsetime Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsWeb) {
 		return nil, errors.New("Cannot use response time outside driver (web)")
 	}

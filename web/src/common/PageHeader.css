@@ -1,0 +1,11 @@
+.PageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 10px 0;
+  flex-wrap: wrap;
+}
+
+.PageHeader__title {
+  font-weight: 800;
+}

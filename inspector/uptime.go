@@ -66,7 +66,7 @@ func (i *UptimeLinux) Parse(output string) {
 }
 
 func (i *UptimeLinux) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsLinux {
 		panic("Cannot use UptimeLinux on drivers outside (linux)")
 	}
@@ -101,17 +101,17 @@ func (i *UptimeDarwin) Parse(output string) {
 	switchedOn, err := strconv.Atoi(lines[1])
 	idleTime, err := strconv.ParseFloat(lines[2], 64)
 	if err != nil {
-		panic("Could not parse times in UptimeDarwin")
-	}
-
-	i.Values = &UptimeMetrics{
-		Up:          float64(unixTime - switchedOn),
-		IdlePercent: idleTime,
+		log.Errorf("Could not parse times in UptimeDarwin: %e", err)
+	} else {
+		i.Values = &UptimeMetrics{
+			Up:          float64(unixTime - switchedOn),
+			IdlePercent: idleTime,
+		}
 	}
 }
 
 func (i *UptimeDarwin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsDarwin {
 		panic("Cannot use UptimeDarwin on drivers outside (darwin)")
 	}
@@ -150,15 +150,16 @@ func (i *UptimeWindows) Parse(output string) {
 	upUnformatted := strings.Split(output, "\n")[1]
 	up, err := strconv.ParseFloat(upUnformatted, 64)
 	if err != nil {
-		panic(err)
-	}
-	i.Values = &UptimeMetrics{
-		Up: up,
+		log.Error("Error parsing windows uptime", err)
+	} else {
+		i.Values = &UptimeMetrics{
+			Up: up,
+		}
 	}
 }
 
 func (i *UptimeWindows) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsWindows {
 		panic("Cannot use UptimeWindows on drivers outside (windows)")
 	}
@@ -181,7 +182,10 @@ func (i *UptimeWindows) Execute() ([]byte, error) {
 // NewUptime : Initialize a new Uptime instance
 func NewUptime(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var uptime Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsDarwin || details.IsLinux || details.IsWindows) {
 		return nil, errors.New("Cannot use Uptime on drivers outside (linux, darwin, windows)")
 	}
