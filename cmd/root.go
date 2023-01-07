@@ -17,44 +17,69 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"strconv"
 
+	"github.com/bisohns/saido/client"
+	"github.com/bisohns/saido/config"
+	"github.com/gorilla/handlers"
+	"github.com/pkg/browser"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
-	"github.com/bisohns/saido/config"
-)
-
-var (
-	cfgFile string
-	cfg     *config.Config
-
-	// Verbose : Should display verbose logs
-	verbose       bool
-	dashboardInfo *config.DashboardInfo
 )
 
 const appName = "saido"
 
+var (
+	port   string
+	server = http.NewServeMux()
+	// Verbose : Should display verbose logs
+	verbose bool
+	// open browser
+	browserFlag bool
+
+	cfgFile string
+	cfg     *config.Config
+)
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "saido",
-	Short: "TUI for monitoring specific host metrics",
+	Short: "Tool for monitoring metrics",
 	Long:  ``,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// Log only errors except in Verbose mode
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		fmt.Println("\n\nSaido - Bisohns (2020) (https://github.com/bisohns/saido)")
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		if verbose {
 			log.SetLevel(log.DebugLevel)
 		} else {
-			//      log.SetLevel(log.InfoLevel)
-			log.SetLevel(log.DebugLevel)
+			log.SetLevel(log.InfoLevel)
 		}
-	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		fmt.Println("\n\nSaido - Bisoncorp (2020) (https://github.com/bisohns/saido)")
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		log.Info("Saido is running ...")
+		fmt.Println(args)
+		cfg = config.LoadConfig(cfgFile)
+		hosts := client.NewHostsController(cfg)
+
+		server.Handle("/metrics", hosts)
+		log.Info("listening on :", port)
+		_, err := strconv.Atoi(port)
+		if err != nil {
+			log.Fatal(err)
+		}
+		go hosts.Run()
+		loggedRouters := handlers.LoggingHandler(os.Stdout, server)
+		// Trigger browser open
+		url := fmt.Sprintf("http://localhost:%s", port)
+		if browserFlag {
+			browser.OpenURL(url)
+		}
+		if err := http.ListenAndServe(":"+port, loggedRouters); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -68,13 +93,11 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	rootCmd.Flags().StringVarP(&port, "port", "p", "3000", "Port to run application server on")
+	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Run saido in verbose mode")
+	rootCmd.Flags().BoolVarP(&browserFlag, "open-browser", "b", false, "Prompt open browser")
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to config file")
-
-	cobra.MarkFlagRequired(rootCmd.PersistentFlags(), "config")
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	cfg = config.LoadConfig(cfgFile)
+	if len(os.Args) >= 2 && os.Args[1] != "version" || len(os.Args) == 1 {
+		cobra.MarkFlagRequired(rootCmd.PersistentFlags(), "config")
+	}
 }

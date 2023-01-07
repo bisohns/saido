@@ -21,7 +21,7 @@ func (client *Client) Write() {
 		if err != nil {
 			log.Error("Error inside client write ", err)
 			// check socket connection has been closed and end writer
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseInternalServerErr) || err == websocket.ErrCloseSent {
 				return
 			}
 		}

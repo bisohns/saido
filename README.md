@@ -19,26 +19,28 @@ For personal usage, install latest from [Github Releases](https://github.com/bis
 
 ```bash
 # binary is downloaded and named as saido
-saido api
+saido --config config.yaml --port 3000 --verbose
 ```
 
 
 ### Development
 
-With Golang installed, run
+#### Requirements
+- [Golang](https://go.dev/doc/install)
+- [Docker](https://docs.docker.com/get-docker/)
+- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/)
+- [Air](https://github.com/cosmtrek/air)
 
 ```bash
 git clone https://github.com/bisohns/saido
 cd saido
-## Update Golang dependencies
-go get .
+## Update dependencies
+make dependencies
 
-## Update yarn dependencies
-cd web
-yarn install
+# Build and serve frontend
+make app
 
-# Run websocket server and serve frontend
-go run main.go api
+# Modify generated `config-test.yaml` file and air would reload server
 ```
 
 ## Deployment

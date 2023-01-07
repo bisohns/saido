@@ -118,7 +118,7 @@ func (i *MemInfoLinux) Parse(output string) {
 }
 
 func (i *MemInfoLinux) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsLinux {
 		panic("Cannot use MeminfoLinux outside (linux)")
 	}
@@ -140,7 +140,7 @@ func (i *MemInfoLinux) Execute() ([]byte, error) {
 
 func parseIntoNewByteSize(input string, displayBytes string) (int, error) {
 	if len(input) < 1 {
-		return 0, nil
+		return 0, errors.New(fmt.Sprintf("could not parse %s into new byte size", input))
 	}
 	unit := string(input[len(input)-1])
 	modified := strings.TrimSuffix(input, unit)
@@ -155,38 +155,41 @@ func parseIntoNewByteSize(input string, displayBytes string) (int, error) {
 5120.00M 1194.00M
 */
 func (i *MemInfoDarwin) Parse(output string) {
+	var (
+		err          error
+		memUnusedInt int
+		memUsedInt   int
+	)
 	rows := strings.Split(output, "\n")
 	physMemRaw := rows[0]
 	swapRaw := rows[1]
 	physMemCols := strings.Fields(physMemRaw)
 	swapCols := strings.Fields(swapRaw)
-	memUsedInt, err := parseIntoNewByteSize(physMemCols[0], i.DisplayByteSize)
+	memUsedInt, err = parseIntoNewByteSize(physMemCols[0], i.DisplayByteSize)
+	memUnusedInt, err = parseIntoNewByteSize(physMemCols[1], i.DisplayByteSize)
 	if err != nil {
-		panic("Error parsing memory on MemInfoDarwin")
+		log.Errorf("Error parsing memory on MemInfoDarwin %e", err)
+	} else {
+		memTotal := fmt.Sprintf("%d", memUsedInt+memUnusedInt)
+		swapTotal := strings.TrimSuffix(swapCols[0], "M")
+		swapFree := strings.TrimSuffix(swapCols[1], "M")
+		//TODO: Figure out where to get cached size
+		i.Values = createMetric(
+			[]string{
+				memTotal,
+				fmt.Sprintf("%d", memUnusedInt),
+				`0`,
+				swapTotal,
+				swapFree,
+			},
+			i.RawByteSize,
+			i.DisplayByteSize,
+		)
 	}
-	memUnusedInt, err := parseIntoNewByteSize(physMemCols[1], i.DisplayByteSize)
-	if err != nil {
-		panic("Error parsing memory on MemInfoDarwin")
-	}
-	memTotal := fmt.Sprintf("%d", memUsedInt+memUnusedInt)
-	swapTotal := strings.TrimSuffix(swapCols[0], "M")
-	swapFree := strings.TrimSuffix(swapCols[1], "M")
-	//TODO: Figure out where to get cached size
-	i.Values = createMetric(
-		[]string{
-			memTotal,
-			fmt.Sprintf("%d", memUnusedInt),
-			`0`,
-			swapTotal,
-			swapFree,
-		},
-		i.RawByteSize,
-		i.DisplayByteSize,
-	)
 }
 
 func (i *MemInfoDarwin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsDarwin {
 		panic("Cannot use MeminfoDarwin outside (darwin)")
 	}
@@ -266,7 +269,7 @@ func (i *MemInfoWin) Parse(output string) {
 }
 
 func (i *MemInfoWin) SetDriver(driver *driver.Driver) {
-	details := (*driver).GetDetails()
+	details, _ := (*driver).GetDetails()
 	if !details.IsWindows {
 		panic("Cannot use MeminfoWin outside (windows)")
 	}
@@ -299,7 +302,10 @@ func (i *MemInfoWin) Execute() ([]byte, error) {
 // NewMemInfoLinux : Initialize a new MemInfoLinux instance
 func NewMemInfo(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var meminfo Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use MemInfo on drivers outside (linux, darwin, windows)")
 	}

@@ -1,0 +1,17 @@
+.TableEmptyContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; 
+  padding: 10px 0 10px 0;
+  position: sticky;
+  left: 0;
+  right: 0;
+}
+.TableEmptyContent__icon {
+  font-size: 100px;
+}
+
+.TableEmptyContent__text {
+  font-weight: 700;
+}

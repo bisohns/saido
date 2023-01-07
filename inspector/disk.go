@@ -160,21 +160,22 @@ func (i *DFWin) Parse(output string) {
 			available, err := strconv.Atoi(columns[3])
 			size, err := strconv.Atoi(columns[5])
 			if err != nil {
-				panic("Could not parse sizes for DFWin")
-			}
-			used := size - available
-			percentInt := int((float64(used) / float64(size)) * 100)
-			cols := []string{
-				columns[1],
-				fmt.Sprintf("%d", size),
-				fmt.Sprintf("%d", used),
-				fmt.Sprintf("%d", available),
-				columns[6],
-			}
-			if strings.HasPrefix(columns[1], i.DeviceStartsWith) {
-				values = append(values, i.createMetric(cols, percentInt))
+				log.Errorf("Could not parse sizes for DFWin %e", err)
 			} else {
-				values = append(values, i.createMetric(cols, percentInt))
+				used := size - available
+				percentInt := int((float64(used) / float64(size)) * 100)
+				cols := []string{
+					columns[1],
+					fmt.Sprintf("%d", size),
+					fmt.Sprintf("%d", used),
+					fmt.Sprintf("%d", available),
+					columns[6],
+				}
+				if strings.HasPrefix(columns[1], i.DeviceStartsWith) {
+					values = append(values, i.createMetric(cols, percentInt))
+				} else {
+					values = append(values, i.createMetric(cols, percentInt))
+				}
 			}
 		}
 	}
@@ -212,7 +213,10 @@ func (i *DFWin) Execute() ([]byte, error) {
 // NewDF : Initialize a new DF instance
 func NewDF(driver *driver.Driver, _ ...string) (Inspector, error) {
 	var df Inspector
-	details := (*driver).GetDetails()
+	details, err := (*driver).GetDetails()
+	if err != nil {
+		return nil, err
+	}
 	if !(details.IsLinux || details.IsDarwin || details.IsWindows) {
 		return nil, errors.New("Cannot use 'df' command on drivers outside (linux, darwin, windows)")
 	}

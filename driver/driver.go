@@ -1,5 +1,7 @@
 package driver
 
+import "github.com/bisohns/saido/config"
+
 // SystemInfo gives more insight into system details
 type SystemDetails struct {
 	IsWindows bool
@@ -24,5 +26,22 @@ type Driver interface {
 	ReadFile(path string) (string, error)
 	RunCommand(command string) (string, error)
 	// shows the driver details, not sure if we should be showing OS name
-	GetDetails() SystemDetails
+	GetDetails() (SystemDetails, error)
+}
+
+func ToDriver(conn config.Connection) Driver {
+	switch conn.Type {
+	case "ssh":
+		return &SSH{
+			User:            conn.Username,
+			Host:            conn.Host,
+			Port:            int(conn.Port),
+			KeyFile:         conn.PrivateKeyPath,
+			KeyPass:         conn.PrivateKeyPassPhrase,
+			Password:        conn.Password,
+			CheckKnownHosts: false,
+		}
+	default:
+		return &Local{}
+	}
 }

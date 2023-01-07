@@ -16,6 +16,8 @@ hosts:
         username: root 
         password: somethingSecret
         port: 2222
+      metrics:
+        process:
     "192.0.1.4":
       # local driver
       connection: 
@@ -44,4 +46,4 @@ metrics:
   custom-uptime: "cat /proc/uptime"
   custom-dir: 'dir C:\'
   custom-echo: 'echo $HOME'
-poll-interval: 30
+poll-interval: 10
