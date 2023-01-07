@@ -79,11 +79,14 @@ func (i *DF) Parse(output string) {
 				log.Fatalf(`Error Parsing Percent Full: %s `, err)
 			}
 			// find size
-			for index := range columns {
-				_, err := strconv.ParseInt(columns[index], 0, 64)
+			originalColumns := columns
+			for index := range originalColumns {
+				_, err := strconv.ParseInt(originalColumns[index], 0, 64)
 				if err == nil {
-					columns[0] = strings.Join(columns[:index], " ")
-					columns[1] = columns[index]
+					columns[0] = strings.Join(originalColumns[:index], " ")
+					columns[1] = originalColumns[index]
+					columns[2] = originalColumns[index+1]
+					columns[3] = originalColumns[index+2]
 					break
 				}
 			}
@@ -138,7 +141,8 @@ type DFWin struct {
 	Values []DFMetrics
 }
 
-/* Parse : For the following windows output
+/*
+	Parse : For the following windows output
 
 Node,DeviceID,DriveType,FreeSpace,ProviderName,Size,VolumeName
 IMANI,C:,3,191980253184,,288303964160,OS
