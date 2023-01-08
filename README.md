@@ -7,6 +7,9 @@ saido means monitor in [Hausa](https://en.wikipedia.org/wiki/Hausa_language)
 [![Test-MacOs](https://github.com/bisohns/saido/actions/workflows/test-macos.yml/badge.svg)](https://github.com/bisohns/saido/actions/workflows/test-macos.yml)
 [![Test-Windows](https://github.com/bisohns/saido/actions/workflows/test-windows.yml/badge.svg)](https://github.com/bisohns/saido/actions/workflows/test-windows.yml)
 
+## Demo
+![Demo](assets/demo.gif)
+
 ## Installation
 NOTE: We've currently only tested on `Mac Os`, `Windows 11` and `Linux Ubuntu 20.04 LTS`
 ### Installing Binary
@@ -26,7 +29,7 @@ $env:Path += ";<path_to_saido_binary>"
 #### Linux or Mac OS 
 ```bash 
 #Add saido to your `.bashrc` or `.zshrc`
-alias saido='<path_to_saido_binary>' 
+alias saido="<path_to_saido_binary>" 
 
 #Or Copy binary to your bin directory
 cp <path_to_saido_binary> /usr/local/bin 
@@ -131,14 +134,14 @@ poll-interval: 10
 hosts:
    children:
    # Host with host name `0.0.0.0`
-     "0.0.0.0":
+     '0.0.0.0':
       connection:
         # define `connection` with `type` as `ssh` 
         type: ssh
         # define `username` and `port` and `private_key_path` for connection to ssh server
         username: <username>
         port: 2222
-        private_key_path: "path_to_private_key"
+        private_key_path: 'path_to_private_key'
 metrics:
   memory:
   disk:
@@ -152,14 +155,14 @@ poll-interval: 10
 hosts:
    children:
    # Host with host name `0.0.0.0`
-     "0.0.0.0":
+     '0.0.0.0':
       connection:
         # define `connection` with `type` as `ssh` 
         type: ssh
         # define `username` and `port` , `private_key_path` and `private_key_passphrase` for connection to ssh server
         username: <username>
         port: 2222
-        private_key_path: <"path_to_private_key">
+        private_key_path: <'path_to_private_key'>
         private_key_passphrase: <private_key_passphrase>
 metrics:
   memory:
@@ -240,7 +243,7 @@ hosts:
             type: local
         metrics:
             disk: 
-# Polling interval set to 5 seconds
+# polling-interval set to 5 seconds
 poll-interval: 5  
 ```
 
